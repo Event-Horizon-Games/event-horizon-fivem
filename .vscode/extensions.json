@@ -1,13 +1,16 @@
 {
     "recommendations": [
-        "fivem-vscode.fivem-vscode",
-        "eamodio.gitlens",
-        "oderwat.indent-rainbow",
+        "ms-azure-devops.azure-pipelines",
+        "ms-vscode.azure-account",
         "MS-vsliveshare.vsliveshare",
-        "sumneko.lua",
+        "eamodio.gitlens",
+        "aaron-bond.better-comments",
+        "oderwat.indent-rainbow",
         "shd101wyy.markdown-preview-enhanced",
         "DavidAnson.vscode-markdownlint",
-        "aaron-bond.better-comments"
+        "sumneko.lua",
+        "fivem-vscode.fivem-vscode",
+        "ihyajb.qbcore-code-snippets"
     ],
 
     "unwantedRecommendations": [
