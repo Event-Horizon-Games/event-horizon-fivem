@@ -1,0 +1,2 @@
+Drag and drop the "nm_avent.ytd" file from the "B & B" folder into the "stream" folder. Replace the file when it asks to.
+Then drag and drop the "carcols.meta" file from the "B & B" folder into the "data" folder. Replace the file when it asks to.
