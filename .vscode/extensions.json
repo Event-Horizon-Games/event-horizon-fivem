@@ -1,0 +1,20 @@
+{
+    "recommendations": [
+        "ms-azure-devops.azure-pipelines",
+        "ms-vscode.azure-account",
+        "MS-vsliveshare.vsliveshare",
+        "eamodio.gitlens",
+        "aaron-bond.better-comments",
+        "oderwat.indent-rainbow",
+        "shd101wyy.markdown-preview-enhanced",
+        "DavidAnson.vscode-markdownlint",
+        "sumneko.lua",
+        "fivem-vscode.fivem-vscode",
+        "ihyajb.qbcore-code-snippets"
+    ],
+
+    "unwantedRecommendations": [
+        "dhawton.fivem-lua",
+        "keyring.Lua"
+    ]
+}

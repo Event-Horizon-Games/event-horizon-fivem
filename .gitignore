@@ -1,0 +1,6 @@
+/cache/
+start.bat
+db/default
+*.log
+node_modules
+targets_interact.txt

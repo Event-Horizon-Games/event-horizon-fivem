@@ -1,0 +1,14 @@
+Thank You For Purhcasing A Vehicle From Northern Modifications!
+
+If you have any questions or need support feel free to contact us at support@northernmods.store, we will gladly help you!
+
+How to install:
+    FiveM:
+        Drag and drop this folder into any resource folder. Start the resource by adding: "start NMAVENT" into your server.cfg file, then restart the server.
+        You can also start the resource without having to restart the server by going into server console and type "refresh", then type "start NMAVENT", but if you want to make the resource start automatically when the server starts you need to add the command in the server.cfg file.
+		
+Common Issus and How To Fix Them:
+
+
+    "Lights are out of place or pattern looks weird"
+    To fix this you need to go to the "data" folder, there find the "carcols.meta" and "carvariations.meta". Open both of them with an text editor of your choice (Notepad, Notepad++, Visual Studio Code, etc.). In "carcols.meta", on line 7 you will find "<id value="26543"/>" (the value might be different), change the number between the quotes after the value= to a random number between 500 and 40000, example: <id value="1934"/>. Then copy the number, go to the "carvariations.meta" file, on line 40 you will find "<sirenSettings value="26543"/>" (the value might be different), paste the same value from the "carcols.meta" to here, between the quotes.

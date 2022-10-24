@@ -1,0 +1,32 @@
+{
+  "name": "event-horizon-fivem",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Event-Horizon-Games/event-horizon-fivem.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Event-Horizon-Games/event-horizon-fivem/issues"
+  },
+  "homepage": "https://github.com/Event-Horizon-Games/event-horizon-fivem#readme",
+  "dependencies": {
+    "@citizenfx/client": "^2.0.5573-1",
+    "@citizenfx/server": "^2.0.5761-1",
+    "@overextended/oxmysql": "^1.1.1",
+    "fivem-js": "^1.5.2"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
