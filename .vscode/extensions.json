@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "fivem-vscode.fivem-vscode",
+        "eamodio.gitlens",
+        "oderwat.indent-rainbow",
+        "MS-vsliveshare.vsliveshare",
+        "sumneko.lua",
+        "shd101wyy.markdown-preview-enhanced",
+        "DavidAnson.vscode-markdownlint",
+        "aaron-bond.better-comments"
+    ],
+
+    "unwantedRecommendations": [
+        "dhawton.fivem-lua",
+        "keyring.Lua"
+    ]
+}

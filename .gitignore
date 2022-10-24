@@ -2,6 +2,5 @@
 start.bat
 db/default
 *.log
-.vscode
 node_modules
 targets_interact.txt
