@@ -6,7 +6,7 @@ Citizen.CreateThread(function()
     end
 
     -- compass will always show when player is in a vehicle
-    while true do
+    while compass.show do
         Wait(0)
         if IsPedInAnyVehicle(PlayerPedId(), false) then
             local pxDegree = compass.width / compass.fov
