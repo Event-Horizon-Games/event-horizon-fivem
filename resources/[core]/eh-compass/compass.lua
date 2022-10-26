@@ -1,5 +1,5 @@
 local compass = Config.compass
-
+Citizen.Trace("test\n")
 Citizen.CreateThread(function()
     if compass.position.centered then
         compass.position.x = compass.position.x - compass.width / 2
@@ -8,7 +8,7 @@ Citizen.CreateThread(function()
     -- compass will always show when player is in a vehicle
     while IsPedInAnyVehicle(PlayerPedId(), false) do
         Wait(0)
-
+        Citizen.Trace('in vehicle')
         local pxDegree = compass.width / compass.fov
         local playerHeadingDegrees = 0
 
@@ -148,11 +148,11 @@ function drawText(str, x, y, style)
     DrawText(x, y)
 end
 
--- Converts degrees to (inter)cardinal directions.
--- @param1	float	Degrees. Expects EAST to be 90° and WEST to be 270°.
--- 					In GTA, WEST is usually 90°, EAST is usually 270°. To convert, subtract that value from 360.
---
--- @return			The converted (inter)cardinal direction.
+--- Converts degrees to (inter)cardinal directions.
+--- @param      dgr     number Degrees. Expects EAST to be 90° and WEST to be 270°.
+--- @see    In GTA, WEST is usually 90°, EAST is usually 270°. To convert, subtract that value from 360.
+---
+--- @return     string	The converted (inter)cardinal direction.
 function degreesToIntercardinalDirection(dgr)
     dgr = dgr % 360.0
 
