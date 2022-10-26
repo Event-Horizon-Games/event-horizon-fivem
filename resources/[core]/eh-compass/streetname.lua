@@ -1,4 +1,5 @@
 local streetName = Config.streetname
+local regionTable = Config.streetname.regionTable
 
 Citizen.CreateThread(function()
     local lastStreetA = 0
@@ -12,6 +13,7 @@ Citizen.CreateThread(function()
             local playerPos = GetEntityCoords(GetPlayerPed(-1), true)
             local streetA, streetB =  GetStreetNameAtCoord(playerPos.x, playerPos.y, playerPos.z)
             local street = {}
+            local region = regionTable[GetNameOfZone(GetEntityCoords(PlayerPedId()))]
 
             if not
                 ((streetA == lastStreetA or streetA == lastStreetB) and (streetB == lastStreetA or streetB == lastStreetB)) then
@@ -28,7 +30,8 @@ Citizen.CreateThread(function()
                 table.insert(street, GetStreetNameFromHashKey(lastStreetB))
             end
 
-            drawText(table.concat(street, " & "), streetName.position.x, streetName.position.y, {
+            local streetDisplay = region .. ' | ' .. table.concat(street, " & ")
+            drawText(streetDisplay, streetName.position.x, streetName.position.y, {
                 size = streetName.textSize,
                 colour = streetName.textColour,
                 outline = true,
