@@ -21,7 +21,10 @@
     "@citizenfx/client": "^2.0.5573-1",
     "@citizenfx/server": "^2.0.5761-1",
     "@overextended/oxmysql": "^1.1.1",
-    "fivem-js": "^1.5.2"
+    "fivem-js": "^1.5.2",
+    "gulp": "^4.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-typescript": "^6.0.0-alpha.1"
   },
   "devDependencies": {
     "ts-loader": "^9.3.1",
