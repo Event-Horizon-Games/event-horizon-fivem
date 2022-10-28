@@ -9,5 +9,3 @@ function Notify(_type, _message)
 end
 
 exports("Notify", Notify)
-
-Notify("success", "You did it!")

@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Gravity'
-description 'Resource to cover all vehicle related scripts.'
+description 'Holds the UI behavior for the notifications.'
 version '0.0.1'
 
 client_scripts {

@@ -75,10 +75,8 @@ $NOTIFICATION = function (_type, _message) {
     return $notification;
 };
 
-$(function () {
-    window.addEventListener("message", function (event) {
-        let item = event.data;
+window.addEventListener("message", function (event) {
+    let item = event.data;
 
-        $NOTIFICATION(item.type, item.message);
-    });
+    $NOTIFICATION(item.type, item.message);
 });
