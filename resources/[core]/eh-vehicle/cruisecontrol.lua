@@ -1,33 +1,33 @@
 local settings = Config.cruisecontrol
 local cruiseControlOn = false
 
-Citizen.Trace('hey')
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(1000) -- update every second
-        --TODO make the cruise control a keybind
+RegisterCommand('+setcruisecontrol', function()
+    if IsPedInAnyVehicle(PlayerPedId(), false) then
+        if GetPedInVehicleSeat(GetVehiclePedIsIn(PlayerPedId(), false), -1) then
+            if cruiseControlOn then
+                cruiseControlOn = false
 
-        if IsPedInAnyVehicle(PlayerPedId(), false) then
-            if GetPedInVehicleSeat(GetVehiclePedIsIn(PlayerPedId(), false), -1) then
+                SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(), false), 0.0)
+                exports['eh-notify']:Notify('success', 'Cruise control disabled.')
+                Citizen.Trace('cruise disabled\n')
+            else
                 local gtaSpeed = GetEntitySpeed(PlayerPedId())
                 local gtaSpeedInMPH = gtaSpeed * 2.236936
 
                 if gtaSpeedInMPH  > settings.minimumspeed then
-                    if IsControlJustPressed(0, settings.key) then
-                        if cruiseControlOn then
-                            cruiseControlOn = false
+                    cruiseControlOn = true
 
-                            SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(), false), 0.0)
-                            Citizen.Trace('cruise control disabled.\n')
-                        else
-                            cruiseControlOn = true
-
-                            SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(),false), gtaSpeed)
-                            Citizen.Trace('cruise set at ' .. gtaSpeedInMPH .. ' MPH.\n')
-                        end
-                    end
+                    SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(),false), gtaSpeed)
+                    exports['eh-notify']:Notify('success', 'Cruise control set at ' .. math.ceil(gtaSpeedInMPH))
+                    Citizen.Trace('cruise set at ' .. math.ceil(gtaSpeedInMPH) .. ' MPH.\n')
+                else
+                    -- Not above settings.mimumspeed
+                    exports['eh-notify']:Notify('error', 'Must be above ' .. settings.minimumspeed .. ' MPH to active cruise control.')
+                    Citizen.Trace('failed activating cruise control: not above ' .. settings.minimumspeed .. ' MPH\n')
                 end
             end
         end
     end
 end)
+
+RegisterKeyMapping('+setcruisecontrol', 'Toggle Cruise Control', 'keyboard', 'x')

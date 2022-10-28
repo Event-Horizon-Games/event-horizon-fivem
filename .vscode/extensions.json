@@ -8,6 +8,7 @@
         "oderwat.indent-rainbow",
         "shd101wyy.markdown-preview-enhanced",
         "DavidAnson.vscode-markdownlint",
+        "ritwickdey.LiveServer",
         "sumneko.lua",
         "fivem-vscode.fivem-vscode",
         "ihyajb.qbcore-code-snippets"

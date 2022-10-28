@@ -1,0 +1,173 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;1,300&display=swap");
+
+* {
+    padding: 0;
+    margin: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    font-family: "Roboto", "Lato";
+    overflow: hidden;
+}
+
+* #root {
+    width: 100vw;
+    height: 100vh;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: end;
+    -ms-flex-pack: end;
+    justify-content: flex-end;
+    -webkit-box-align: end;
+    -ms-flex-align: end;
+    align-items: flex-end;
+}
+
+* #root .main .notification {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    color: white;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    width: 320px;
+    height: auto;
+    margin: 3px;
+    background: #161616ef;
+    -webkit-box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    border-radius: 0.5vh;
+    border-left: 3px solid #ff005554;
+}
+
+* #root .main .notification .message {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-flow: column;
+    flex-flow: column;
+    width: 90%;
+    padding: 1rem;
+}
+
+* #root .main .notification .type {
+    color: #ff0055;
+    position: relative;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    width: 20%;
+    height: 100%;
+    font-size: 28px;
+    z-index: 1;
+    padding: 1rem;
+}
+
+#hej {
+    position: absolute;
+}
+
+.unfold {
+    -webkit-animation: unfold 10s ease;
+    animation: unfold 10s ease;
+}
+
+.fold {
+    -webkit-animation: fold 2s ease;
+    animation: fold 2s ease;
+}
+
+@-webkit-keyframes loading {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 0%;
+    }
+}
+
+@keyframes loading {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 0%;
+    }
+}
+
+@-webkit-keyframes fold {
+    0% {
+        opacity: 0.8;
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+    }
+
+    6%,
+    20%,
+    80% {
+        opacity: 0;
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+    }
+}
+
+@keyframes fold {
+    0% {
+        opacity: 0.8;
+        -webkit-transform: scaleY(1);
+        transform: scaleY(1);
+    }
+
+    6%,
+    20%,
+    80% {
+        opacity: 0;
+        -webkit-transform: scaleY(0);
+        transform: scaleY(0);
+    }
+}
+
+@-webkit-keyframes unfold {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateX(50%);
+        transform: translateX(50%);
+    }
+
+    6%,
+    20%,
+    80% {
+        opacity: 1;
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+    }
+}
+
+@keyframes unfold {
+    0% {
+        opacity: 0;
+        -webkit-transform: translateX(50%);
+        transform: translateX(50%);
+    }
+
+    6%,
+    20%,
+    80% {
+        opacity: 1;
+        -webkit-transform: translateX(0);
+        transform: translateX(0);
+    }
+}
+
+/*# sourceMappingURL=app.css.map */
