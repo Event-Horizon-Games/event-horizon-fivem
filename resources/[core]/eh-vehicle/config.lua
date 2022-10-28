@@ -1,5 +1,12 @@
 Config = {}
 
+Config.cruisecontrol = {
+    minimumspeed = 30, -- speed in MPH to set the minimum speed allowed to lock
+    key = 73, -- the key that will toggle cruisecontrol; 73 = X
+    color = {r = 240, g = 200, b = 80},
+    position = {x = 17.55, y = 3.0}
+}
+
 Config.compass = {cardinal = {}, intercardinal = {}}
 Config.streetname = {}
 

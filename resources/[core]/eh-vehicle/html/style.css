@@ -1,0 +1,55 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: transparent;
+    min-height: 100vh;
+    min-width: 100vw;
+    overflow: hidden;
+    position: relative;
+
+    /* font settings */
+    font-family: 'ChaletComprime-CologneSixty';
+	font-style: normal;
+	font-weight: normal;
+}
+
+@font-face {
+	font-family: "ChaletComprime-CologneSixty";
+	src: local('Chalet Comprime Cologne Sixty'), local('Chalet-Comprime-Cologne-Sixty'),
+	url('fonts/ChaletComprime-CologneSixty.woff2') format('woff2'),
+	url('fonts/ChaletComprime-CologneSixty.woff') format('woff'),
+	url('fonts/ChaletComprime-CologneSixty.ttf') format('truetype');
+}
+
+.hud {
+    font-size: 48px;
+
+    /* CSS Flexbox */
+    align-items: center;
+    display: none;
+    flex-direction: row;
+
+    position: absolute;
+}
+
+.mph-gauge {
+    color: rgb(255, 255, 255);
+    margin: 0 7px;
+}
+
+.shadow-stroke {
+    text-shadow:
+        -1px -1px 0 #000,
+        0 -1px 0 #000,
+        1px -1px 0 #000,
+        1px 0 0 #000,
+        1px 1px 0 #000,
+        0 1px 0 #000,
+        -1px 1px 0 #000,
+        -1px 0 0 #000,
+        2px 3px 2px rgba(0, 0, 0, 0.75);
+}

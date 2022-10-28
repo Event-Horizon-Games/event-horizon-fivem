@@ -13,7 +13,7 @@ Citizen.CreateThread(function()
             local playerPos = GetEntityCoords(GetPlayerPed(-1), true)
             local streetA, streetB =  GetStreetNameAtCoord(playerPos.x, playerPos.y, playerPos.z)
             local street = {}
-            local region = regionTable[GetNameOfZone(GetEntityCoords(PlayerPedId()))]
+            local region = regionTable[GetNameOfZone(GetEntityCoords(PlayerPedId()))] or "unknown"
 
             if not
                 ((streetA == lastStreetA or streetA == lastStreetB) and (streetB == lastStreetA or streetB == lastStreetB)) then
