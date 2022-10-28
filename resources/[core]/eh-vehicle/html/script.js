@@ -16,4 +16,13 @@ window.addEventListener('message', (event) => {
         $('span.mph-gauge').text(item.mph);
         $('span.mph-gauge').css('color', item.color);
     }
+
+    if (item.type === 'carhud-togglecruise') {
+        if ($(".cruise-button").css('display') === "none") {
+            $(".cruise-button").css('display', 'flex');
+        } 
+        else {
+            $(".cruise-button").css('display', 'none');
+        }
+    }
 })
