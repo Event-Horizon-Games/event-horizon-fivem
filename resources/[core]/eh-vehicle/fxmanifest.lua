@@ -10,5 +10,19 @@ shared_scripts {
 }
 
 client_scripts {
-    "cruisecontrol.lua"
+    "cruisecontrol.lua",
+    "streetname.lua",
+    "compass.lua",
+    "carhud.lua"
+}
+
+ui_page "html/index.html"
+
+files {
+    "html/index.html",
+    "html/script.js",
+    "html/style.css",
+    "html/fonts/ChaletComprime-CologneSixty.ttf",
+    "html/fonts/ChaletComprime-CologneSixty.woff",
+    "html/fonts/ChaletComprime-CologneSixty.woff2"
 }
