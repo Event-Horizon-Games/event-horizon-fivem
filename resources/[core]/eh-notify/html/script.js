@@ -44,7 +44,6 @@ $NOTIFICATION = function (_type, _message) {
     let message = _message;
     let type = _type;
 
-
     for (color in COLOR_CODES) {
         if (message.includes(color)) {
             let objArray = {};

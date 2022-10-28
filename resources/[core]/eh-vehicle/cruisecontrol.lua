@@ -1,10 +1,9 @@
 local settings = Config.cruisecontrol
 local cruiseControlOn = false
 
-Citizen.Trace('hey')
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(1000) -- update every second
+        Citizen.Wait(0)
         --TODO make the cruise control a keybind
 
         if IsPedInAnyVehicle(PlayerPedId(), false) then
@@ -18,12 +17,14 @@ Citizen.CreateThread(function()
                             cruiseControlOn = false
 
                             SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(), false), 0.0)
-                            Citizen.Trace('cruise control disabled.\n')
+                            exports['eh-notify']:Notify('success', 'Cruise control disabled.')
+                            Citizen.Trace('cruise disabled\n')
                         else
                             cruiseControlOn = true
 
                             SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(),false), gtaSpeed)
-                            Citizen.Trace('cruise set at ' .. gtaSpeedInMPH .. ' MPH.\n')
+                            exports['eh-notify']:Notify('success', 'Cruise control set at ' .. math.ceil(gtaSpeedInMPH))
+                            Citizen.Trace('cruise set at ' .. math.ceil(gtaSpeedInMPH) .. ' MPH.\n')
                         end
                     end
                 end
