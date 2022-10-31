@@ -7,6 +7,8 @@ Config.cruisecontrol = {
     position = {x = 17.55, y = 3.0}
 }
 
+Config.ejectSpeed = 60 -- if a player is above this speed without a seatbelt and crash, they will eject from the vehicle
+
 Config.compass = {cardinal = {}, intercardinal = {}}
 Config.streetname = {}
 

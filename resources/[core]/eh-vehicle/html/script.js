@@ -25,4 +25,13 @@ window.addEventListener('message', (event) => {
             $(".cruise-button").css('display', 'none');
         }
     }
+
+    if (item.type === 'seatbelt-toggle') {
+        if (item.display === 'true') {
+            $(".seatbelt-icon").css('display', 'flex');
+        }
+        else {
+            $(".seatbelt-icon").css('display', 'none');
+        }
+    }
 })

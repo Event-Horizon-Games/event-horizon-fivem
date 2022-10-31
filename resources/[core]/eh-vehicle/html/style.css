@@ -36,11 +36,23 @@ body {
     position: absolute;
 }
 
+.icon-cluster {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+
+    position: absolute;
+}
+
 .cruise-button {
     font-size: 13px;
     display: none;
     color: white;
     background-color: green;
+}
+
+.seatbelt-icon {
+    display: flex;
 }
 
 .mph-gauge {

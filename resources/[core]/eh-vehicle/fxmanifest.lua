@@ -13,7 +13,8 @@ client_scripts {
     "cruisecontrol.lua",
     "streetname.lua",
     "compass.lua",
-    "carhud.lua"
+    "carhud.lua",
+    "seatbelt.lua"
 }
 
 ui_page "html/index.html"
@@ -24,5 +25,6 @@ files {
     "html/style.css",
     "html/fonts/ChaletComprime-CologneSixty.ttf",
     "html/fonts/ChaletComprime-CologneSixty.woff",
-    "html/fonts/ChaletComprime-CologneSixty.woff2"
+    "html/fonts/ChaletComprime-CologneSixty.woff2",
+    "html/images/no-seatbelt.png"
 }
