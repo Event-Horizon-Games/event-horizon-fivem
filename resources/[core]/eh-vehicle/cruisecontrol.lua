@@ -10,6 +10,10 @@ RegisterCommand('+setcruisecontrol', function()
                 SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(), false), 0.0)
                 exports['eh-notify']:Notify('success', 'Cruise control disabled.')
                 Citizen.Trace('cruise disabled\n')
+
+                SendNUIMessage({
+                    type = 'carhud-togglecruise'
+                })
             else
                 local gtaSpeed = GetEntitySpeed(PlayerPedId())
                 local gtaSpeedInMPH = gtaSpeed * 2.236936
@@ -20,6 +24,10 @@ RegisterCommand('+setcruisecontrol', function()
                     SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(),false), gtaSpeed)
                     exports['eh-notify']:Notify('success', 'Cruise control set at ' .. math.ceil(gtaSpeedInMPH))
                     Citizen.Trace('cruise set at ' .. math.ceil(gtaSpeedInMPH) .. ' MPH.\n')
+
+                    SendNUIMessage({
+                        type = 'carhud-togglecruise'
+                    })
                 else
                     -- Not above settings.mimumspeed
                     exports['eh-notify']:Notify('error', 'Must be above ' .. settings.minimumspeed .. ' MPH to active cruise control.')
