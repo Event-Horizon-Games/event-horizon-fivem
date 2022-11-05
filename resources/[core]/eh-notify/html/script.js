@@ -1,10 +1,10 @@
 // Global default variables
-let insertAnim;
-let insertDuration;
-let removeAnim;
-let removeDuration;
-let position;
-let maxNotifications;
+let insertAnim = 'insert-right';
+let insertDuration = 1000;
+let removeAnim = 'fadeout';
+let removeDuration = 600;
+let position = 'top-right';
+let maxNotifications = 0;
 
 // This is where we store persistent noti's
 const persistentNotis = new Map();
@@ -34,36 +34,6 @@ window.addEventListener("message", (event) => {
             playNotification(event.data);
     }
 });
-
-document.addEventListener("DOMContentLoaded", () => {
-    fetch("https://t-notify/nuiReady", {
-        method: "POST",
-    }).catch((e) => console.error("Unable to send NUI ready message", e));
-});
-
-/**
- * @typedef InitData
- * @type {object}
- * @property {string} position - Position for notification
- * @property {string} insertAnim - Which insert animation to use
- * @property {number} insertDuration - Insert duration to use
- * @property {string} removeAnim - Which remove animation to use
- * @property {number} removeDuration - Remove duration to use
- * @property {number} maxNotifications - Max number of notifications to use
- */
-
-/**
- * Initialize default global variables
- * @param data {InitData}
- */
-function initFunction(data) {
-    position = data.position;
-    insertAnim = data.insertAnim;
-    insertDuration = data.insertDuration;
-    removeAnim = data.removeAnim;
-    removeDuration = data.removeDuration;
-    maxNotifications = data.maxNotifications;
-}
 
 /**
  *  Initialize default global variables

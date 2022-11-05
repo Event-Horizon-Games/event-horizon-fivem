@@ -16,22 +16,10 @@ function Notify(_style, _duration, _title, _message)
     SendNUIMessage({
         type = 'noti',
         style = _style,
-        duration = _duration, -- js needs duration in ms; adjust to account
+        duration = _duration * 1000, -- js needs duration in ms; adjust to account
         title = _title,
         message = _message
     })
 end
 
 exports("Notify", Notify)
-
-
-local initObject = {
-    type = 'init',
-    position = 'top-right',
-    insertAnim = 'insert-right',
-    insertDuration = 1000,
-    removeAnim = 'fadeout',
-    removeDuration = 600,
-    maxNotifications = 0
-}
-SendNUIMessage(initObject)
