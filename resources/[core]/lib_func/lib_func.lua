@@ -95,11 +95,11 @@ end
 
 exports("HexToRGB", HexToRGB)
 
---- Sends a chat message to a target client
---- @param target integer target client id
---- @param color any
+--- Sends a to the local client
+--- @param sender string who is sending the message (what appears before the :)
+--- @param color any the color of the sender field
 --- @param message any
-function SendChatMessage(sender, target, color, message)
+function SendChatMessage(sender, color, message)
     local chatColor
     if type(color) == "table" then
         chatColor = color
@@ -115,7 +115,7 @@ function SendChatMessage(sender, target, color, message)
         print('Error printing to chat. The rgb table does not have enough values.')
     end
 
-    TriggerClientEvent('chat:addMessage', target, {
+    TriggerEvent('chat:addMessage', {
         color = chatColor,
         multiline = true,
         args = {sender, message}
