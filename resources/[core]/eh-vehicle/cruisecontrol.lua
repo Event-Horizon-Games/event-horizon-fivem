@@ -8,7 +8,7 @@ RegisterCommand('+setcruisecontrol', function()
                 cruiseControlOn = false
 
                 SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(), false), 0.0)
-                exports['eh-notify']:Notify('success', 'Cruise control disabled.')
+                exports['eh-notify']:Notify('info', 2, 'Cruise Control', 'Cruise control disabled.')
                 Citizen.Trace('cruise disabled\n')
 
                 SendNUIMessage({
@@ -22,7 +22,7 @@ RegisterCommand('+setcruisecontrol', function()
                     cruiseControlOn = true
 
                     SetVehicleMaxSpeed(GetVehiclePedIsIn(PlayerPedId(),false), gtaSpeed)
-                    exports['eh-notify']:Notify('success', 'Cruise control set at ' .. math.ceil(gtaSpeedInMPH))
+                    exports['eh-notify']:Notify('info', 2, 'Cruise Control', 'Cruise control set at ' .. math.ceil(gtaSpeedInMPH))
                     Citizen.Trace('cruise set at ' .. math.ceil(gtaSpeedInMPH) .. ' MPH.\n')
 
                     SendNUIMessage({
@@ -30,7 +30,7 @@ RegisterCommand('+setcruisecontrol', function()
                     })
                 else
                     -- Not above settings.mimumspeed
-                    exports['eh-notify']:Notify('error', 'Must be above ' .. settings.minimumspeed .. ' MPH to active cruise control.')
+                    exports['eh-notify']:Notify('error', 3, 'Cruise Control', 'Must be above ' .. settings.minimumspeed .. ' MPH to active cruise control.')
                     Citizen.Trace('failed activating cruise control: not above ' .. settings.minimumspeed .. ' MPH\n')
                 end
             end
