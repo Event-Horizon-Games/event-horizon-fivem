@@ -10,14 +10,14 @@ RegisterCommand('+seatbelt', function()
             exports['eh-notify']:Notify('info', 1, 'Seatbelt', 'Seatbelt removed.')
             SendNUIMessage({
                 type = 'seatbelt-toggle',
-                display = 'true'
+                display = 'off'
             })
         else
             seatbeltOn = true
             exports['eh-notify']:Notify('info', 1, 'Seatbelt', 'Seatbelt enabled.')
             SendNUIMessage({
                 type = 'seatbelt-toggle',
-                display = 'false'
+                display = 'on'
             })
         end
     end
@@ -33,9 +33,10 @@ Citizen.CreateThread(function()
         if seatbeltOn and not IsPedInAnyVehicle(PlayerPedId(), false) then
             seatbeltOn = false
             exports['eh-notify']:Notify('warning', 2, 'Seatbelt', 'Seatbelt removed. Exited vehicle.')
+            lastSpeed = 0.0
             SendNUIMessage({
                 type = 'seatbelt-toggle',
-                display = 'false'
+                display = 'off'
             })
         end
 

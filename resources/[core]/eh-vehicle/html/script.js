@@ -27,12 +27,12 @@ window.addEventListener('message', (event) => {
     }
 
     if (item.type === 'seatbelt-toggle') {
-        if (item.display === 'true') {
+        if (item.display === 'off') {
             $(".seatbelt-icon").css('background-color', 'red');
             $(".seatbelt-icon").css('text-decoration', 'line-through');
             $(".seatbelt-icon").css('text-decoration-color', 'red');
         }
-        else {
+        else if (item.display === 'on') {
             $(".seatbelt-icon").css('background-color', 'green');
             $(".seatbelt-icon").css('text-decoration', 'none');
         }
