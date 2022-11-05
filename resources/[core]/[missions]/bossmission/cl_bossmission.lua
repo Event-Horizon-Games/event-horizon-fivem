@@ -338,9 +338,11 @@ function WaitForCloseBoss()
         SetEntityHealth(boss, GetEntityMaxHealth(boss))
         SetPedRelationshipGroupHash(boss, GetHashKey("HATES_PLAYER"))
         SetPedFleeAttributes(boss, 0, false)
+        SetPedCombatAttributes(boss, 46, true) -- boss always fights
         SetPedCanRagdoll(boss, false)
         SetPedCanRagdollFromPlayerImpact(boss, false)
         TaskCombatPed(boss, GetPlayerPed(-1), 0, 16)
+        SetPedKeepTask(boss, true)
         FreezeEntityPosition(boss, true)
 
         -- Create the blip for the boss
