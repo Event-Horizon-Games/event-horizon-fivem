@@ -1,7 +1,7 @@
 window.addEventListener('message', function(event) {
     var item = event.data;
     var buf = $('#wrap');
-    buf.find('table').append("<tr class=\"heading\"><th>ID</th><th>Name</th></tr>");
+    buf.find('table').append("<tr class=\"heading\"><th>ID</th><th>Name</th><th>Steam ID</th</tr>");
 
     // section hides the table if the close is passed
     if (item.meta && item.meta == 'close')

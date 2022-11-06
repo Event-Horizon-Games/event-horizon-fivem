@@ -5,7 +5,10 @@ html {
 }
 
 #wrap {
-    width: 15%;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 20%;
     min-height: 220px;
     margin-top: 15%;
     margin-left: auto;
@@ -13,6 +16,7 @@ html {
     box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);
     color: rgba(255, 255, 255, 0.9);
     background-color: rgba(7, 7, 7, 0.5);
+    border-radius: 25px;
 }
 
 table {
@@ -60,6 +64,7 @@ tr.heading {
 
 #ptbl tbody {
     max-height: 300px;
-    overflow-y: scroll;
+    overflow-y: auto;
     display: block;
+    scrollbar-color: #333333;
 }
