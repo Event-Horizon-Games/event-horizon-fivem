@@ -1,5 +1,9 @@
 local displayPlayers = false
+local isSteamIdListCurrent = false
 local steamIdList = {}
+
+-- TODO make table body a max height, so scroll only shows when bigger
+-- TODO fix how gathering the Steam ID list
 
 Citizen.CreateThread(function()
     while true do
@@ -17,8 +21,13 @@ Citizen.CreateThread(function()
             for _, i in ipairs(ptable) do
                 serverIdTable[i] = GetPlayerServerId(i)
             end
-            Citizen.Trace(table.concat(serverIdTable) .. 'aaaa\n')
+
+            isSteamIdListCurrent = false
             TriggerServerEvent('getPlayerSteamIds', serverIdTable)
+
+            while not isSteamIdListCurrent do
+                Wait(10)
+            end
 
             for _, i in ipairs(ptable) do
                 r, g, b = GetPlayerRgbColour(i)
@@ -56,6 +65,6 @@ function sanitize(txt)
 end
 
 RegisterNetEvent('updateSteamIdList', function(idList)
-    Citizen.Trace('client event' .. table.concat(idList) .. '\n')
     steamIdList = idList
+    isSteamIdListCurrent = true
 end)

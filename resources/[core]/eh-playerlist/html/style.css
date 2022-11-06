@@ -35,20 +35,20 @@ tr {
 }
 
 tr.heading {
-    color: #e81b00;
+    color: #a7226e;
     font-weight: 500;
     display: block;
 }
 
 #tit {
-    color: #e81b00;
+    color: #a7226e;
     font-weight: 500;
     font-size: 120%;
     font-family: 'Segoe UI';
 }
 
 #tit1 {
-    color: #ffffff;
+    color: #2f9599;
     font-weight: 500;
     font-size: 120%;
     font-family: 'Segoe UI';
@@ -59,7 +59,7 @@ tr.heading {
 }
 
 #ptbl tbody {
-    height: 400px;
+    max-height: 300px;
     overflow-y: scroll;
     display: block;
 }
