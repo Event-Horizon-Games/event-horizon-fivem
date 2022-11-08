@@ -2,9 +2,6 @@ local displayPlayers = false
 local isSteamIdListCurrent = false
 local steamIdList = {}
 
--- TODO make table body a max height, so scroll only shows when bigger
--- TODO fix how gathering the Steam ID list
-
 Citizen.CreateThread(function()
     while true do
         Wait(0)
@@ -32,8 +29,17 @@ Citizen.CreateThread(function()
             for _, i in ipairs(ptable) do
                 r, g, b = GetPlayerRgbColour(i)
                 table.insert(players,
-                    '<tr style=\"color: rgb(' .. 255 .. ', ' .. 255 .. ', ' .. 255 .. ')\"><td>' .. GetPlayerServerId(i) .. '</td><td>' .. sanitize(GetPlayerName(i)) .. '</td><td>' .. steamIdList[i] .. '</td></tr>'
+                    '<tr style=\"color: rgb(' .. 255 .. ', ' .. 255 .. ', ' .. 255 .. ')\"><td>'  .. GetPlayerServerId(i) .. '</td><td>' .. sanitize(GetPlayerName(i)) .. '</td><td>' .. steamIdList[i] .. '</td></tr>'
                 )
+
+                local x1, y1, z1 = table.unpack(GetEntityCoords(PlayerPedId()))
+                local x2, y2, z2 = table.unpack(GetEntityCoords(GetPlayerPed(i)))
+                local distance = math.floor(GetDistanceBetweenCoords(x1, y1, z1, x2, y2, z2, true))
+
+                if distance < Config.playerIdDistance then
+                    Citizen.Trace('less\n')
+                    DrawText3D(Config.playerIdColor.r, Config.playerIdColor.g, Config.playerIdColor.b, x2, y2, z2 + Config.playerIdHeight, GetPlayerServerId(i))
+                end
             end
 
             SendNUIMessage({
@@ -48,6 +54,9 @@ Citizen.CreateThread(function()
             SendNUIMessage({
                 meta = 'close'
             })
+
+            -- remove the player id's over head
+            DrawText3D(0, 0, 0, 0, 0, 0, "")
         end
     end
 end)
