@@ -14,7 +14,8 @@ client_scripts {
     "streetname.lua",
     "compass.lua",
     "carhud.lua",
-    "seatbelt.lua"
+    "seatbelt.lua",
+    "dashboard.lua"
 }
 
 ui_page "html/index.html"
@@ -26,5 +27,20 @@ files {
     "html/fonts/ChaletComprime-CologneSixty.ttf",
     "html/fonts/ChaletComprime-CologneSixty.woff",
     "html/fonts/ChaletComprime-CologneSixty.woff2",
-    "html/images/no-seatbelt.png"
+    "html/images/no-seatbelt.png",
+    "html/images/bombbay.png",
+    "html/images/doorFrontLeft.png",
+    "html/images/doorFrontRight.png",
+    "html/images/doorRearLeft.png",
+    "html/images/doorRearRight.png",
+    "html/images/frontHood.png",
+    "html/images/ignition.png",
+    "html/images/interiorLight.png",
+    "html/images/rearHood.png",
+    "html/images/rearHood2.png",
+    "html/images/seatFrontLeft.png",
+    "html/images/windowFrontLeft.png",
+    "html/images/windowFrontRight.png",
+    "html/images/windowRearLeft.png",
+    "html/images/windowRearRight.png"
 }
