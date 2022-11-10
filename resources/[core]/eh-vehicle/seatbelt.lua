@@ -24,6 +24,7 @@ RegisterCommand('+seatbelt', function()
 end)
 
 RegisterKeyMapping('+seatbelt', 'Seatbelt Toggle', 'keyboard', 'b')
+TriggerEvent('chat:removeSuggestion', '/+seatbelt')
 
 Citizen.CreateThread(function()
     while true do

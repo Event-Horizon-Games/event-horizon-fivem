@@ -39,3 +39,4 @@ RegisterCommand('+setcruisecontrol', function()
 end)
 
 RegisterKeyMapping('+setcruisecontrol', 'Toggle Cruise Control', 'keyboard', 'x')
+TriggerEvent('chat:removeSuggestion', '/+cruisecontrol')

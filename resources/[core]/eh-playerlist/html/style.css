@@ -1,0 +1,70 @@
+@import url('fonts/futurastd-medium.css');
+
+html {
+    color: #fff;
+}
+
+#wrap {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 20%;
+    min-height: 220px;
+    margin-top: 15%;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(7, 7, 7, 0.5);
+    border-radius: 25px;
+}
+
+table {
+    text-align: left;
+}
+
+th,
+td {
+    padding-left: 20px;
+}
+
+th {
+    padding-top: 10px;
+    height: 40px;
+}
+
+tr {
+    font-size: 120%;
+    font-family: 'Segoe UI';
+}
+
+tr.heading {
+    color: #a7226e;
+    font-weight: 500;
+    display: block;
+}
+
+#tit {
+    color: #a7226e;
+    font-weight: 500;
+    font-size: 120%;
+    font-family: 'Segoe UI';
+}
+
+#tit1 {
+    color: #2f9599;
+    font-weight: 500;
+    font-size: 120%;
+    font-family: 'Segoe UI';
+}
+
+#ptbl thead {
+    display: block;
+}
+
+#ptbl tbody {
+    max-height: 300px;
+    overflow-y: auto;
+    display: block;
+    scrollbar-color: #333333;
+}
