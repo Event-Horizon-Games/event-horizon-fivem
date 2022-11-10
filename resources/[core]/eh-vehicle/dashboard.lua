@@ -30,3 +30,13 @@ end
 RegisterNUICallback('close-dashboard-nui', function()
     CloseDashboard()
 end)
+
+RegisterNUICallback('ignition', function()
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
+    SetVehicleEngineOn(vehicle, (not GetIsVehicleEngineRunning(vehicle)), false, true)
+end)
+
+RegisterNUICallback('interior-lights', function()
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), true)
+    SetVehicleInteriorlight(vehicle, (not IsVehicleInteriorLightOn(vehicle)))
+end)
