@@ -58,99 +58,100 @@ window.addEventListener('keyup', (event) => {
 })
 
 // ----------------------- Dashboard click events ----------------------------
-$('#ignition').click(() => {
-    console.log('ignition clicked');
-    $.post(`https://${GetParentResourceName()}/ignition`);
-});
+$(() => {
+    $("#ignition").click(function() {
+        $.post(`https://${GetParentResourceName()}/ignition`);
+    });
 
-$('#hood').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 4
-    }));
-});
+    $('#hood').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 4
+        }));
+    });
 
-$('#trunk').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 5
-    }));
-});
+    $('#trunk').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 5
+        }));
+    });
 
-$('#interiorLight').click(() => {
-    $.post(`https://${GetParentResourceName()}/interior-lights`);
-});
+    $('#interiorLight').click(() => {
+        $.post(`https://${GetParentResourceName()}/interior-lights`);
+    });
 
-$('#windowFrontLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
-        window: 0,
-        door: 0
-    }));
-});
+    $('#windowFrontLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
+            window: 0,
+            door: 0
+        }));
+    });
 
-$('#doorFrontLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 0
-    }));
-});
+    $('#doorFrontLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 0
+        }));
+    });
 
-$('#seatFrontLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
-        seat: -1
-    }));
-});
+    $('#seatFrontLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
+            seat: -1
+        }));
+    });
 
-$('#windowFrontRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
-        window: 2,
-        door: 2
-    }));
-});
+    $('#windowFrontRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
+            window: 2,
+            door: 2
+        }));
+    });
 
-$('#doorFrontRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 1
-    }));
-});
+    $('#doorFrontRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 1
+        }));
+    });
 
-$('#seatFrontRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
-        seat: 0
-    }));
-});
+    $('#seatFrontRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
+            seat: 0
+        }));
+    });
 
-$('#windowRearLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
-        window: 2,
-        door: 2
-    }));
-});
+    $('#windowRearLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
+            window: 2,
+            door: 2
+        }));
+    });
 
-$('#doorRearLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 2
-    }));
-});
+    $('#doorRearLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 2
+        }));
+    });
 
-$('#seatRearLeft').click(() => {
-    $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
-        seat: 1
-    }));
-});
+    $('#seatRearLeft').click(() => {
+        $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
+            seat: 1
+        }));
+    });
 
-$('#windowRearRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
-        window: 3,
-        door: 3
-    }));
-});
+    $('#windowRearRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/window-control`, JSON.stringify({
+            window: 3,
+            door: 3
+        }));
+    });
 
-$('#doorRearRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
-        door: 3
-    }));
-});
+    $('#doorRearRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/door-control`, JSON.stringify({
+            door: 3
+        }));
+    });
 
-$('#seatRearRight').click(() => {
-    $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
-        seat: 2
-    }));
+    $('#seatRearRight').click(() => {
+        $.post(`https://${GetParentResourceName()}/seat-control`, JSON.stringify({
+            seat: 2
+        }));
+    });
 });
