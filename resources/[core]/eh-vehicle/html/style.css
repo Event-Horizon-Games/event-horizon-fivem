@@ -11,6 +11,9 @@ body {
     overflow: hidden;
     position: relative;
 
+    /* makes so user cannot highlight text */
+    user-select: none;
+
     /* font settings */
     font-family: 'ChaletComprime-CologneSixty';
 	font-style: normal;
@@ -79,6 +82,7 @@ body {
 }
 
 .dashboard-container {
+    display: none;
     position: absolute;
     left: 50%;
     bottom: 40px;

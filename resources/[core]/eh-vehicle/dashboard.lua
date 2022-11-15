@@ -5,8 +5,12 @@ local windowStates = {'up', 'up', 'up', 'up'}
 
 RegisterCommand('dashboard', function()
     -- Player is currently in a car and in the driver seat
-    if IsPedInAnyVehicle(PlayerPedId(), false) then
-        ShowDashboard()
+    if isInDashboard then
+        CloseDashboard()
+    else
+        if IsPedInAnyVehicle(PlayerPedId(), false) then
+            ShowDashboard()
+        end
     end
 end, false)
 

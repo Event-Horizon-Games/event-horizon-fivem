@@ -48,17 +48,18 @@ window.addEventListener('message', (event) => {
     if (item.type === 'close-dashboard') {
         $(".dashboard-container").css('display', 'none');
     }
-});
+})
 
-// User presses escape
+// --------------- User presses escape while nui is focused --------------
 window.addEventListener('keyup', (event) => {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && $('.dashboard-container').css('display') === 'block') {
         $.post(`https://${GetParentResourceName()}/close-dashboard-nui`);
-        console.log('pressed escape.');
     }
-});
+})
 
+// ----------------------- Dashboard click events ----------------------------
 $('#ignition').click(() => {
+    console.log('ignition clicked');
     $.post(`https://${GetParentResourceName()}/ignition`);
 });
 
