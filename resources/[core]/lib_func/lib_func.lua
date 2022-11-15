@@ -65,6 +65,11 @@ function SpawnCar(_model)
     })
 end
 
+RegisterCommand('spawncar', function(source, args)
+    local carName = args[1]
+    SpawnCar(carName)
+end)
+
 exports("SpawnCar", SpawnCar)
 
 --- Converts a table of the RGB value into a hex code with the # included

@@ -1,31 +1,27 @@
-body
-{
+body {
     margin: 0px;
     padding: 0px;
 }
 
-.backdrop
-{
+.backdrop {
     position: relative;
     top: 0px;
     left: 0px;
     width: 100%;
     height: 100%;
 
-    background-image: url(loadscreen.jpg);
+    background-image: url("images/loadscreen.jpg");
     background-size: 100% 100%;
 }
 
-.bottom
-{
+.bottom {
     position: absolute;
     bottom: 0px;
     width: 100%;
     height: 100%;
 }
 
-#gradient
-{
+#gradient {
     position: absolute;
     bottom: 0px;
     width: 100%;
@@ -37,28 +33,30 @@ body
 
 @font-face {
     font-family: 'BankGothic';
-    src: url('bankgothic.ttf') format('truetype');
+    src: url("fonts/bankgothic.ttf") format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 
-h1, h2 {
-  position: relative;
-  background: transparent;
-  z-index: 0;
+h1,
+h2 {
+    position: relative;
+    background: transparent;
+    z-index: 0;
 }
+
 /* add a single stroke */
-h1:before, h2:before {
-  content: attr(title);
-  position: absolute;
-  -webkit-text-stroke: 0.1em #000;
-  left: 0;
-  z-index: -1;
+h1:before,
+h2:before {
+    content: attr(title);
+    position: absolute;
+    -webkit-text-stroke: 0.1em #000;
+    left: 0;
+    z-index: -1;
 }
 
 
-.letni
-{
+.letni {
     position: absolute;
     left: 5%;
     right: 5%;
@@ -71,8 +69,7 @@ h1:before, h2:before {
     font-family: "Segoe UI";
 }
 
-.letni p
-{
+.letni p {
     font-size: 22px;
 
     margin-left: 3px;
@@ -80,8 +77,8 @@ h1:before, h2:before {
     margin-top: 0px;
 }
 
-.letni h2, .letni h3
-{
+.letni h2,
+.letni h3 {
     font-family: BankGothic;
 
     text-transform: uppercase;
@@ -93,8 +90,7 @@ h1:before, h2:before {
     display: inline-block;
 }
 
-.top
-{
+.top {
     color: #fff;
 
     position: absolute;
@@ -103,16 +99,14 @@ h1:before, h2:before {
     right: 5%;
 }
 
-.top h1
-{
+.top h1 {
     font-family: BankGothic;
     font-size: 60px;
 
     margin: 0px;
 }
 
-.top h2
-{
+.top h2 {
     font-family: BankGothic;
     font-size: 40px;
 
@@ -121,8 +115,7 @@ h1:before, h2:before {
     color: #ddd;
 }
 
-.loadbar
-{
+.loadbar {
     width: 100%;
     background-color: rgba(140, 140, 140, .9);
     height: 20px;
@@ -140,8 +133,7 @@ h1:before, h2:before {
     display: block;
 }
 
-.thingy
-{
+.thingy {
     width: 10%;
     background-color: #eee;
     height: 20px;
