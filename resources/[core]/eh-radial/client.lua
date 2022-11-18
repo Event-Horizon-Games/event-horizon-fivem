@@ -1,17 +1,30 @@
 local isInRadialMenu = false
+local isHoldingKey = false
 
-RegisterCommand('/+radialmenu', function()
-    isInRadialMenu = true
-end, false)
+RegisterCommand('+radialmenu', function()
+    OpenRadial()
+end)
 
-RegisterCommand('/-radialmenu', function()
-    isInRadialMenu = false
-end, false)
+RegisterCommand('forcecloseradial', function()
+    CloseRadial()
+end)
 
 RegisterKeyMapping('+radialmenu', 'Action Menu', 'keyboard', 'F1')
 
-Citizen.CreateThread(function()
-    while true do
-        Wait(0)
-    end
+function OpenRadial()
+    SendNUIMessage({
+        type = 'open-radial'
+    })
+
+    -- Center NUI cursor
+    SetCursorLocation(0.5, 0.5)
+    SetNuiFocus(true, true)
+end
+
+function CloseRadial()
+    SetNuiFocus(false, false)
+end
+
+RegisterNUICallback('close-radial', function()
+    CloseRadial()
 end)
