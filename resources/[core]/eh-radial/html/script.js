@@ -1,4 +1,8 @@
 $(() => {
+    // Hide the radial menu to start
+    $('.radial-menu').addClass('is-hidden');
+    $('.radial-menu').removeClass('is-active');
+
     //
     //  BASIC SETUP
     //–––––––––––––––––––––––––––––––––––––
@@ -265,41 +269,41 @@ $(() => {
     //  RIGHT CLICK
     //–––––––––––––––––––––––––––––––––––––
 
-    document.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
-        var mousePosX = e.clientX;
-        var mousePosY = e.clientY;
-        // console.log( 'mousePosX: ' + mousePosX );
-        // console.log( 'mousePosY: ' + mousePosY );
+    // document.addEventListener('contextmenu', function (e) {
+    //     e.preventDefault();
+    //     var mousePosX = e.clientX;
+    //     var mousePosY = e.clientY;
+    //     // console.log( 'mousePosX: ' + mousePosX );
+    //     // console.log( 'mousePosY: ' + mousePosY );
 
-        container.classList.remove('is-hidden');
-        container.classList.add('is-active');
+    //     container.classList.remove('is-hidden');
+    //     container.classList.add('is-active');
 
-        container.style.top = mousePosY + 'px';
-        container.style.left = mousePosX + 'px';
+    //     container.style.top = mousePosY + 'px';
+    //     container.style.left = mousePosX + 'px';
 
-        mouseMoveListener(mousePosX, mousePosY);
+    //     mouseMoveListener(mousePosX, mousePosY);
 
-        return false;
-    }, false);
+    //     return false;
+    // }, false);
 
 
     //
     //  RIGHT CLICK MOUSE UP
     //–––––––––––––––––––––––––––––––––––––
 
-    document.addEventListener('mouseup', function (e) {
+    // document.addEventListener('mouseup', function (e) {
 
-        var mouseButton = e.button;
+    //     var mouseButton = e.button;
 
-        // If it's the right mouse button.
-        if (mouseButton == 2) {
+    //     // If it's the right mouse button.
+    //     if (mouseButton == 2) {
 
-            // Hide the menu.
-            container.classList.add('is-hidden');
-            container.classList.remove('is-active');
-        }
-    });
+    //         // Hide the menu.
+    //         container.classList.add('is-hidden');
+    //         container.classList.remove('is-active');
+    //     }
+    // });
 
 
     //
@@ -308,13 +312,12 @@ $(() => {
 
     function mouseMoveListener(x, y) {
         document.addEventListener('mousemove', function (e) {
+            
 
             // If the radial menu is active.
             if (container.classList.contains('is-active')) {
-
                 var newX = e.clientX;
                 var newY = e.clientY;
-
                 var scale = Math.round(Math.sqrt(Math.pow(y - newY, 2) + Math.pow(x - newX, 2)));
 
                 // console.log('scale: ' + scale);
@@ -329,60 +332,41 @@ $(() => {
         });
     }
 
+    // move the mouse hover tooltip
+    document.addEventListener('mousemove', function (e) {
+        $('#tooltip').css('left', `${e.clientX}px`);
+        $('#tooltip').css('top', `${e.clientY}px`);
+    });
+
+    $('.radial-menu__menu-item.hovered .radial-menu__menu-content .radial-menu__menu-content-description').mouseover(() => {
+        var tip = $('.radial-menu__menu-item.hovered .radial-menu__menu-content .radial-menu__menu-content-description p').text();
+        $('#tooltip').text(tip);
+        $('#tooltip').css('visibility', 'visible');
+    });
+
+    $('.radial-menu__menu-item.hovered .radial-menu__menu-content .radial-menu__menu-content-description').mouseout(() => {
+        $('#tooltip').css('visibility', 'hidden');
+    });
 
     
-    // MENU ITEMS DROPDOWN
-    //–––––––––––––––––––––––––––––––––––––
+})
 
-    onMenuItemsDropdownChange();
+window.addEventListener('message', (event) => {
+    let item = event.data
 
-    function onMenuItemsDropdownChange() {
-
-        // TODO menu-items-to-show doesnt exist?
-        // Instantiate the menu items to show select.
-        var menuItemsSelect = document.getElementById('menu-items-to-show');
-
-        // Listen for changes on the select.
-        menuItemsSelect.addEventListener('change', function (e) {
-
-            // Get the selected value.
-            var optionValue = this.value;
-
-            // Update menu items accordingly.
-            updateMenuItemDisplayValues(optionValue);
-        });
-    }
-
-
-    //
-    //  UPDATE MENU ITEMS
-    //–––––––––––––––––––––––––––––––––––––
-
-    function updateMenuItemDisplayValues(itemsToShow) {
-
-        var menuItems = container.querySelectorAll('.radial-menu__menu-item');
-
-        for (var i = 0; i < menuItems.length; i++) {
-            if (i < itemsToShow) {
-                menuItems[i].style.display = 'block';
-            } else {
-                menuItems[i].style.display = 'none';
-            }
+    if (item.type === 'open-radial') {
+        if (!($('.radial-menu').hasClass('is-active'))) {
+            $('.radial-menu').addClass('is-active');
+            $('.radial-menu').removeClass('is-hidden');
         }
+    }
+})
 
-        // Set up links.
-        var links = document.querySelectorAll('.radial-menu__menu-link');
-        setupLinks(links);
-        setupLinkHovers(links);
+window.addEventListener('keyup', (event) => {
+    if (event.key === 'Escape' && $('.radial-menu').hasClass('is-active')) {
+        $('.radial-menu').addClass('is-hidden');
+        $('.radial-menu').removeClass('is-active');
 
-        // Set up link BGs.
-        var linkBGs = document.querySelectorAll('.radial-menu__menu-link-bg');
-        setupLinks(linkBGs);
-
-        // Set up icons.
-        var icons = document.querySelectorAll('.radial-menu__menu-icon');
-        var iconDistance = 95;
-
-        positionIcons(icons, iconDistance);
+        $.post(`https://${GetParentResourceName()}/close-radial`);
     }
 })

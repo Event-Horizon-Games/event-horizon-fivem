@@ -9,6 +9,8 @@ body {
     font-family: sans-serif;
     height: 100%;
     width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 .radial-menu {
@@ -167,8 +169,13 @@ body {
 }
 
 .radial-menu__menu-content-description {
+    display: none;
+}
+
+#tooltip {
     color: rgba(255, 255, 255, 0.5);
     visibility: hidden;
+    position: relative;
     font-size: 0.4em;
     font-weight: normal;
     letter-spacing: 0.1em;
@@ -179,13 +186,6 @@ body {
     padding: 5px 0;
     border-radius: 6px;
     width: 200px;
-    top: 100%;
-    left: 50%;
-    margin-left: -100px;
-}
-
-.radial-menu__menu-item.hovered .radial-menu__menu-content .radial-menu__menu-content-description {
-    visibility: visible;
 }
 
 .radial-menu__menu-icon {
