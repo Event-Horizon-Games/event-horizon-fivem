@@ -28,3 +28,12 @@ end
 RegisterNUICallback('close-radial', function()
     CloseRadial()
 end)
+
+RegisterNUICallback('command', function(data)
+    local command = data.commandId
+
+    if command == 'dashboard' then
+        CloseRadial()
+        TriggerEvent('eh-vehicle:openDashboard')
+    end
+end)

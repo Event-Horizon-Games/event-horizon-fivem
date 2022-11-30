@@ -8,19 +8,23 @@ RegisterCommand('dashboard', function()
     if isInDashboard then
         CloseDashboard()
     else
-        if IsPedInAnyVehicle(PlayerPedId(), false) then
-            ShowDashboard()
-        end
+        ShowDashboard()
     end
 end, false)
 
 function ShowDashboard()
-    isInDashboard = true
-    SetNuiFocus(true, true)
-    SendNUIMessage({
-        type = 'open-dashboard'
-    })
+    if IsPedInAnyVehicle(PlayerPedId(), false) then
+        isInDashboard = true
+        SetNuiFocus(true, true)
+        SendNUIMessage({
+            type = 'open-dashboard'
+        })
+    end
 end
+
+RegisterNetEvent('eh-vehicle:openDashboard', function()
+    ShowDashboard()
+end)
 
 function CloseDashboard()
     isInDashboard = false
@@ -97,3 +101,4 @@ RegisterNUICallback('window-control', function(data)
         end
     end
 end)
+
