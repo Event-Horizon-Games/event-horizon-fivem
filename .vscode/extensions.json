@@ -10,8 +10,7 @@
         "DavidAnson.vscode-markdownlint",
         "ritwickdey.LiveServer",
         "sumneko.lua",
-        "fivem-vscode.fivem-vscode",
-        "ihyajb.qbcore-code-snippets"
+        "fivem-vscode.fivem-vscode"
     ],
 
     "unwantedRecommendations": [

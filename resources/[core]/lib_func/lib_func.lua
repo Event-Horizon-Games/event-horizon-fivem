@@ -1,3 +1,5 @@
+---@diagnostic disable: duplicate-doc-field
+
 local spawnedPeds = {}
 
 --- Spawns a permanent ped of given model at a given set of coords.
@@ -64,6 +66,11 @@ function SpawnCar(_model)
         args = {'^6 [CarSpawner]: ~g~Spawned a new ' .. vehicleName .. '!!'}
     })
 end
+
+RegisterCommand('spawncar', function(source, args)
+    local carName = args[1]
+    SpawnCar(carName)
+end)
 
 exports("SpawnCar", SpawnCar)
 
