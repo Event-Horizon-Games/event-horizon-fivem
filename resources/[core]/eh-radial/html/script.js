@@ -117,26 +117,30 @@ window.onload = function () {
         closeOnClick: true,
         menuItems   : menuItems,
         onClick     : function (item) {
-            //console.log('You have clicked:', item.id, item.title);
             NUIcommand(item.id);
         }
     });
 
 
     window.addEventListener('message', (event) => {
-        if (event.data.type === 'open-radial') {
+        let item = event.data;
+
+        if (item.type === 'open-radial') {
             svgMenu.open();
+        }
+
+        if (item.type === 'close-radial') {
+            svgMenu.close();
         }
     });
 
+    window.addEventListener('keyup', (event) => {
+        if (event.key === 'F1' && svgMenu.currentMenu) {
+            svgMenu.close();
+            NUIclose();
+        }
+    });
 };
-
-window.addEventListener('keyup', (event) => {
-    if (event.key === 'Escape' && $('#icons').css('display') === 'block') {
-        $.post(`https://${GetParentResourceName()}/close-radial`);
-    }
-});
-
 
 function NUIclose() {
     $.post(`https://${GetParentResourceName()}/close-radial`);
@@ -634,26 +638,18 @@ RadialMenu.prototype.addIconSymbols = function () {
     // return
     var returnSymbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
     returnSymbol.setAttribute('id', 'return');
-    returnSymbol.setAttribute('viewBox', '0 0 489.394 489.394');
+    returnSymbol.setAttribute('viewBox', '0 0 512 512');
     var returnPath =   document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    returnPath.setAttribute('d', "M375.789,92.867H166.864l17.507-42.795c3.724-9.132,1-19.574-6.691-25.744c-7.701-6.166-18.538-6.508-26.639-0.879" +
-        "L9.574,121.71c-6.197,4.304-9.795,11.457-9.563,18.995c0.231,7.533,4.261,14.446,10.71,18.359l147.925,89.823" +
-        "c8.417,5.108,19.18,4.093,26.481-2.499c7.312-6.591,9.427-17.312,5.219-26.202l-19.443-41.132h204.886" +
-        "c15.119,0,27.418,12.536,27.418,27.654v149.852c0,15.118-12.299,27.19-27.418,27.19h-226.74c-20.226,0-36.623,16.396-36.623,36.622" +
-        "v12.942c0,20.228,16.397,36.624,36.623,36.624h226.74c62.642,0,113.604-50.732,113.604-113.379V206.709" +
-        "C489.395,144.062,438.431,92.867,375.789,92.867z");
+    returnPath.setAttribute('d', "M48.5 224H40c-13.3 0-24-10.7-24-24V72c0-9.7 5.8-18.5 14.8-22.2s19.3-1.7 26.2 5.2L98.6 96.6c87.6-86.5 228.7-86.2 315.8 1c87.5 87.5 87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3c-62.2-62.2-162.7-62.5-225.3-1L185 183c6.9 6.9 8.9 17.2 5.2 26.2s-12.5 14.8-22.2 14.8H48.5z");
     returnSymbol.appendChild(returnPath);
     svg.appendChild(returnSymbol);
 
     var closeSymbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
     closeSymbol.setAttribute('id', 'close');
-    closeSymbol.setAttribute('viewBox', '0 0 41.756 41.756');
+    closeSymbol.setAttribute('viewBox', '0 0 512 512');
 
     var closePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    closePath.setAttribute('d', "M27.948,20.878L40.291,8.536c1.953-1.953,1.953-5.119,0-7.071c-1.951-1.952-5.119-1.952-7.07,0L20.878,13.809L8.535,1.465" +
-        "c-1.951-1.952-5.119-1.952-7.07,0c-1.953,1.953-1.953,5.119,0,7.071l12.342,12.342L1.465,33.22c-1.953,1.953-1.953,5.119,0,7.071" +
-        "C2.44,41.268,3.721,41.755,5,41.755c1.278,0,2.56-0.487,3.535-1.464l12.343-12.342l12.343,12.343" +
-        "c0.976,0.977,2.256,1.464,3.535,1.464s2.56-0.487,3.535-1.464c1.953-1.953,1.953-5.119,0-7.071L27.948,20.878z");
+    closePath.setAttribute('d', "M160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32H96C43 32 0 75 0 128V384c0 53 43 96 96 96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H96c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32h64zM504.5 273.4c4.8-4.5 7.5-10.8 7.5-17.4s-2.7-12.9-7.5-17.4l-144-136c-7-6.6-17.2-8.4-26-4.6s-14.5 12.5-14.5 22v72H192c-17.7 0-32 14.3-32 32l0 64c0 17.7 14.3 32 32 32H320v72c0 9.6 5.7 18.2 14.5 22s19 2 26-4.6l144-136z");
     closeSymbol.appendChild(closePath);
     svg.appendChild(closeSymbol);
 

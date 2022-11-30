@@ -1,15 +1,9 @@
-local isInRadialMenu = false
-local isHoldingKey = false
-
-RegisterCommand('+radialmenu', function()
+RegisterCommand('open-radialmenu', function()
     OpenRadial()
+    Citizen.Trace('open\n')
 end)
 
-RegisterCommand('forcecloseradial', function()
-    CloseRadial()
-end)
-
-RegisterKeyMapping('+radialmenu', 'Action Menu', 'keyboard', 'F1')
+RegisterKeyMapping('open-radialmenu', 'Action Menu', 'keyboard', 'F1')
 
 function OpenRadial()
     SendNUIMessage({
@@ -21,19 +15,31 @@ function OpenRadial()
     SetNuiFocus(true, true)
 end
 
-function CloseRadial()
+function GracefulCloseRadial()
     SetNuiFocus(false, false)
 end
 
+function ForceCloseRadial()
+    SendNUIMessage({
+        type = 'close-radial'
+    })
+
+    SetNuiFocus(false, false)
+end
+
+RegisterCommand('forcecloseradial', function()
+    ForceCloseRadial()
+end)
+
 RegisterNUICallback('close-radial', function()
-    CloseRadial()
+    GracefulCloseRadial()
 end)
 
 RegisterNUICallback('command', function(data)
     local command = data.commandId
 
     if command == 'dashboard' then
-        CloseRadial()
+        GracefulCloseRadial()
         TriggerEvent('eh-vehicle:openDashboard')
     end
 end)
