@@ -1,3 +1,5 @@
+---@diagnostic disable: duplicate-doc-field
+
 local spawnedPeds = {}
 
 --- Spawns a permanent ped of given model at a given set of coords.
