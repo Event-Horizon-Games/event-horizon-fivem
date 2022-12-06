@@ -1,4 +1,5 @@
 /cache/
+start.bat
 db/default
 *.log
 node_modules
