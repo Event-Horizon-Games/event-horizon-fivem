@@ -1,6 +1,5 @@
 RegisterCommand('open-radialmenu', function()
     OpenRadial()
-    Citizen.Trace('open\n')
 end)
 
 RegisterKeyMapping('open-radialmenu', 'Action Menu', 'keyboard', 'F1')
