@@ -3,7 +3,7 @@ local cruiseControlOn = false
 
 RegisterCommand('+setcruisecontrol', function()
     if IsPedInAnyVehicle(PlayerPedId(), false) then
-        if GetPedInVehicleSeat(GetVehiclePedIsIn(PlayerPedId(), false), -1) then
+        if GetPedInVehicleSeat(GetVehiclePedIsIn(PlayerPedId(), false), -1) == PlayerPedId() then
             if cruiseControlOn then
                 cruiseControlOn = false
 
@@ -39,3 +39,4 @@ RegisterCommand('+setcruisecontrol', function()
 end)
 
 RegisterKeyMapping('+setcruisecontrol', 'Toggle Cruise Control', 'keyboard', 'x')
+TriggerEvent('chat:removeSuggestion', '/+cruisecontrol')

@@ -1,3 +1,5 @@
+---@diagnostic disable: duplicate-doc-field
+
 local spawnedPeds = {}
 
 --- Spawns a permanent ped of given model at a given set of coords.
@@ -65,6 +67,11 @@ function SpawnCar(_model)
     })
 end
 
+RegisterCommand('spawncar', function(source, args)
+    local carName = args[1]
+    SpawnCar(carName)
+end)
+
 exports("SpawnCar", SpawnCar)
 
 --- Converts a table of the RGB value into a hex code with the # included
@@ -123,3 +130,30 @@ function SendChatMessage(sender, color, message)
 end
 
 exports("SendChatMessage", SendChatMessage)
+
+function DrawText3D(r, g, b, x, y, z, text)
+    local onScreen, _x, _y = World3dToScreen2d(x, y, z)
+    local px, py, pz = table.unpack(GetGameplayCamCoords())
+    local dist = GetDistanceBetweenCoords(px, py, pz, x, y, z, 1)
+
+    local fov = (1 / GetGameplayCamFov()) * 100
+    local scale = ((1 / dist) * 2) * fov
+
+    if onScreen then
+        SetTextScale(0.0 * scale, 0.55 * scale)
+        SetTextFont(0)
+        SetTextProportional(1)
+        SetTextColour(r, g, b, 255)
+        SetTextDropshadow(0, 0, 0, 0, 255)
+        SetTextEdge(2, 0, 0, 0, 150)
+        SetTextDropShadow()
+        SetTextOutline()
+        SetTextEntry("STRING")
+        SetTextCentre(1)
+        AddTextComponentString(text)
+		World3dToScreen2d(x, y, z, 0) --Added Here
+        DrawText(_x, _y)
+    end
+end
+
+exports("DrawText3D", DrawText3D)
