@@ -11,8 +11,8 @@ window.onload = function () {
     }
 
     function intro() {
-        $('img').attr("src", "./gif/hack_intro.gif")
-        playAudio('./audio/intro.mp3')
+        $('img').attr("src", "res/gifs/hack_intro.gif")
+        playAudio('res/audio/intro.mp3')
         setTimeout(function () {
             $('img').attr('src', "")
             audio.stop()
@@ -20,16 +20,16 @@ window.onload = function () {
     }
 
     function success() {
-        $('img').attr("src", "./gif/hack_success.gif")
-        playAudio('./audio/hack_success.mp3')
+        $('img').attr("src", "res/gifs/hack_success.gif")
+        playAudio('res/audio/hack_success.mp3')
         setTimeout(function () {
             $('img').attr('src', "")
         }, 3000)
     }
 
     function fail() {
-        $('img').attr("src", "./gif/hack_fail.gif")
-        playAudio('./audio/hack_fail.mp3')
+        $('img').attr("src", "res/gifs/hack_fail.gif")
+        playAudio('res/audio/hack_fail.mp3')
         setTimeout(function () {
             $('img').attr('src', "")
         }, 3000)
