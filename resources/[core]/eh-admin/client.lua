@@ -1,6 +1,6 @@
 RegisterCommand('printcoords', function()
     local coords = GetEntityCoords(PlayerPedId())
-    local printString = GetPlayerName(PlayerId()) .. '\'s current coords are: '.. coords.x .. ', ' .. coords.y .. ', ' .. coords.z
+    local printString = GetPlayerName(PlayerId()) .. '\'s current coords are: '.. coords.x .. ', ' .. coords.y .. ', ' .. coords.z .. '. Heading: ' .. GetEntityHeading(PlayerPedId())
     Citizen.Trace(printString)
     TriggerServerEvent('eh-admin:PrintCoords', printString)
 end)

@@ -1,1 +1,35 @@
-exports['eh-polyzone']:AddBoxZone()
+--[[
+    vector3(3499.97, 3715.18, 36.64), 10, 10, {
+        name="story_boss",
+        heading=0,
+        --debugPoly=true,
+        minZ=35.64,
+        maxZ=39.64
+]]
+
+-- 3496.3034667969, 3717.6901855469, 36.642730712891. Heading: 229.2477722168
+-- s_m_m_scientist_01, the person to meet at humane
+
+local scientistPed
+
+exports['eh-polyzone']:AddBoxZone("mainframe-quester", vector3(3499.97, 3715.18, 36.64), 30, 30, {
+    name = "mainframe-quester",
+    heading = 0,
+    debugPoly = true,
+    minZ = 30,
+    maxZ = 40
+})
+
+AddEventHandler('bt-polyzone:enter', function(name)
+    if name == "mainframe-quester" then
+        scientistPed = SpawnPed('s_m_m_scientist_01', {3496.3034667969, 3717.6901855469, 36.642730712891, 229.2477722168})
+        TriggerEvent('InteractSound_CL:PlayOnOne', 'bababoowie.ogg', 1.0)
+        TriggerServerEvent('InteractSound_SV:PlayOnSource', 'bababoowie.ogg', 0.3)
+    end
+end)
+
+AddEventHandler('bt-polyzone:exit', function(name)
+    if name == "mainframe-quester" then
+        DeletePed(scientistPed)
+    end
+end)

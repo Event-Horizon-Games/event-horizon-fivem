@@ -22,6 +22,8 @@ function SpawnPed(_model, _coords)
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
+
+    return ped
 end
 
 exports("SpawnPed", SpawnPed)
