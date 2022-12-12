@@ -38,14 +38,20 @@ function AddCircleZone(name, center, radius, options)
     Zones[name] = CircleZone:Create(center, radius, options)
 end
 
+exports("AddCircleZone", AddCircleZone)
+
 function AddBoxZone(name, center, length, width, options)
     center = vector3(center.x, center.y, center.z)
     Zones[name] = BoxZone:Create(center, length, width, options)
 end
 
+exports("AddBoxZone", AddBoxZone)
+
 function AddPolyZone(name, points, options)
     Zones[name] = PolyZone:Create(points, options)
 end
+
+exports("AddPolyZone", AddPolyZone)
 
 function RemoveZone(name)
     if Zones[name] then
@@ -53,3 +59,5 @@ function RemoveZone(name)
         Zones[name] = nil
     end
 end
+
+exports("RemoveZone", RemoveZone)

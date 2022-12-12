@@ -14,10 +14,3 @@ client_scripts {
     '@PolyZone/ComboZone.lua',
     'client/main.lua'
 }
-
-exports {
-    'AddCircleZone',
-    'AddBoxZone',
-    'AddPolyZone',
-    'RemoveZone'
-}

@@ -1,0 +1,6 @@
+RegisterCommand('printcoords', function()
+    local coords = GetEntityCoords(PlayerPedId())
+    local serverId = GetPlayerServerId(PlayerId())
+    Citizen.Trace('Current coords are: '.. table.concat(coords, ', '))
+    TriggerEvent('eh-admin:PrintCoords')
+end)
