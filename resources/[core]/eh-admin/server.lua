@@ -1,3 +1,3 @@
-RegisterNetEvent('eh-admin:PrintCoords', function(source, args)
-    print()
+RegisterNetEvent('eh-admin:PrintCoords', function(str)
+    print(str)
 end)
