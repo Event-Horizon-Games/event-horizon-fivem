@@ -1,7 +1,12 @@
 {
   "vehicles": [
     "wheelchair",
-    "nm_avent"
+    "nm_avent",
+    "09tahoe",
+    "16challenger",
+    "wildtrak",
+    "srt8",
+    "trhawk"
   ],
   "peds": [
     "addonpedname1",
