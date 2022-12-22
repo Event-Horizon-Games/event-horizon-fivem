@@ -13,12 +13,21 @@ local spawnedPeds = {}
 --- @see Usage: SpawnPed('a_m_m_fatlatin_01', {0, 0, 0, 0})
 function SpawnPed(_model, _coords)
     local x, y, z, h = table.unpack(_coords)
+
     RequestModel(_model)
+
     while not HasModelLoaded(_model) do
         Citizen.Wait(100)
     end
-    local ped = CreatePed(4, GetHashKey(_model), x, y, z, h, true, true)
+
+    local _, groundZ = GetGroundZFor_3dCoord(x, y, z, false)
+
+    local ped = CreatePed(4, GetHashKey(_model), x, y, groundZ, h, true, true)
+
     table.insert(spawnedPeds, ped)
+
+    PlaceObjectOnGroundProperly(ped)
+
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)

@@ -15,21 +15,23 @@ local scientistPed
 exports['eh-polyzone']:AddBoxZone("mainframe-quester", vector3(3499.97, 3715.18, 36.64), 30, 30, {
     name = "mainframe-quester",
     heading = 0,
-    debugPoly = true,
+    debugPoly = false,
     minZ = 30,
     maxZ = 40
 })
 
 AddEventHandler('bt-polyzone:enter', function(name)
     if name == "mainframe-quester" then
-        scientistPed = SpawnPed('s_m_m_scientist_01', {3496.3034667969, 3717.6901855469, 36.642730712891, 229.2477722168})
-        TriggerEvent('InteractSound_CL:PlayOnOne', 'bababoowie.ogg', 1.0)
-        TriggerServerEvent('InteractSound_SV:PlayOnSource', 'bababoowie.ogg', 0.3)
+        if not scientistPed then
+            scientistPed = SpawnPed('s_m_m_scientist_01', {3496.3034667969, 3717.6901855469, 36.642730712891, 230.6477722168})
+            TriggerEvent('InteractSound_CL:PlayOnOne', 'demo', 0.9)
+        end
     end
 end)
 
 AddEventHandler('bt-polyzone:exit', function(name)
     if name == "mainframe-quester" then
         DeletePed(scientistPed)
+        scientistPed = nil
     end
 end)
