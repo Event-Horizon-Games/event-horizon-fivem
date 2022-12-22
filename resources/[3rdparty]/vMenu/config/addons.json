@@ -1,7 +1,7 @@
 {
   "vehicles": [
-    "addonvehiclename1",
-    "addonvehiclename2"
+    "wheelchair",
+    "nm_avent"
   ],
   "peds": [
     "addonpedname1",
