@@ -1,6 +1,18 @@
-RegisterCommand('printcoords', function()
+RegisterCommand('coords', function()
     local coords = GetEntityCoords(PlayerPedId())
-    local printString = GetPlayerName(PlayerId()) .. '\'s current coords are: '.. coords.x .. ', ' .. coords.y .. ', ' .. coords.z .. '. Heading: ' .. GetEntityHeading(PlayerPedId())
+    local heading = GetEntityHeading(PlayerPedId())
+    local printString = GetPlayerName(PlayerId()) .. '\'s current coords are: '.. coords.x .. ', ' .. coords.y .. ', ' .. coords.z .. '. Heading: ' .. heading
     Citizen.Trace(printString)
-    TriggerServerEvent('eh-admin:PrintCoords', printString)
+
+    -- Create NUI copy
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        type = "open",
+        _charPos = coords,
+        _charHeading = heading,
+    })
+end)
+
+RegisterNUICallback('eh-admin:close', function()
+    SetNuiFocus(false, false)
 end)
