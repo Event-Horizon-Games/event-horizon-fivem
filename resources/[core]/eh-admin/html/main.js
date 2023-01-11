@@ -1,10 +1,10 @@
 $(() => {
     window.addEventListener('message', (event) => {
-        let v = event.data
+        let item = event.data
 
-        if (v.type == "open") {
-            const { x, y, z } = v._charPos;
-            const heading = v._charHeading;
+        if (item.type == "open") {
+            const { x, y, z } = item.Pos;
+            const heading = item.Heading;
 
             $('body').css('display', 'block')
 
@@ -15,8 +15,7 @@ $(() => {
                 <div class="coords">  <span id="copy"><i class="fa-solid fa-copy"></i></span> <span id="text" > x = ${x.toFixed(2)}, y = ${y.toFixed(2)}, z = ${z.toFixed(2)}, h = ${heading.toFixed(2)} </span>  </div>
                 <div class="coords">  <span id="copy"><i class="fa-solid fa-copy"></i></span> <span id="text" > vec3(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}) </span>  </div>
                 <div class="coords">  <span id="copy"><i class="fa-solid fa-copy"></i></span> <span id="text" > vec4(${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}, ${heading.toFixed(2)}) </span>  </div>
-                
-
+                <button id="close-button">CLOSE</button>
                 `)
         }
 
@@ -33,6 +32,9 @@ $(() => {
             let text = $(this).find('#text').text()
             copy(text)
             console.log(text)
+        })
+
+        $('#close-button').click(() => {
             closeall()
         })
 

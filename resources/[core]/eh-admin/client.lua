@@ -8,8 +8,8 @@ RegisterCommand('coords', function()
     SetNuiFocus(true, true)
     SendNUIMessage({
         type = "open",
-        _charPos = coords,
-        _charHeading = heading,
+        Pos = coords,
+        Heading = heading,
     })
 end)
 
