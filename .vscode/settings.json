@@ -1,5 +1,13 @@
 {
     "Lua.workspace.checkThirdParty": false,
+    "Lua.diagnostics.disable": [
+        "lowercase-global",
+        "discard-returns",
+        "deprecated",
+        "redundant-return",
+        "undefined-field",
+        "need-check-nil"
+    ],
     "Lua.diagnostics.globals": [
         "ActivateFrontendMenu",
         "ActivateInteriorEntitySet",
@@ -246,6 +254,7 @@
         "GetHeadingFromVector_2d",
         "GetHostId",
         "GetHudColour",
+        "GetHudScreenPositionFromWorldPosition",
         "GetInstanceId",
         "GetInteriorAtCoords",
         "GetInteriorFromEntity",
