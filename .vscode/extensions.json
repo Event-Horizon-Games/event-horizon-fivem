@@ -2,8 +2,10 @@
     "recommendations": [
         "ms-azure-devops.azure-pipelines",
         "ms-vscode.azure-account",
+        "christian-kohler.path-intellisense",
         "MS-vsliveshare.vsliveshare",
         "eamodio.gitlens",
+        "usernamehw.errorlens",
         "aaron-bond.better-comments",
         "oderwat.indent-rainbow",
         "voldemortensen.rainbow-tags",
