@@ -1,4 +1,4 @@
-local scenes = {}
+local scenes = {["ESC"] = 200}
 local keys = {}
 local hidden = false
 local isSettingScene = false
@@ -13,6 +13,71 @@ local Colors = {
     ["cyan"] = {0, 255, 255},
     ["pink"] = {255, 93, 163},
 }
+
+RegisterCommand("+scenecreate", function() end)
+RegisterCommand("-scenecreate", function()
+    if isSettingScene then isSettingScene = false return end
+    Citizen.CreateThread(function()
+        local x, y, z
+        isSettingScene = true
+
+        while isSettingScene do
+            Wait(0)
+            DisableControlAction(2, keys["CANCEL"], true)
+            x, y, z = table.unpack(SceneTarget())
+
+            DrawMarker(28, x, y, z, 0, 0, 0, 0, 0, 0, 0.15, 0.15, 0.15, 93, 17, 100, 255, false, false)
+
+            if IsDisabledControlJustReleased(2, keys["CANCEL"]) then
+                isSettingScene = false
+                return
+            end
+        end
+
+        if x == nil or y == nil or z == nil then return end
+
+        local keyboard, message, color, distance = exports["nh-keyboard"]:Keyboard({
+            header = "Add Scene",
+            rows = {
+                "Message",
+                "Color {white, red, blue, cyan, green, yellow, purple, pink}",
+                "Distance {1.1 - 10.0}"
+            }
+        })
+
+        if not keyboard then return end
+        distance = tonumber(distance)
+        if not distance or type(distance) ~= "number" or distance > 10.0 then distance = 10.0 end
+        if distance < 1.1 then distance = 1.1 end
+        distance = distance + 0.0
+
+        color = color and string.lower(color)
+        if not color or not Colors[color] then color = "white" end
+        color = Colors[color]
+
+        TriggerServerEvent("eh-scenes:add", x, y, z, message, color, distance)
+    end)
+end)
+
+RegisterCommand("+scenehide", function()
+    hidden = not hidden
+    if hidden then
+        print("scenes Disabled")
+    else
+        print("scenes Enabled")
+    end
+end)
+
+RegisterCommand("+scenedelete", function()
+    local scene = ClosestSceneLooking()
+    if scene then
+        TriggerServerEvent("eh-scenes:delete", scene)
+    end
+end)
+
+RegisterKeyMapping("+scenecreate", "(scenes): Place Scene", "keyboard", "")
+RegisterKeyMapping("+scenehide", "(scenes): Toggle scenes", "keyboard", "")
+RegisterKeyMapping("+scenedelete", "(scenes): Delete Scene", "keyboard", "")
 
 RegisterNetEvent("eh-scenes:send", function(sent)
     scenes = sent
@@ -84,79 +149,6 @@ function ClosestSceneLooking()
         end
     end
     return scanid
-end
-
-function CreateScene()
-    if isSettingScene then isSettingScene = false return end
-    CreateThread(function()
-        local x, y, z
-        isSettingScene = true
-
-        while isSettingScene do
-            Wait(0)
-            DisableControlAction(2, keys["CANCEL"], true)
-            x, y, z = table.unpack(SceneTarget())
-
-            DrawMarker(28, x, y, z, 0, 0, 0, 0, 0, 0, 0.15, 0.15, 0.15, 93, 17, 100, 255, false, false)
-
-            if IsDisabledControlJustReleased(2, keys["CANCEL"]) then
-                isSettingScene = false
-                return
-            end
-        end
-
-        if x == nil or y == nil or z == nil then return end
-
-        local keyboard, message, color, distance = exports["nh-keyboard"]:Keyboard({
-            header = "Add Scene",
-            rows = {
-                "Message",
-                "Color {white, red, blue, cyan, green, yellow, purple, pink}",
-                "Distance {1.1 - 10.0}"
-            }
-        })
-
-        if not keyboard then return end
-        distance = tonumber(distance)
-        if not distance or type(distance) ~= "number" or distance > 10.0 then distance = 10.0 end
-        if distance < 1.1 then distance = 1.1 end
-        distance = distance + 0.0
-
-        color = color and string.lower(color)
-        if not color or not Colors[color] then color = "white" end
-        color = Colors[color]
-        
-        TriggerServerEvent("eh-scenes:add", x, y, z, message, color, distance)
-    end)
-end
-
-function Hidescenes()
-    hidden = not hidden
-    if hidden then
-        print("scenes Disabled")
-    else
-        print("scenes Enabled")
-    end
-end
-
-function DeleteScene()
-    local scene = ClosestSceneLooking()
-    if scene then
-        TriggerServerEvent("eh-scenes:delete", scene)
-    end
-end
-
-function ProcessBinds()
-    keys = {
-        ["ESC"] = 200, --Esc/Backspace
-    }
-    RegisterCommand("+scenecreate", function() end)
-    RegisterCommand("-scenecreate", CreateScene)
-    RegisterCommand("+scenehide", Hidescenes)
-    RegisterCommand("+scenedelete", DeleteScene)
-    RegisterKeyMapping("+scenecreate", "(scenes): Place Scene", "keyboard", "")
-    RegisterKeyMapping("+scenehide", "(scenes): Toggle scenes", "keyboard", "")
-    RegisterKeyMapping("+scenedelete", "(scenes): Delete Scene", "keyboard", "")
 end
 
 Citizen.CreateThread(function()
