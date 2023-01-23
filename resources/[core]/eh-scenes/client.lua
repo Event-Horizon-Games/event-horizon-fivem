@@ -11,7 +11,7 @@ local Colors = {
     ["yellow"] = {255, 255, 0},
     ["purple"] = {178, 102, 255},
     ["cyan"] = {0, 255, 255},
-    ["pink"] = {255, 93, 163},
+    ["pink"] = {255, 93, 163}
 }
 
 RegisterCommand("+scenecreate", function() end)
@@ -36,7 +36,7 @@ RegisterCommand("-scenecreate", function()
 
         if x == nil or y == nil or z == nil then return end
 
-        local keyboard, message, color, distance = exports["nh-keyboard"]:Keyboard({
+        local keyboard, message, color, distance = exports["eh-nuiinput"]:Keyboard({
             header = "Add Scene",
             rows = {
                 "Message",
