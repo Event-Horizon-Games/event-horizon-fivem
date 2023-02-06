@@ -1,16 +1,19 @@
-fx_version 'bodacious'
-game 'gta5'
+-- This resource is part of the default Cfx.re asset pack (cfx-server-data)
+-- Altering or recreating for local use only is strongly discouraged.
 
 version '1.0.0'
-author 'Gravity'
+author 'me'
 description 'This is my loading screen'
 
 files {
     'index.html',
     'keks.css',
-    'res/fonts/bankgothic.ttf',
-    'res/images/loadscreen.jpg',
-    'res/music/space-jazz.mp3'
+    'bankgothic.ttf',
+    'loadscreen.jpg',
+    'music/space-jazz.mp3'
 }
 
 loadscreen 'index.html'
+
+fx_version 'bodacious'
+game 'gta5'
