@@ -93,7 +93,7 @@ end
 
 -- Crouching --
 ---Resets the crouch effect (clipsets etc.)
-local function ResetCrouch()
+function ResetCrouch()
     local playerPed = PlayerPedId()
 
     ResetPedStrafeClipset(playerPed)
@@ -112,7 +112,7 @@ local function ResetCrouch()
 end
 
 ---Starts the crouch loop
-local function CrouchThread()
+function CrouchThread()
     CreateThread(function()
         while isCrouched do
             local playerPed = PlayerPedId()
@@ -149,7 +149,7 @@ local function CrouchThread()
 end
 
 ---Starts crouching
-local function StartCrouch()
+function StartCrouch()
     isCrouched = true
     LoadClipSet("move_ped_crouched")
     local playerPed = PlayerPedId()
@@ -174,7 +174,7 @@ end
 
 ---@param playerPed number
 ---@return boolean success
-local function AttemptCrouch(playerPed)
+function AttemptCrouch(playerPed)
     if CanPlayerCrouchCrawl(playerPed) then
         StartCrouch()
         return true
@@ -184,7 +184,7 @@ local function AttemptCrouch(playerPed)
 end
 
 ---Called when the crouch key is pressed
-local function CrouchKeyPressed()
+function CrouchKeyPressed()
     -- If we already are doing something, then don't continue
     if inAction then
         return
@@ -236,7 +236,7 @@ end
 -- Crawling --
 ---@param playerPed number
 ---@return boolean
-local function ShouldPlayerDiveToCrawl(playerPed)
+function ShouldPlayerDiveToCrawl(playerPed)
     if IsPedRunning(playerPed) or IsPedSprinting(playerPed) then
         return true
     end
@@ -247,13 +247,13 @@ end
 ---@param playerPed number
 ---@param heading number|nil
 ---@param blendInSpeed number|nil
-local function PlayIdleCrawlAnim(playerPed, heading, blendInSpeed)
+function PlayIdleCrawlAnim(playerPed, heading, blendInSpeed)
     local playerCoords = GetEntityCoords(playerPed)
     TaskPlayAnimAdvanced(playerPed, "move_crawl", proneType.."_fwd", playerCoords.x, playerCoords.y, playerCoords.z, 0.0, 0.0, heading or GetEntityHeading(playerPed), blendInSpeed or 2.0, 2.0, -1, 2, 1.0, false, false)
 end
 
 ---@param forceEnd boolean
-local function PlayExitCrawlAnims(forceEnd)
+function PlayExitCrawlAnims(forceEnd)
     if not forceEnd then
         inAction = true
         local playerPed = PlayerPedId()
@@ -282,7 +282,7 @@ end
 ---@param playerPed number
 ---@param type string
 ---@param direction string
-local function Crawl(playerPed, type, direction)
+function Crawl(playerPed, type, direction)
     isCrawling = true
 
     TaskPlayAnim(playerPed, "move_crawl", type.."_"..direction, 8.0, -8.0, -1, 2, 0.0, false, false, false)
@@ -305,7 +305,7 @@ end
 
 ---Flips the player when crawling
 ---@param playerPed number
-local function CrawlFlip(playerPed)
+function CrawlFlip(playerPed)
     inAction = true
     local heading = GetEntityHeading(playerPed)
 
@@ -327,7 +327,7 @@ local function CrawlFlip(playerPed)
 end
 
 ---The crawl loop
-local function CrawlThread()
+function CrawlThread()
     CreateThread(function()
         Wait(400)
 
@@ -421,7 +421,7 @@ local function CrawlThread()
 end
 
 ---Gets called when the crawl key is pressed
-local function CrawlKeyPressed()
+function CrawlKeyPressed()
     -- If we already are doing something, then don't continue
     if inAction then
         return
@@ -520,19 +520,19 @@ end)
 -- Exports --
 ---Returns if player is crouched
 ---@return boolean
-local function IsPlayerCrouched()
+function IsPlayerCrouched()
 	return isCrouched
 end
 
 ---Returns if the player is prone (both when laying still and when moving)
 ---@return boolean
-local function IsPlayerProne()
+function IsPlayerProne()
 	return isProne
 end
 
 ---Returns if the player is crawling (only when moving forward/backward)
 ---@return boolean
-local function IsPlayerCrawling()
+function IsPlayerCrawling()
 	return isCrawling
 end
 
