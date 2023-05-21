@@ -1,8 +1,0 @@
-{
-    "compilerOptions": {
-        "outDir": "./resources/[core]/[nui]/",
-        "preserveConstEnums": true
-    },
-    "include": ["/src"],
-    "exclude": ["node_modules", "resources"]
-}
