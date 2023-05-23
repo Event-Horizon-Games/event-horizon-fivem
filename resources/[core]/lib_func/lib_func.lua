@@ -13,15 +13,26 @@ local spawnedPeds = {}
 --- @see Usage: SpawnPed('a_m_m_fatlatin_01', {0, 0, 0, 0})
 function SpawnPed(_model, _coords)
     local x, y, z, h = table.unpack(_coords)
+
     RequestModel(_model)
+
     while not HasModelLoaded(_model) do
         Citizen.Wait(100)
     end
-    local ped = CreatePed(4, GetHashKey(_model), x, y, z, h, true, true)
+
+    local _, groundZ = GetGroundZFor_3dCoord(x, y, z, false)
+
+    local ped = CreatePed(4, GetHashKey(_model), x, y, groundZ, h, true, true)
+
     table.insert(spawnedPeds, ped)
+
+    PlaceObjectOnGroundProperly(ped)
+
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
+
+    return ped
 end
 
 exports("SpawnPed", SpawnPed)
@@ -102,11 +113,11 @@ end
 
 exports("HexToRGB", HexToRGB)
 
---- Sends a chat message to a target client
---- @param target integer target client id
---- @param color any
+--- Sends a to the local client
+--- @param sender string who is sending the message (what appears before the :)
+--- @param color any the color of the sender field
 --- @param message any
-function SendChatMessage(sender, target, color, message)
+function SendChatMessage(sender, color, message)
     local chatColor
     if type(color) == "table" then
         chatColor = color
@@ -122,7 +133,7 @@ function SendChatMessage(sender, target, color, message)
         print('Error printing to chat. The rgb table does not have enough values.')
     end
 
-    TriggerClientEvent('chat:addMessage', target, {
+    TriggerEvent('chat:addMessage', {
         color = chatColor,
         multiline = true,
         args = {sender, message}
