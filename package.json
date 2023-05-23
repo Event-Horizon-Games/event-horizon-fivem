@@ -4,14 +4,16 @@
   "description": "",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "gulp build"
+    "build": "npm run clearbuild && npm run typecheck && node build-bundle.js",
+    "clearbuild": "rimraf ./dist",
+    "typecheck": "tsc --noEmit -p resources/test-ts-resource/client/tsconfig.json && tsc --noEmit -p resources/test-ts-resource/server/tsconfig.json",
+    "watch": "npm run clearbuild && cross-env IS_WATCH_MODE=1 node build/build-bundle.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Event-Horizon-Games/event-horizon-fivem.git"
   },
-  "author": "",
+  "author": "Gravity",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Event-Horizon-Games/event-horizon-fivem/issues"
@@ -25,7 +27,8 @@
     "fivem-js": "^1.5.2",
     "gulp": "^4.0.2",
     "gulp-concat": "^2.6.1",
-    "gulp-typescript": "^6.0.0-alpha.1"
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "rimraf": "^5.0.1"
   },
   "devDependencies": {
     "ts-loader": "^9.3.1",
