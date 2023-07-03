@@ -1,1 +1,1 @@
-"use strict";(()=>{var myRandomData={randomStuff:true};on("onResourceStart",resName=>{if(resName===GetCurrentResourceName()){console.log(myRandomData);console.log("TypeScript boilerplate started!")}});})();
+"use strict";(()=>{on("onResourceStart",resName=>{emit("chat:addMessage",{args:["The resource is working"]})});})();
