@@ -1,4 +1,4 @@
-Game builds are a very important piece of Fivem that typically is not visibly documented. Below will be a list of the game versions. If a version is not in the table below, check if the Fivem reference [page](https://docs.fivem.net/docs/server-manual/server-commands/) has been updated.
+Game builds are a very important piece of Fivem that typically is not visibly documented. Below will be a list of the game versions. If a version is not in the table below, check if the Fivem reference [page](https://docs.fivem.net/docs/server-manual/server-commands/#sv_enforcegamebuild-build) has been updated.
 
 | Number | Patch # | Aliases | Marketing name | Release Date |
 |--|--|--|--|--|
