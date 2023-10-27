@@ -1,4 +1,4 @@
-FX Versions are an important part of a resource manifest and there is very little context about what they mean. Below will be a list of versions and how they are differentiated. Typically the default resource manifest version for any **fxmanifest.lua** created from this date forward should be **cerulean**.
+FX Versions are an important part of a resource manifest and there is very little context about what they mean. Below will be a list of versions and how they are differentiated. Typically the default resource manifest version for any **fxmanifest.lua** created from this date forward should be **cerulean**. Occasionally check [here](https://docs.fivem.net/docs/scripting-reference/resource-manifest/resource-manifest/#fxv2-versions) in case new versions are released.
 
 ## FX version `cerulean` (2020-05)
 - Loads NUI resources in a 'secure context' to support WASM and fetch APIs, but requires callbacks to be changed to https:// instead of http://.
