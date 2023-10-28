@@ -1,9 +1,9 @@
-# RpEmotes 🏋️
+# RPEmotes 🏋️
 
-RpEmotes is a community driven FiveM emote menu allowing players to express themselves in roleplay with custom animations, countless facial expressions, walkstyles and props, inspired by [DullPear](https://github.com/andristum/dpemotes).
+RPEmotes is a community driven FiveM emote menu allowing players to express themselves in roleplay with custom animations, countless facial expressions, walkstyles and props, inspired by [DullPear](https://github.com/andristum/dpemotes).
 
 <p align="center">
-  <img src="https://media.giphy.com/media/kL2WStvEEokt0MioqC/giphy.gif" alt="Alt Text" width="800" height="auto"> 
+  <img src="https://i.imgur.com/L91BLP6.png" alt="Alt Text" width="800" height="auto"> 
 </p>
 
 
@@ -34,6 +34,8 @@ RpEmotes is a community driven FiveM emote menu allowing players to express them
 
 # Available in 🌏
 
+* Albanian 🇦🇱
+
 * Brazilian Portuguese 🇧🇷
 
 * Chinese Simplified 🇨🇳
@@ -54,11 +56,15 @@ RpEmotes is a community driven FiveM emote menu allowing players to express them
 
 * German 🇩🇪
 
+* Greek 🇬🇷
+
 * Hungarian 🇭🇺
 
 * Indonesian 🇮🇩
 
 * Italian 🇮🇹
+
+* Lithuanian 🇱🇹
 
 * Norwegian 🇳🇴
 
@@ -69,6 +75,8 @@ RpEmotes is a community driven FiveM emote menu allowing players to express them
 * Romanian 🇷🇴
 
 * Russian 🇷🇺
+
+* Serbian 🇷🇸
 
 * Sinhala 🇱🇰
 
@@ -102,7 +110,7 @@ Languages can be selected and / or added in the config.lua.
 
 - Shared Dances 🕺💃
 
-- Persistent Walkstyles via client KVP 🚶‍♂️
+- Persistent Walkstyles via client KVP 🚶‍♂️ - Standalone, QB-Core and ESX support!
 
 - Persistent Disabling Of Idle Camera via KVP 🎥
 
@@ -140,7 +148,9 @@ Languages can be selected and / or added in the config.lua.
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Exports
+# Exports 
+
+When using our emote menu with other scripts, using the `TriggerEvent('animations:client:EmoteCommandStart` won't do anything because the events do not exist. These have simply been replaced with the following exports:
 
 ```lua
 exports["rpemotes"]:EmoteCommandStart(emoteName, textureVariation)
@@ -172,7 +182,7 @@ The keybind uses RegisterKeyMapping. By default the configured keybind in the *i
 
 Server owners can change this in the `config.lua`.
 
-Alternatively, the player base can set their own menu keybind to open RpEmotes
+Alternatively, the player base can set their own menu keybind to open RPEmotes
 
 `Esc > settings > keybinds > fivem`
 
@@ -223,7 +233,7 @@ Much like everything else in the menu, server owners can change these keybinds t
 |COMMAND: | ACTION:|
 |---|---|
 | B | Toggle Finger Pointing |
-| Y| Toggle Hands Up |
+| Y | Toggle Hands Up |
 | /pointing | Toggle Finger Pointing |
 | /handsup | Toggle Hands Up |
 
@@ -231,14 +241,13 @@ Much like everything else in the menu, server owners can change these keybinds t
 
 # Crouching & Crawling
 
-**Crawling:**
-
-Server owners can opt in to either overriding the stealth/action animation when pressing the LEFT CONTROL keybind or have players tap LEFT CONTROL twice to switch from stealth to crouch (when enabled in the config.lua file)
-
-
 **Crouching:**
 
 RIGHT CONTROL. Players can move forward, back, left and right as well as turning around. Press SPACEBAR to switch from stomach to back. Pressing RIGHT CONTROL key while running will have the player "dive into" a crouching animation.
+
+**Crawling:**
+
+Server owners can opt in to either overriding the stealth / action animation when pressing the LEFT CONTROL keybind or have players tap LEFT CONTROL twice to switch from stealth to crouch (when enabled in the config.lua file)
 
 # Chat Commands
 
@@ -260,9 +269,8 @@ Moods and walkstyles can be set from the menu. These will save to your character
 | F4 | Opens RPEmotes menu |
 | /walks | See A List Of Walkstyles In Chat |
 | /moods | See A List Of Walkstyles In Chat |
-
-
-
+| /reset mood | Remove preferred mood and set default |
+| /reset walk | Remove last walkstyle and set default |
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -528,7 +536,7 @@ If no prop is used in the animation or you require the particle effect to be in 
 
 Alternatively, you can use the `PtfxBone =` AnimationOption to attach the PTFX to the ped's bone, simiarly to how you attach props.
 
-Using Menyoo, spawn down a tennis ball and attach it to human, by default menyoo will attach it to the SKEL_ROOT bone (stomach), so from that, what we can do is is either offset the coordinates, say, up to the human ped's mouth, or change the bone all together. Once we've got it correct, we can transfer those coordinates over to rpemotes, and tah dah, we have our Ptfx Placement.
+Using Menyoo, spawn down a tennis ball and attach it to human, by default menyoo will attach it to the SKEL_ROOT bone (stomach), so from that, what we can do is is either offset the coordinates, say, up to the human ped's mouth, or change the bone all together. Once we've got it correct, we can transfer those coordinates over to RPEmotes, and tah dah, we have our Ptfx Placement.
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -568,7 +576,7 @@ This repository was created by **TayMcKenzieNZ** for strict usage with the Grand
 
 All custom props and animations were provided to RPEmotes **by the community** with **express permission** and must **not** be extracted from [RpEmotes](https://github.com/TayMcKenzieNZ/rpemotes), reuploaded to any websites, forums or discord servers without permission **and** credits given.
 
-If you want to modify RpEmotes ***(does not apply if you want to use it for personal purposes)*** you are free to do so, however the RPEmotes Project Team will **not** assist you with this. All **unofficial** copies and modifications of RPEmotes void any support.
+If you want to modify RPEmotes ***(does not apply if you want to use it for personal purposes)*** you are free to do so, however the RPEmotes Project Team will **not** assist you with this. All **unofficial** copies and modifications of RPEmotes void any support.
 
 Pull requests are actively reviewed and discussed with TayMcKenzieNZ and the RPEmotes Project Team, and will be accepted so long as they do not contain animation / prop files *(we need permission before adding them)* breaking changes or suspicious and / or malicious code.
 
@@ -667,10 +675,26 @@ A huge thank you to the following people for their amazing contributions made to
 
 - Thank you to [Brummieee](https://forum.cfx.re/u/brummieee_maps/summary) for the custom props
 
-- Thank you [Dark Animations](https://www.gta5-mods.com/users/Darks%20Animations) for the partnership and custom animations. You the goat
+- Thank you [Dark Animations](https://www.gta5-mods.com/users/Darks%20Animations) for the partnership and custom animations. You the goat 😎
+
+- Thank you [Chico](https://forum.cfx.re/u/chico) for implementing natives to reapply persistent moods and walkstyles for ESX and QB-Core frameworks
+
+- Thank you [-EcLiPsE-](https://www.gta5-mods.com/users/-EcLiPsE-) for allowing me to implement [Improved Prop Sets](https://www.gta5-mods.com/misc/improved-propsets-meta) and [GTA Online Biker Idle Anims](https://www.gta5-mods.com/misc/bike-idle-animations)
+
+- Thank you [MrWitt](https://www.gta5-mods.com/users/MrWitt)for the custom animations
+
+- A huge thank you to [AdoredRose](https://forum.cfx.re/u/adoredrose/summary) for assisting with animations
+
+- Thank you [Vedere](https://discord.gg/XMywAMQ8Ef) for the custom props
+
+- Thank you to [DRX Animations](https://www.gta5-mods.com/users/DRX%2DAnimations) for the custom animations
 
 - Thank you to you, the community for being patient, showing love and appreciation, and for providing translations.
 
 You pay a big role in making this script what it is today and we could not do it without you 🙏
 
 -------------------------------------------------------------------------------
+
+# Our Wiki 📜
+
+The official RPEmotes wiki docs can be accessed [here](https://docs.rpemotes.com/)
