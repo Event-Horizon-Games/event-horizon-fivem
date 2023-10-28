@@ -40,5 +40,8 @@ RegisterNUICallback('command', function(data)
     if command == 'dashboard' then
         GracefulCloseRadial()
         TriggerEvent('eh-vehicle:openDashboard')
+    elseif command == 'hotspots' then
+        GracefulCloseRadial()
+        TriggerEvent('eh-hotspotgps:showoptions')
     end
 end)

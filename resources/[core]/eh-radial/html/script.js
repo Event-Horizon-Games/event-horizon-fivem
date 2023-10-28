@@ -7,6 +7,11 @@ var menuItems = [
         icon: '#dashboard'
     },
     {
+        id      : 'hotspots',
+        title   : 'Hotspots',
+        icon    : '#hotspot'
+    },
+    {
         id   : 'seat',
         title: 'Seats',
         icon: '#more',
