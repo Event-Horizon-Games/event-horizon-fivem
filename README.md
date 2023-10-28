@@ -1,7 +1,7 @@
 # Event Horizon RP Server
 
 ## Knowledge Base
-[Ped Animations](Knowledge Base/Ped_Animations.md)
+[Ped Animations](Knowledge%20Base/Ped_Animations.md)
 
 ## Project Goals
 I started this server to test my own capability. Adding it to Azure Devops is another step to learn more and challenge myself.
