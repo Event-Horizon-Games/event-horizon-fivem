@@ -2,12 +2,12 @@
 
 ## Knowledge Base
 
-### [First Time Setup](Knowledge%20Base/First-time_setup.md)
-[FX Server Builds](Knowledge%20Base/FX_server_builds.md)
-[Game Build Versions](Knowledge%20Base/Game_build_versions.md)
-[Resource Manifest Game Options](Knowledge%20Base/Manifest_game_options.md)
-[Ped Animations](Knowledge%20Base/Ped_Animations.md)
-[Ped Scenarios](Knowledge%20Base/Ped_Scenarios.md)
+- [First Time Setup](Knowledge%20Base/First-time_setup.md)
+- [FX Server Builds](Knowledge%20Base/FX_server_builds.md)
+- [Game Build Versions](Knowledge%20Base/Game_build_versions.md)
+- [Resource Manifest Game Options](Knowledge%20Base/Manifest_game_options.md)
+- [Ped Animations](Knowledge%20Base/Ped_Animations.md)
+- [Ped Scenarios](Knowledge%20Base/Ped_Scenarios.md)
 
 ## Project Goals
 I started this server to test my own capability. Adding it to Azure Devops is another step to learn more and challenge myself.
