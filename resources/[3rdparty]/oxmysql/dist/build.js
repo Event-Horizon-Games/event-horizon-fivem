@@ -1,3 +1,4 @@
+"use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -22,7 +23,28 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __accessCheck = (obj, member, msg) => {
+  if (!member.has(obj))
+    throw TypeError("Cannot " + msg);
+};
+var __privateGet = (obj, member, getter) => {
+  __accessCheck(obj, member, "read from private field");
+  return getter ? getter.call(obj) : member.get(obj);
+};
+var __privateAdd = (obj, member, value) => {
+  if (member.has(obj))
+    throw TypeError("Cannot add the same private member more than once");
+  member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+};
+var __privateSet = (obj, member, value, setter) => {
+  __accessCheck(obj, member, "write to private field");
+  setter ? setter.call(obj, value) : member.set(obj, value);
+  return value;
+};
 
 // node_modules/.pnpm/sqlstring@2.3.3/node_modules/sqlstring/lib/SqlString.js
 var require_SqlString = __commonJS({
@@ -227,19 +249,20 @@ var require_sqlstring = __commonJS({
   }
 });
 
-// node_modules/.pnpm/denque@2.0.1/node_modules/denque/index.js
+// node_modules/.pnpm/denque@2.1.0/node_modules/denque/index.js
 var require_denque = __commonJS({
-  "node_modules/.pnpm/denque@2.0.1/node_modules/denque/index.js"(exports, module2) {
+  "node_modules/.pnpm/denque@2.1.0/node_modules/denque/index.js"(exports, module2) {
     "use strict";
     function Denque(array, options) {
       var options = options || {};
+      this._capacity = options.capacity;
       this._head = 0;
       this._tail = 0;
-      this._capacity = options.capacity;
-      this._capacityMask = 3;
-      this._list = new Array(4);
       if (Array.isArray(array)) {
         this._fromArray(array);
+      } else {
+        this._capacityMask = 3;
+        this._list = new Array(4);
       }
     }
     Denque.prototype.peekAt = function peekAt(index) {
@@ -508,6 +531,7 @@ var require_denque = __commonJS({
       }
     };
     Denque.prototype.clear = function clear() {
+      this._list = new Array(this._list.length);
       this._head = 0;
       this._tail = 0;
     };
@@ -518,696 +542,1076 @@ var require_denque = __commonJS({
       return this._copyArray(false);
     };
     Denque.prototype._fromArray = function _fromArray(array) {
-      for (var i2 = 0; i2 < array.length; i2++)
-        this.push(array[i2]);
+      var length = array.length;
+      var capacity = this._nextPowerOf2(length);
+      this._list = new Array(capacity);
+      this._capacityMask = capacity - 1;
+      this._tail = length;
+      for (var i2 = 0; i2 < length; i2++)
+        this._list[i2] = array[i2];
     };
-    Denque.prototype._copyArray = function _copyArray(fullCopy) {
-      var newArray = [];
-      var list = this._list;
-      var len = list.length;
+    Denque.prototype._copyArray = function _copyArray(fullCopy, size) {
+      var src = this._list;
+      var capacity = src.length;
+      var length = this.length;
+      size = size | length;
+      if (size == length && this._head < this._tail) {
+        return this._list.slice(this._head, this._tail);
+      }
+      var dest = new Array(size);
+      var k = 0;
       var i2;
       if (fullCopy || this._head > this._tail) {
-        for (i2 = this._head; i2 < len; i2++)
-          newArray.push(list[i2]);
+        for (i2 = this._head; i2 < capacity; i2++)
+          dest[k++] = src[i2];
         for (i2 = 0; i2 < this._tail; i2++)
-          newArray.push(list[i2]);
+          dest[k++] = src[i2];
       } else {
         for (i2 = this._head; i2 < this._tail; i2++)
-          newArray.push(list[i2]);
+          dest[k++] = src[i2];
       }
-      return newArray;
+      return dest;
     };
     Denque.prototype._growArray = function _growArray() {
-      if (this._head) {
-        this._list = this._copyArray(true);
+      if (this._head != 0) {
+        var newList = this._copyArray(true, this._list.length << 1);
+        this._tail = this._list.length;
         this._head = 0;
+        this._list = newList;
+      } else {
+        this._tail = this._list.length;
+        this._list.length <<= 1;
       }
-      this._tail = this._list.length;
-      this._list.length <<= 1;
       this._capacityMask = this._capacityMask << 1 | 1;
     };
     Denque.prototype._shrinkArray = function _shrinkArray() {
       this._list.length >>>= 1;
       this._capacityMask >>>= 1;
     };
+    Denque.prototype._nextPowerOf2 = function _nextPowerOf2(num) {
+      var log2 = Math.log(num) / Math.log(2);
+      var nextPow2 = 1 << log2 + 1;
+      return Math.max(nextPow2, 4);
+    };
     module2.exports = Denque;
   }
 });
 
-// node_modules/.pnpm/yallist@4.0.0/node_modules/yallist/iterator.js
-var require_iterator = __commonJS({
-  "node_modules/.pnpm/yallist@4.0.0/node_modules/yallist/iterator.js"(exports, module2) {
+// node_modules/.pnpm/lru-cache@8.0.5/node_modules/lru-cache/dist/cjs/index.js
+var require_cjs = __commonJS({
+  "node_modules/.pnpm/lru-cache@8.0.5/node_modules/lru-cache/dist/cjs/index.js"(exports) {
     "use strict";
-    module2.exports = function(Yallist) {
-      Yallist.prototype[Symbol.iterator] = function* () {
-        for (let walker = this.head; walker; walker = walker.next) {
-          yield walker.value;
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LRUCache = void 0;
+    var perf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
+    var warned = /* @__PURE__ */ new Set();
+    var emitWarning = (msg, type, code, fn) => {
+      typeof process === "object" && process && typeof process.emitWarning === "function" ? process.emitWarning(msg, type, code, fn) : console.error(`[${code}] ${type}: ${msg}`);
+    };
+    var shouldWarn = (code) => !warned.has(code);
+    var TYPE = Symbol("type");
+    var isPosInt = (n) => n && n === Math.floor(n) && n > 0 && isFinite(n);
+    var getUintArray = (max) => !isPosInt(max) ? null : max <= Math.pow(2, 8) ? Uint8Array : max <= Math.pow(2, 16) ? Uint16Array : max <= Math.pow(2, 32) ? Uint32Array : max <= Number.MAX_SAFE_INTEGER ? ZeroArray : null;
+    var ZeroArray = class extends Array {
+      constructor(size) {
+        super(size);
+        this.fill(0);
+      }
+    };
+    var _constructing;
+    var _Stack = class {
+      heap;
+      length;
+      static create(max) {
+        const HeapCls = getUintArray(max);
+        if (!HeapCls)
+          return [];
+        __privateSet(_Stack, _constructing, true);
+        const s2 = new _Stack(max, HeapCls);
+        __privateSet(_Stack, _constructing, false);
+        return s2;
+      }
+      constructor(max, HeapCls) {
+        if (!__privateGet(_Stack, _constructing)) {
+          throw new TypeError("instantiate Stack using Stack.create(n)");
         }
-      };
-    };
-  }
-});
-
-// node_modules/.pnpm/yallist@4.0.0/node_modules/yallist/yallist.js
-var require_yallist = __commonJS({
-  "node_modules/.pnpm/yallist@4.0.0/node_modules/yallist/yallist.js"(exports, module2) {
-    "use strict";
-    module2.exports = Yallist;
-    Yallist.Node = Node;
-    Yallist.create = Yallist;
-    function Yallist(list) {
-      var self2 = this;
-      if (!(self2 instanceof Yallist)) {
-        self2 = new Yallist();
-      }
-      self2.tail = null;
-      self2.head = null;
-      self2.length = 0;
-      if (list && typeof list.forEach === "function") {
-        list.forEach(function(item) {
-          self2.push(item);
-        });
-      } else if (arguments.length > 0) {
-        for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-          self2.push(arguments[i2]);
-        }
-      }
-      return self2;
-    }
-    Yallist.prototype.removeNode = function(node) {
-      if (node.list !== this) {
-        throw new Error("removing node which does not belong to this list");
-      }
-      var next = node.next;
-      var prev = node.prev;
-      if (next) {
-        next.prev = prev;
-      }
-      if (prev) {
-        prev.next = next;
-      }
-      if (node === this.head) {
-        this.head = next;
-      }
-      if (node === this.tail) {
-        this.tail = prev;
-      }
-      node.list.length--;
-      node.next = null;
-      node.prev = null;
-      node.list = null;
-      return next;
-    };
-    Yallist.prototype.unshiftNode = function(node) {
-      if (node === this.head) {
-        return;
-      }
-      if (node.list) {
-        node.list.removeNode(node);
-      }
-      var head = this.head;
-      node.list = this;
-      node.next = head;
-      if (head) {
-        head.prev = node;
-      }
-      this.head = node;
-      if (!this.tail) {
-        this.tail = node;
-      }
-      this.length++;
-    };
-    Yallist.prototype.pushNode = function(node) {
-      if (node === this.tail) {
-        return;
-      }
-      if (node.list) {
-        node.list.removeNode(node);
-      }
-      var tail = this.tail;
-      node.list = this;
-      node.prev = tail;
-      if (tail) {
-        tail.next = node;
-      }
-      this.tail = node;
-      if (!this.head) {
-        this.head = node;
-      }
-      this.length++;
-    };
-    Yallist.prototype.push = function() {
-      for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-        push(this, arguments[i2]);
-      }
-      return this.length;
-    };
-    Yallist.prototype.unshift = function() {
-      for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-        unshift(this, arguments[i2]);
-      }
-      return this.length;
-    };
-    Yallist.prototype.pop = function() {
-      if (!this.tail) {
-        return void 0;
-      }
-      var res = this.tail.value;
-      this.tail = this.tail.prev;
-      if (this.tail) {
-        this.tail.next = null;
-      } else {
-        this.head = null;
-      }
-      this.length--;
-      return res;
-    };
-    Yallist.prototype.shift = function() {
-      if (!this.head) {
-        return void 0;
-      }
-      var res = this.head.value;
-      this.head = this.head.next;
-      if (this.head) {
-        this.head.prev = null;
-      } else {
-        this.tail = null;
-      }
-      this.length--;
-      return res;
-    };
-    Yallist.prototype.forEach = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this.head, i2 = 0; walker !== null; i2++) {
-        fn.call(thisp, walker.value, i2, this);
-        walker = walker.next;
-      }
-    };
-    Yallist.prototype.forEachReverse = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this.tail, i2 = this.length - 1; walker !== null; i2--) {
-        fn.call(thisp, walker.value, i2, this);
-        walker = walker.prev;
-      }
-    };
-    Yallist.prototype.get = function(n) {
-      for (var i2 = 0, walker = this.head; walker !== null && i2 < n; i2++) {
-        walker = walker.next;
-      }
-      if (i2 === n && walker !== null) {
-        return walker.value;
-      }
-    };
-    Yallist.prototype.getReverse = function(n) {
-      for (var i2 = 0, walker = this.tail; walker !== null && i2 < n; i2++) {
-        walker = walker.prev;
-      }
-      if (i2 === n && walker !== null) {
-        return walker.value;
-      }
-    };
-    Yallist.prototype.map = function(fn, thisp) {
-      thisp = thisp || this;
-      var res = new Yallist();
-      for (var walker = this.head; walker !== null; ) {
-        res.push(fn.call(thisp, walker.value, this));
-        walker = walker.next;
-      }
-      return res;
-    };
-    Yallist.prototype.mapReverse = function(fn, thisp) {
-      thisp = thisp || this;
-      var res = new Yallist();
-      for (var walker = this.tail; walker !== null; ) {
-        res.push(fn.call(thisp, walker.value, this));
-        walker = walker.prev;
-      }
-      return res;
-    };
-    Yallist.prototype.reduce = function(fn, initial) {
-      var acc;
-      var walker = this.head;
-      if (arguments.length > 1) {
-        acc = initial;
-      } else if (this.head) {
-        walker = this.head.next;
-        acc = this.head.value;
-      } else {
-        throw new TypeError("Reduce of empty list with no initial value");
-      }
-      for (var i2 = 0; walker !== null; i2++) {
-        acc = fn(acc, walker.value, i2);
-        walker = walker.next;
-      }
-      return acc;
-    };
-    Yallist.prototype.reduceReverse = function(fn, initial) {
-      var acc;
-      var walker = this.tail;
-      if (arguments.length > 1) {
-        acc = initial;
-      } else if (this.tail) {
-        walker = this.tail.prev;
-        acc = this.tail.value;
-      } else {
-        throw new TypeError("Reduce of empty list with no initial value");
-      }
-      for (var i2 = this.length - 1; walker !== null; i2--) {
-        acc = fn(acc, walker.value, i2);
-        walker = walker.prev;
-      }
-      return acc;
-    };
-    Yallist.prototype.toArray = function() {
-      var arr = new Array(this.length);
-      for (var i2 = 0, walker = this.head; walker !== null; i2++) {
-        arr[i2] = walker.value;
-        walker = walker.next;
-      }
-      return arr;
-    };
-    Yallist.prototype.toArrayReverse = function() {
-      var arr = new Array(this.length);
-      for (var i2 = 0, walker = this.tail; walker !== null; i2++) {
-        arr[i2] = walker.value;
-        walker = walker.prev;
-      }
-      return arr;
-    };
-    Yallist.prototype.slice = function(from, to) {
-      to = to || this.length;
-      if (to < 0) {
-        to += this.length;
-      }
-      from = from || 0;
-      if (from < 0) {
-        from += this.length;
-      }
-      var ret = new Yallist();
-      if (to < from || to < 0) {
-        return ret;
-      }
-      if (from < 0) {
-        from = 0;
-      }
-      if (to > this.length) {
-        to = this.length;
-      }
-      for (var i2 = 0, walker = this.head; walker !== null && i2 < from; i2++) {
-        walker = walker.next;
-      }
-      for (; walker !== null && i2 < to; i2++, walker = walker.next) {
-        ret.push(walker.value);
-      }
-      return ret;
-    };
-    Yallist.prototype.sliceReverse = function(from, to) {
-      to = to || this.length;
-      if (to < 0) {
-        to += this.length;
-      }
-      from = from || 0;
-      if (from < 0) {
-        from += this.length;
-      }
-      var ret = new Yallist();
-      if (to < from || to < 0) {
-        return ret;
-      }
-      if (from < 0) {
-        from = 0;
-      }
-      if (to > this.length) {
-        to = this.length;
-      }
-      for (var i2 = this.length, walker = this.tail; walker !== null && i2 > to; i2--) {
-        walker = walker.prev;
-      }
-      for (; walker !== null && i2 > from; i2--, walker = walker.prev) {
-        ret.push(walker.value);
-      }
-      return ret;
-    };
-    Yallist.prototype.splice = function(start, deleteCount, ...nodes) {
-      if (start > this.length) {
-        start = this.length - 1;
-      }
-      if (start < 0) {
-        start = this.length + start;
-      }
-      for (var i2 = 0, walker = this.head; walker !== null && i2 < start; i2++) {
-        walker = walker.next;
-      }
-      var ret = [];
-      for (var i2 = 0; walker && i2 < deleteCount; i2++) {
-        ret.push(walker.value);
-        walker = this.removeNode(walker);
-      }
-      if (walker === null) {
-        walker = this.tail;
-      }
-      if (walker !== this.head && walker !== this.tail) {
-        walker = walker.prev;
-      }
-      for (var i2 = 0; i2 < nodes.length; i2++) {
-        walker = insert(this, walker, nodes[i2]);
-      }
-      return ret;
-    };
-    Yallist.prototype.reverse = function() {
-      var head = this.head;
-      var tail = this.tail;
-      for (var walker = head; walker !== null; walker = walker.prev) {
-        var p = walker.prev;
-        walker.prev = walker.next;
-        walker.next = p;
-      }
-      this.head = tail;
-      this.tail = head;
-      return this;
-    };
-    function insert(self2, node, value) {
-      var inserted = node === self2.head ? new Node(value, null, node, self2) : new Node(value, node, node.next, self2);
-      if (inserted.next === null) {
-        self2.tail = inserted;
-      }
-      if (inserted.prev === null) {
-        self2.head = inserted;
-      }
-      self2.length++;
-      return inserted;
-    }
-    function push(self2, item) {
-      self2.tail = new Node(item, self2.tail, null, self2);
-      if (!self2.head) {
-        self2.head = self2.tail;
-      }
-      self2.length++;
-    }
-    function unshift(self2, item) {
-      self2.head = new Node(item, null, self2.head, self2);
-      if (!self2.tail) {
-        self2.tail = self2.head;
-      }
-      self2.length++;
-    }
-    function Node(value, prev, next, list) {
-      if (!(this instanceof Node)) {
-        return new Node(value, prev, next, list);
-      }
-      this.list = list;
-      this.value = value;
-      if (prev) {
-        prev.next = this;
-        this.prev = prev;
-      } else {
-        this.prev = null;
-      }
-      if (next) {
-        next.prev = this;
-        this.next = next;
-      } else {
-        this.next = null;
-      }
-    }
-    try {
-      require_iterator()(Yallist);
-    } catch (er) {
-    }
-  }
-});
-
-// node_modules/.pnpm/lru-cache@6.0.0/node_modules/lru-cache/index.js
-var require_lru_cache = __commonJS({
-  "node_modules/.pnpm/lru-cache@6.0.0/node_modules/lru-cache/index.js"(exports, module2) {
-    "use strict";
-    var Yallist = require_yallist();
-    var MAX = Symbol("max");
-    var LENGTH = Symbol("length");
-    var LENGTH_CALCULATOR = Symbol("lengthCalculator");
-    var ALLOW_STALE = Symbol("allowStale");
-    var MAX_AGE = Symbol("maxAge");
-    var DISPOSE = Symbol("dispose");
-    var NO_DISPOSE_ON_SET = Symbol("noDisposeOnSet");
-    var LRU_LIST = Symbol("lruList");
-    var CACHE = Symbol("cache");
-    var UPDATE_AGE_ON_GET = Symbol("updateAgeOnGet");
-    var naiveLength = () => 1;
-    var LRUCache = class {
-      constructor(options) {
-        if (typeof options === "number")
-          options = { max: options };
-        if (!options)
-          options = {};
-        if (options.max && (typeof options.max !== "number" || options.max < 0))
-          throw new TypeError("max must be a non-negative number");
-        const max = this[MAX] = options.max || Infinity;
-        const lc = options.length || naiveLength;
-        this[LENGTH_CALCULATOR] = typeof lc !== "function" ? naiveLength : lc;
-        this[ALLOW_STALE] = options.stale || false;
-        if (options.maxAge && typeof options.maxAge !== "number")
-          throw new TypeError("maxAge must be a number");
-        this[MAX_AGE] = options.maxAge || 0;
-        this[DISPOSE] = options.dispose;
-        this[NO_DISPOSE_ON_SET] = options.noDisposeOnSet || false;
-        this[UPDATE_AGE_ON_GET] = options.updateAgeOnGet || false;
-        this.reset();
-      }
-      set max(mL) {
-        if (typeof mL !== "number" || mL < 0)
-          throw new TypeError("max must be a non-negative number");
-        this[MAX] = mL || Infinity;
-        trim(this);
-      }
-      get max() {
-        return this[MAX];
-      }
-      set allowStale(allowStale) {
-        this[ALLOW_STALE] = !!allowStale;
-      }
-      get allowStale() {
-        return this[ALLOW_STALE];
-      }
-      set maxAge(mA) {
-        if (typeof mA !== "number")
-          throw new TypeError("maxAge must be a non-negative number");
-        this[MAX_AGE] = mA;
-        trim(this);
-      }
-      get maxAge() {
-        return this[MAX_AGE];
-      }
-      set lengthCalculator(lC) {
-        if (typeof lC !== "function")
-          lC = naiveLength;
-        if (lC !== this[LENGTH_CALCULATOR]) {
-          this[LENGTH_CALCULATOR] = lC;
-          this[LENGTH] = 0;
-          this[LRU_LIST].forEach((hit) => {
-            hit.length = this[LENGTH_CALCULATOR](hit.value, hit.key);
-            this[LENGTH] += hit.length;
-          });
-        }
-        trim(this);
-      }
-      get lengthCalculator() {
-        return this[LENGTH_CALCULATOR];
-      }
-      get length() {
-        return this[LENGTH];
-      }
-      get itemCount() {
-        return this[LRU_LIST].length;
-      }
-      rforEach(fn, thisp) {
-        thisp = thisp || this;
-        for (let walker = this[LRU_LIST].tail; walker !== null; ) {
-          const prev = walker.prev;
-          forEachStep(this, fn, walker, thisp);
-          walker = prev;
-        }
-      }
-      forEach(fn, thisp) {
-        thisp = thisp || this;
-        for (let walker = this[LRU_LIST].head; walker !== null; ) {
-          const next = walker.next;
-          forEachStep(this, fn, walker, thisp);
-          walker = next;
-        }
-      }
-      keys() {
-        return this[LRU_LIST].toArray().map((k) => k.key);
-      }
-      values() {
-        return this[LRU_LIST].toArray().map((k) => k.value);
-      }
-      reset() {
-        if (this[DISPOSE] && this[LRU_LIST] && this[LRU_LIST].length) {
-          this[LRU_LIST].forEach((hit) => this[DISPOSE](hit.key, hit.value));
-        }
-        this[CACHE] = /* @__PURE__ */ new Map();
-        this[LRU_LIST] = new Yallist();
-        this[LENGTH] = 0;
-      }
-      dump() {
-        return this[LRU_LIST].map((hit) => isStale(this, hit) ? false : {
-          k: hit.key,
-          v: hit.value,
-          e: hit.now + (hit.maxAge || 0)
-        }).toArray().filter((h2) => h2);
-      }
-      dumpLru() {
-        return this[LRU_LIST];
-      }
-      set(key, value, maxAge) {
-        maxAge = maxAge || this[MAX_AGE];
-        if (maxAge && typeof maxAge !== "number")
-          throw new TypeError("maxAge must be a number");
-        const now = maxAge ? Date.now() : 0;
-        const len = this[LENGTH_CALCULATOR](value, key);
-        if (this[CACHE].has(key)) {
-          if (len > this[MAX]) {
-            del(this, this[CACHE].get(key));
-            return false;
-          }
-          const node = this[CACHE].get(key);
-          const item = node.value;
-          if (this[DISPOSE]) {
-            if (!this[NO_DISPOSE_ON_SET])
-              this[DISPOSE](key, item.value);
-          }
-          item.now = now;
-          item.maxAge = maxAge;
-          item.value = value;
-          this[LENGTH] += len - item.length;
-          item.length = len;
-          this.get(key);
-          trim(this);
-          return true;
-        }
-        const hit = new Entry(key, value, len, now, maxAge);
-        if (hit.length > this[MAX]) {
-          if (this[DISPOSE])
-            this[DISPOSE](key, value);
-          return false;
-        }
-        this[LENGTH] += hit.length;
-        this[LRU_LIST].unshift(hit);
-        this[CACHE].set(key, this[LRU_LIST].head);
-        trim(this);
-        return true;
-      }
-      has(key) {
-        if (!this[CACHE].has(key))
-          return false;
-        const hit = this[CACHE].get(key).value;
-        return !isStale(this, hit);
-      }
-      get(key) {
-        return get(this, key, true);
-      }
-      peek(key) {
-        return get(this, key, false);
+        this.heap = new HeapCls(max);
+        this.length = 0;
+      }
+      push(n) {
+        this.heap[this.length++] = n;
       }
       pop() {
-        const node = this[LRU_LIST].tail;
-        if (!node)
-          return null;
-        del(this, node);
-        return node.value;
+        return this.heap[--this.length];
       }
-      del(key) {
-        del(this, this[CACHE].get(key));
+    };
+    var Stack = _Stack;
+    _constructing = new WeakMap();
+    __privateAdd(Stack, _constructing, false);
+    var LRUCache = class {
+      #max;
+      #maxSize;
+      #dispose;
+      #disposeAfter;
+      #fetchMethod;
+      ttl;
+      ttlResolution;
+      ttlAutopurge;
+      updateAgeOnGet;
+      updateAgeOnHas;
+      allowStale;
+      noDisposeOnSet;
+      noUpdateTTL;
+      maxEntrySize;
+      sizeCalculation;
+      noDeleteOnFetchRejection;
+      noDeleteOnStaleGet;
+      allowStaleOnFetchAbort;
+      allowStaleOnFetchRejection;
+      ignoreFetchAbort;
+      #size;
+      #calculatedSize;
+      #keyMap;
+      #keyList;
+      #valList;
+      #next;
+      #prev;
+      #head;
+      #tail;
+      #free;
+      #disposed;
+      #sizes;
+      #starts;
+      #ttls;
+      #hasDispose;
+      #hasFetchMethod;
+      #hasDisposeAfter;
+      static unsafeExposeInternals(c) {
+        return {
+          starts: c.#starts,
+          ttls: c.#ttls,
+          sizes: c.#sizes,
+          keyMap: c.#keyMap,
+          keyList: c.#keyList,
+          valList: c.#valList,
+          next: c.#next,
+          prev: c.#prev,
+          get head() {
+            return c.#head;
+          },
+          get tail() {
+            return c.#tail;
+          },
+          free: c.#free,
+          isBackgroundFetch: (p) => c.#isBackgroundFetch(p),
+          backgroundFetch: (k, index, options, context) => c.#backgroundFetch(k, index, options, context),
+          moveToTail: (index) => c.#moveToTail(index),
+          indexes: (options) => c.#indexes(options),
+          rindexes: (options) => c.#rindexes(options),
+          isStale: (index) => c.#isStale(index)
+        };
       }
-      load(arr) {
-        this.reset();
-        const now = Date.now();
-        for (let l = arr.length - 1; l >= 0; l--) {
-          const hit = arr[l];
-          const expiresAt = hit.e || 0;
-          if (expiresAt === 0)
-            this.set(hit.k, hit.v);
-          else {
-            const maxAge = expiresAt - now;
-            if (maxAge > 0) {
-              this.set(hit.k, hit.v, maxAge);
+      get max() {
+        return this.#max;
+      }
+      get maxSize() {
+        return this.#maxSize;
+      }
+      get calculatedSize() {
+        return this.#calculatedSize;
+      }
+      get size() {
+        return this.#size;
+      }
+      get fetchMethod() {
+        return this.#fetchMethod;
+      }
+      get dispose() {
+        return this.#dispose;
+      }
+      get disposeAfter() {
+        return this.#disposeAfter;
+      }
+      constructor(options) {
+        const { max = 0, ttl, ttlResolution = 1, ttlAutopurge, updateAgeOnGet, updateAgeOnHas, allowStale, dispose, disposeAfter, noDisposeOnSet, noUpdateTTL, maxSize = 0, maxEntrySize = 0, sizeCalculation, fetchMethod, noDeleteOnFetchRejection, noDeleteOnStaleGet, allowStaleOnFetchRejection, allowStaleOnFetchAbort, ignoreFetchAbort } = options;
+        if (max !== 0 && !isPosInt(max)) {
+          throw new TypeError("max option must be a nonnegative integer");
+        }
+        const UintArray = max ? getUintArray(max) : Array;
+        if (!UintArray) {
+          throw new Error("invalid max value: " + max);
+        }
+        this.#max = max;
+        this.#maxSize = maxSize;
+        this.maxEntrySize = maxEntrySize || this.#maxSize;
+        this.sizeCalculation = sizeCalculation;
+        if (this.sizeCalculation) {
+          if (!this.#maxSize && !this.maxEntrySize) {
+            throw new TypeError("cannot set sizeCalculation without setting maxSize or maxEntrySize");
+          }
+          if (typeof this.sizeCalculation !== "function") {
+            throw new TypeError("sizeCalculation set to non-function");
+          }
+        }
+        if (fetchMethod !== void 0 && typeof fetchMethod !== "function") {
+          throw new TypeError("fetchMethod must be a function if specified");
+        }
+        this.#fetchMethod = fetchMethod;
+        this.#hasFetchMethod = !!fetchMethod;
+        this.#keyMap = /* @__PURE__ */ new Map();
+        this.#keyList = new Array(max).fill(void 0);
+        this.#valList = new Array(max).fill(void 0);
+        this.#next = new UintArray(max);
+        this.#prev = new UintArray(max);
+        this.#head = 0;
+        this.#tail = 0;
+        this.#free = Stack.create(max);
+        this.#size = 0;
+        this.#calculatedSize = 0;
+        if (typeof dispose === "function") {
+          this.#dispose = dispose;
+        }
+        if (typeof disposeAfter === "function") {
+          this.#disposeAfter = disposeAfter;
+          this.#disposed = [];
+        } else {
+          this.#disposeAfter = void 0;
+          this.#disposed = void 0;
+        }
+        this.#hasDispose = !!this.#dispose;
+        this.#hasDisposeAfter = !!this.#disposeAfter;
+        this.noDisposeOnSet = !!noDisposeOnSet;
+        this.noUpdateTTL = !!noUpdateTTL;
+        this.noDeleteOnFetchRejection = !!noDeleteOnFetchRejection;
+        this.allowStaleOnFetchRejection = !!allowStaleOnFetchRejection;
+        this.allowStaleOnFetchAbort = !!allowStaleOnFetchAbort;
+        this.ignoreFetchAbort = !!ignoreFetchAbort;
+        if (this.maxEntrySize !== 0) {
+          if (this.#maxSize !== 0) {
+            if (!isPosInt(this.#maxSize)) {
+              throw new TypeError("maxSize must be a positive integer if specified");
+            }
+          }
+          if (!isPosInt(this.maxEntrySize)) {
+            throw new TypeError("maxEntrySize must be a positive integer if specified");
+          }
+          this.#initializeSizeTracking();
+        }
+        this.allowStale = !!allowStale;
+        this.noDeleteOnStaleGet = !!noDeleteOnStaleGet;
+        this.updateAgeOnGet = !!updateAgeOnGet;
+        this.updateAgeOnHas = !!updateAgeOnHas;
+        this.ttlResolution = isPosInt(ttlResolution) || ttlResolution === 0 ? ttlResolution : 1;
+        this.ttlAutopurge = !!ttlAutopurge;
+        this.ttl = ttl || 0;
+        if (this.ttl) {
+          if (!isPosInt(this.ttl)) {
+            throw new TypeError("ttl must be a positive integer if specified");
+          }
+          this.#initializeTTLTracking();
+        }
+        if (this.#max === 0 && this.ttl === 0 && this.#maxSize === 0) {
+          throw new TypeError("At least one of max, maxSize, or ttl is required");
+        }
+        if (!this.ttlAutopurge && !this.#max && !this.#maxSize) {
+          const code = "LRU_CACHE_UNBOUNDED";
+          if (shouldWarn(code)) {
+            warned.add(code);
+            const msg = "TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.";
+            emitWarning(msg, "UnboundedCacheWarning", code, LRUCache);
+          }
+        }
+      }
+      getRemainingTTL(key) {
+        return this.#keyMap.has(key) ? Infinity : 0;
+      }
+      #initializeTTLTracking() {
+        const ttls = new ZeroArray(this.#max);
+        const starts = new ZeroArray(this.#max);
+        this.#ttls = ttls;
+        this.#starts = starts;
+        this.#setItemTTL = (index, ttl, start = perf.now()) => {
+          starts[index] = ttl !== 0 ? start : 0;
+          ttls[index] = ttl;
+          if (ttl !== 0 && this.ttlAutopurge) {
+            const t2 = setTimeout(() => {
+              if (this.#isStale(index)) {
+                this.delete(this.#keyList[index]);
+              }
+            }, ttl + 1);
+            if (t2.unref) {
+              t2.unref();
+            }
+          }
+        };
+        this.#updateItemAge = (index) => {
+          starts[index] = ttls[index] !== 0 ? perf.now() : 0;
+        };
+        this.#statusTTL = (status, index) => {
+          if (ttls[index]) {
+            const ttl = ttls[index];
+            const start = starts[index];
+            status.ttl = ttl;
+            status.start = start;
+            status.now = cachedNow || getNow();
+            status.remainingTTL = status.now + ttl - start;
+          }
+        };
+        let cachedNow = 0;
+        const getNow = () => {
+          const n = perf.now();
+          if (this.ttlResolution > 0) {
+            cachedNow = n;
+            const t2 = setTimeout(() => cachedNow = 0, this.ttlResolution);
+            if (t2.unref) {
+              t2.unref();
+            }
+          }
+          return n;
+        };
+        this.getRemainingTTL = (key) => {
+          const index = this.#keyMap.get(key);
+          if (index === void 0) {
+            return 0;
+          }
+          return ttls[index] === 0 || starts[index] === 0 ? Infinity : starts[index] + ttls[index] - (cachedNow || getNow());
+        };
+        this.#isStale = (index) => {
+          return ttls[index] !== 0 && starts[index] !== 0 && (cachedNow || getNow()) - starts[index] > ttls[index];
+        };
+      }
+      #updateItemAge = () => {
+      };
+      #statusTTL = () => {
+      };
+      #setItemTTL = () => {
+      };
+      #isStale = () => false;
+      #initializeSizeTracking() {
+        const sizes = new ZeroArray(this.#max);
+        this.#calculatedSize = 0;
+        this.#sizes = sizes;
+        this.#removeItemSize = (index) => {
+          this.#calculatedSize -= sizes[index];
+          sizes[index] = 0;
+        };
+        this.#requireSize = (k, v, size, sizeCalculation) => {
+          if (this.#isBackgroundFetch(v)) {
+            return 0;
+          }
+          if (!isPosInt(size)) {
+            if (sizeCalculation) {
+              if (typeof sizeCalculation !== "function") {
+                throw new TypeError("sizeCalculation must be a function");
+              }
+              size = sizeCalculation(v, k);
+              if (!isPosInt(size)) {
+                throw new TypeError("sizeCalculation return invalid (expect positive integer)");
+              }
+            } else {
+              throw new TypeError("invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set.");
+            }
+          }
+          return size;
+        };
+        this.#addItemSize = (index, size, status) => {
+          sizes[index] = size;
+          if (this.#maxSize) {
+            const maxSize = this.#maxSize - sizes[index];
+            while (this.#calculatedSize > maxSize) {
+              this.#evict(true);
+            }
+          }
+          this.#calculatedSize += sizes[index];
+          if (status) {
+            status.entrySize = size;
+            status.totalCalculatedSize = this.#calculatedSize;
+          }
+        };
+      }
+      #removeItemSize = (_i) => {
+      };
+      #addItemSize = (_i, _s, _st) => {
+      };
+      #requireSize = (_k, _v, size, sizeCalculation) => {
+        if (size || sizeCalculation) {
+          throw new TypeError("cannot set size without setting maxSize or maxEntrySize on cache");
+        }
+        return 0;
+      };
+      *#indexes({ allowStale = this.allowStale } = {}) {
+        if (this.#size) {
+          for (let i2 = this.#tail; true; ) {
+            if (!this.#isValidIndex(i2)) {
+              break;
+            }
+            if (allowStale || !this.#isStale(i2)) {
+              yield i2;
+            }
+            if (i2 === this.#head) {
+              break;
+            } else {
+              i2 = this.#prev[i2];
             }
           }
         }
       }
-      prune() {
-        this[CACHE].forEach((value, key) => get(this, key, false));
-      }
-    };
-    var get = (self2, key, doUse) => {
-      const node = self2[CACHE].get(key);
-      if (node) {
-        const hit = node.value;
-        if (isStale(self2, hit)) {
-          del(self2, node);
-          if (!self2[ALLOW_STALE])
-            return void 0;
-        } else {
-          if (doUse) {
-            if (self2[UPDATE_AGE_ON_GET])
-              node.value.now = Date.now();
-            self2[LRU_LIST].unshiftNode(node);
+      *#rindexes({ allowStale = this.allowStale } = {}) {
+        if (this.#size) {
+          for (let i2 = this.#head; true; ) {
+            if (!this.#isValidIndex(i2)) {
+              break;
+            }
+            if (allowStale || !this.#isStale(i2)) {
+              yield i2;
+            }
+            if (i2 === this.#tail) {
+              break;
+            } else {
+              i2 = this.#next[i2];
+            }
           }
         }
-        return hit.value;
       }
-    };
-    var isStale = (self2, hit) => {
-      if (!hit || !hit.maxAge && !self2[MAX_AGE])
+      #isValidIndex(index) {
+        return index !== void 0 && this.#keyMap.get(this.#keyList[index]) === index;
+      }
+      *entries() {
+        for (const i2 of this.#indexes()) {
+          if (this.#valList[i2] !== void 0 && this.#keyList[i2] !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield [this.#keyList[i2], this.#valList[i2]];
+          }
+        }
+      }
+      *rentries() {
+        for (const i2 of this.#rindexes()) {
+          if (this.#valList[i2] !== void 0 && this.#keyList[i2] !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield [this.#keyList[i2], this.#valList[i2]];
+          }
+        }
+      }
+      *keys() {
+        for (const i2 of this.#indexes()) {
+          const k = this.#keyList[i2];
+          if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield k;
+          }
+        }
+      }
+      *rkeys() {
+        for (const i2 of this.#rindexes()) {
+          const k = this.#keyList[i2];
+          if (k !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield k;
+          }
+        }
+      }
+      *values() {
+        for (const i2 of this.#indexes()) {
+          const v = this.#valList[i2];
+          if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield this.#valList[i2];
+          }
+        }
+      }
+      *rvalues() {
+        for (const i2 of this.#rindexes()) {
+          const v = this.#valList[i2];
+          if (v !== void 0 && !this.#isBackgroundFetch(this.#valList[i2])) {
+            yield this.#valList[i2];
+          }
+        }
+      }
+      [Symbol.iterator]() {
+        return this.entries();
+      }
+      find(fn, getOptions = {}) {
+        for (const i2 of this.#indexes()) {
+          const v = this.#valList[i2];
+          const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          if (fn(value, this.#keyList[i2], this)) {
+            return this.get(this.#keyList[i2], getOptions);
+          }
+        }
+      }
+      forEach(fn, thisp = this) {
+        for (const i2 of this.#indexes()) {
+          const v = this.#valList[i2];
+          const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          fn.call(thisp, value, this.#keyList[i2], this);
+        }
+      }
+      rforEach(fn, thisp = this) {
+        for (const i2 of this.#rindexes()) {
+          const v = this.#valList[i2];
+          const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          fn.call(thisp, value, this.#keyList[i2], this);
+        }
+      }
+      purgeStale() {
+        let deleted = false;
+        for (const i2 of this.#rindexes({ allowStale: true })) {
+          if (this.#isStale(i2)) {
+            this.delete(this.#keyList[i2]);
+            deleted = true;
+          }
+        }
+        return deleted;
+      }
+      dump() {
+        const arr = [];
+        for (const i2 of this.#indexes({ allowStale: true })) {
+          const key = this.#keyList[i2];
+          const v = this.#valList[i2];
+          const value = this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0 || key === void 0)
+            continue;
+          const entry = { value };
+          if (this.#ttls && this.#starts) {
+            entry.ttl = this.#ttls[i2];
+            const age = perf.now() - this.#starts[i2];
+            entry.start = Math.floor(Date.now() - age);
+          }
+          if (this.#sizes) {
+            entry.size = this.#sizes[i2];
+          }
+          arr.unshift([key, entry]);
+        }
+        return arr;
+      }
+      load(arr) {
+        this.clear();
+        for (const [key, entry] of arr) {
+          if (entry.start) {
+            const age = Date.now() - entry.start;
+            entry.start = perf.now() - age;
+          }
+          this.set(key, entry.value, entry);
+        }
+      }
+      set(k, v, setOptions = {}) {
+        const { ttl = this.ttl, start, noDisposeOnSet = this.noDisposeOnSet, sizeCalculation = this.sizeCalculation, status } = setOptions;
+        let { noUpdateTTL = this.noUpdateTTL } = setOptions;
+        const size = this.#requireSize(k, v, setOptions.size || 0, sizeCalculation);
+        if (this.maxEntrySize && size > this.maxEntrySize) {
+          if (status) {
+            status.set = "miss";
+            status.maxEntrySizeExceeded = true;
+          }
+          this.delete(k);
+          return this;
+        }
+        let index = this.#size === 0 ? void 0 : this.#keyMap.get(k);
+        if (index === void 0) {
+          index = this.#size === 0 ? this.#tail : this.#free.length !== 0 ? this.#free.pop() : this.#size === this.#max ? this.#evict(false) : this.#size;
+          this.#keyList[index] = k;
+          this.#valList[index] = v;
+          this.#keyMap.set(k, index);
+          this.#next[this.#tail] = index;
+          this.#prev[index] = this.#tail;
+          this.#tail = index;
+          this.#size++;
+          this.#addItemSize(index, size, status);
+          if (status)
+            status.set = "add";
+          noUpdateTTL = false;
+        } else {
+          this.#moveToTail(index);
+          const oldVal = this.#valList[index];
+          if (v !== oldVal) {
+            if (this.#hasFetchMethod && this.#isBackgroundFetch(oldVal)) {
+              oldVal.__abortController.abort(new Error("replaced"));
+            } else if (!noDisposeOnSet) {
+              if (this.#hasDispose) {
+                this.#dispose?.(oldVal, k, "set");
+              }
+              if (this.#hasDisposeAfter) {
+                this.#disposed?.push([oldVal, k, "set"]);
+              }
+            }
+            this.#removeItemSize(index);
+            this.#addItemSize(index, size, status);
+            this.#valList[index] = v;
+            if (status) {
+              status.set = "replace";
+              const oldValue = oldVal && this.#isBackgroundFetch(oldVal) ? oldVal.__staleWhileFetching : oldVal;
+              if (oldValue !== void 0)
+                status.oldValue = oldValue;
+            }
+          } else if (status) {
+            status.set = "update";
+          }
+        }
+        if (ttl !== 0 && !this.#ttls) {
+          this.#initializeTTLTracking();
+        }
+        if (this.#ttls) {
+          if (!noUpdateTTL) {
+            this.#setItemTTL(index, ttl, start);
+          }
+          if (status)
+            this.#statusTTL(status, index);
+        }
+        if (!noDisposeOnSet && this.#hasDisposeAfter && this.#disposed) {
+          const dt = this.#disposed;
+          let task;
+          while (task = dt?.shift()) {
+            this.#disposeAfter?.(...task);
+          }
+        }
+        return this;
+      }
+      pop() {
+        try {
+          while (this.#size) {
+            const val = this.#valList[this.#head];
+            this.#evict(true);
+            if (this.#isBackgroundFetch(val)) {
+              if (val.__staleWhileFetching) {
+                return val.__staleWhileFetching;
+              }
+            } else if (val !== void 0) {
+              return val;
+            }
+          }
+        } finally {
+          if (this.#hasDisposeAfter && this.#disposed) {
+            const dt = this.#disposed;
+            let task;
+            while (task = dt?.shift()) {
+              this.#disposeAfter?.(...task);
+            }
+          }
+        }
+      }
+      #evict(free) {
+        const head = this.#head;
+        const k = this.#keyList[head];
+        const v = this.#valList[head];
+        if (this.#hasFetchMethod && this.#isBackgroundFetch(v)) {
+          v.__abortController.abort(new Error("evicted"));
+        } else if (this.#hasDispose || this.#hasDisposeAfter) {
+          if (this.#hasDispose) {
+            this.#dispose?.(v, k, "evict");
+          }
+          if (this.#hasDisposeAfter) {
+            this.#disposed?.push([v, k, "evict"]);
+          }
+        }
+        this.#removeItemSize(head);
+        if (free) {
+          this.#keyList[head] = void 0;
+          this.#valList[head] = void 0;
+          this.#free.push(head);
+        }
+        if (this.#size === 1) {
+          this.#head = this.#tail = 0;
+          this.#free.length = 0;
+        } else {
+          this.#head = this.#next[head];
+        }
+        this.#keyMap.delete(k);
+        this.#size--;
+        return head;
+      }
+      has(k, hasOptions = {}) {
+        const { updateAgeOnHas = this.updateAgeOnHas, status } = hasOptions;
+        const index = this.#keyMap.get(k);
+        if (index !== void 0) {
+          const v = this.#valList[index];
+          if (this.#isBackgroundFetch(v) && v.__staleWhileFetching === void 0) {
+            return false;
+          }
+          if (!this.#isStale(index)) {
+            if (updateAgeOnHas) {
+              this.#updateItemAge(index);
+            }
+            if (status) {
+              status.has = "hit";
+              this.#statusTTL(status, index);
+            }
+            return true;
+          } else if (status) {
+            status.has = "stale";
+            this.#statusTTL(status, index);
+          }
+        } else if (status) {
+          status.has = "miss";
+        }
         return false;
-      const diff = Date.now() - hit.now;
-      return hit.maxAge ? diff > hit.maxAge : self2[MAX_AGE] && diff > self2[MAX_AGE];
-    };
-    var trim = (self2) => {
-      if (self2[LENGTH] > self2[MAX]) {
-        for (let walker = self2[LRU_LIST].tail; self2[LENGTH] > self2[MAX] && walker !== null; ) {
-          const prev = walker.prev;
-          del(self2, walker);
-          walker = prev;
+      }
+      peek(k, peekOptions = {}) {
+        const { allowStale = this.allowStale } = peekOptions;
+        const index = this.#keyMap.get(k);
+        if (index !== void 0 && (allowStale || !this.#isStale(index))) {
+          const v = this.#valList[index];
+          return this.#isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+        }
+      }
+      #backgroundFetch(k, index, options, context) {
+        const v = index === void 0 ? void 0 : this.#valList[index];
+        if (this.#isBackgroundFetch(v)) {
+          return v;
+        }
+        const ac = new AbortController();
+        const { signal } = options;
+        signal?.addEventListener("abort", () => ac.abort(signal.reason), {
+          signal: ac.signal
+        });
+        const fetchOpts = {
+          signal: ac.signal,
+          options,
+          context
+        };
+        const cb = (v2, updateCache = false) => {
+          const { aborted } = ac.signal;
+          const ignoreAbort = options.ignoreFetchAbort && v2 !== void 0;
+          if (options.status) {
+            if (aborted && !updateCache) {
+              options.status.fetchAborted = true;
+              options.status.fetchError = ac.signal.reason;
+              if (ignoreAbort)
+                options.status.fetchAbortIgnored = true;
+            } else {
+              options.status.fetchResolved = true;
+            }
+          }
+          if (aborted && !ignoreAbort && !updateCache) {
+            return fetchFail(ac.signal.reason);
+          }
+          const bf2 = p;
+          if (this.#valList[index] === p) {
+            if (v2 === void 0) {
+              if (bf2.__staleWhileFetching) {
+                this.#valList[index] = bf2.__staleWhileFetching;
+              } else {
+                this.delete(k);
+              }
+            } else {
+              if (options.status)
+                options.status.fetchUpdated = true;
+              this.set(k, v2, fetchOpts.options);
+            }
+          }
+          return v2;
+        };
+        const eb = (er) => {
+          if (options.status) {
+            options.status.fetchRejected = true;
+            options.status.fetchError = er;
+          }
+          return fetchFail(er);
+        };
+        const fetchFail = (er) => {
+          const { aborted } = ac.signal;
+          const allowStaleAborted = aborted && options.allowStaleOnFetchAbort;
+          const allowStale = allowStaleAborted || options.allowStaleOnFetchRejection;
+          const noDelete = allowStale || options.noDeleteOnFetchRejection;
+          const bf2 = p;
+          if (this.#valList[index] === p) {
+            const del = !noDelete || bf2.__staleWhileFetching === void 0;
+            if (del) {
+              this.delete(k);
+            } else if (!allowStaleAborted) {
+              this.#valList[index] = bf2.__staleWhileFetching;
+            }
+          }
+          if (allowStale) {
+            if (options.status && bf2.__staleWhileFetching !== void 0) {
+              options.status.returnedStale = true;
+            }
+            return bf2.__staleWhileFetching;
+          } else if (bf2.__returned === bf2) {
+            throw er;
+          }
+        };
+        const pcall = (res, rej) => {
+          const fmp = this.#fetchMethod?.(k, v, fetchOpts);
+          if (fmp && fmp instanceof Promise) {
+            fmp.then((v2) => res(v2), rej);
+          }
+          ac.signal.addEventListener("abort", () => {
+            if (!options.ignoreFetchAbort || options.allowStaleOnFetchAbort) {
+              res();
+              if (options.allowStaleOnFetchAbort) {
+                res = (v2) => cb(v2, true);
+              }
+            }
+          });
+        };
+        if (options.status)
+          options.status.fetchDispatched = true;
+        const p = new Promise(pcall).then(cb, eb);
+        const bf = Object.assign(p, {
+          __abortController: ac,
+          __staleWhileFetching: v,
+          __returned: void 0
+        });
+        if (index === void 0) {
+          this.set(k, bf, { ...fetchOpts.options, status: void 0 });
+          index = this.#keyMap.get(k);
+        } else {
+          this.#valList[index] = bf;
+        }
+        return bf;
+      }
+      #isBackgroundFetch(p) {
+        if (!this.#hasFetchMethod)
+          return false;
+        const b = p;
+        return !!b && b instanceof Promise && b.hasOwnProperty("__staleWhileFetching") && b.__abortController instanceof AbortController;
+      }
+      async fetch(k, fetchOptions = {}) {
+        const {
+          allowStale = this.allowStale,
+          updateAgeOnGet = this.updateAgeOnGet,
+          noDeleteOnStaleGet = this.noDeleteOnStaleGet,
+          ttl = this.ttl,
+          noDisposeOnSet = this.noDisposeOnSet,
+          size = 0,
+          sizeCalculation = this.sizeCalculation,
+          noUpdateTTL = this.noUpdateTTL,
+          noDeleteOnFetchRejection = this.noDeleteOnFetchRejection,
+          allowStaleOnFetchRejection = this.allowStaleOnFetchRejection,
+          ignoreFetchAbort = this.ignoreFetchAbort,
+          allowStaleOnFetchAbort = this.allowStaleOnFetchAbort,
+          context,
+          forceRefresh = false,
+          status,
+          signal
+        } = fetchOptions;
+        if (!this.#hasFetchMethod) {
+          if (status)
+            status.fetch = "get";
+          return this.get(k, {
+            allowStale,
+            updateAgeOnGet,
+            noDeleteOnStaleGet,
+            status
+          });
+        }
+        const options = {
+          allowStale,
+          updateAgeOnGet,
+          noDeleteOnStaleGet,
+          ttl,
+          noDisposeOnSet,
+          size,
+          sizeCalculation,
+          noUpdateTTL,
+          noDeleteOnFetchRejection,
+          allowStaleOnFetchRejection,
+          allowStaleOnFetchAbort,
+          ignoreFetchAbort,
+          status,
+          signal
+        };
+        let index = this.#keyMap.get(k);
+        if (index === void 0) {
+          if (status)
+            status.fetch = "miss";
+          const p = this.#backgroundFetch(k, index, options, context);
+          return p.__returned = p;
+        } else {
+          const v = this.#valList[index];
+          if (this.#isBackgroundFetch(v)) {
+            const stale = allowStale && v.__staleWhileFetching !== void 0;
+            if (status) {
+              status.fetch = "inflight";
+              if (stale)
+                status.returnedStale = true;
+            }
+            return stale ? v.__staleWhileFetching : v.__returned = v;
+          }
+          const isStale = this.#isStale(index);
+          if (!forceRefresh && !isStale) {
+            if (status)
+              status.fetch = "hit";
+            this.#moveToTail(index);
+            if (updateAgeOnGet) {
+              this.#updateItemAge(index);
+            }
+            if (status)
+              this.#statusTTL(status, index);
+            return v;
+          }
+          const p = this.#backgroundFetch(k, index, options, context);
+          const hasStale = p.__staleWhileFetching !== void 0;
+          const staleVal = hasStale && allowStale;
+          if (status) {
+            status.fetch = isStale ? "stale" : "refresh";
+            if (staleVal && isStale)
+              status.returnedStale = true;
+          }
+          return staleVal ? p.__staleWhileFetching : p.__returned = p;
+        }
+      }
+      get(k, getOptions = {}) {
+        const { allowStale = this.allowStale, updateAgeOnGet = this.updateAgeOnGet, noDeleteOnStaleGet = this.noDeleteOnStaleGet, status } = getOptions;
+        const index = this.#keyMap.get(k);
+        if (index !== void 0) {
+          const value = this.#valList[index];
+          const fetching = this.#isBackgroundFetch(value);
+          if (status)
+            this.#statusTTL(status, index);
+          if (this.#isStale(index)) {
+            if (status)
+              status.get = "stale";
+            if (!fetching) {
+              if (!noDeleteOnStaleGet) {
+                this.delete(k);
+              }
+              if (status && allowStale)
+                status.returnedStale = true;
+              return allowStale ? value : void 0;
+            } else {
+              if (status && allowStale && value.__staleWhileFetching !== void 0) {
+                status.returnedStale = true;
+              }
+              return allowStale ? value.__staleWhileFetching : void 0;
+            }
+          } else {
+            if (status)
+              status.get = "hit";
+            if (fetching) {
+              return value.__staleWhileFetching;
+            }
+            this.#moveToTail(index);
+            if (updateAgeOnGet) {
+              this.#updateItemAge(index);
+            }
+            return value;
+          }
+        } else if (status) {
+          status.get = "miss";
+        }
+      }
+      #connect(p, n) {
+        this.#prev[n] = p;
+        this.#next[p] = n;
+      }
+      #moveToTail(index) {
+        if (index !== this.#tail) {
+          if (index === this.#head) {
+            this.#head = this.#next[index];
+          } else {
+            this.#connect(this.#prev[index], this.#next[index]);
+          }
+          this.#connect(this.#tail, index);
+          this.#tail = index;
+        }
+      }
+      delete(k) {
+        let deleted = false;
+        if (this.#size !== 0) {
+          const index = this.#keyMap.get(k);
+          if (index !== void 0) {
+            deleted = true;
+            if (this.#size === 1) {
+              this.clear();
+            } else {
+              this.#removeItemSize(index);
+              const v = this.#valList[index];
+              if (this.#isBackgroundFetch(v)) {
+                v.__abortController.abort(new Error("deleted"));
+              } else if (this.#hasDispose || this.#hasDisposeAfter) {
+                if (this.#hasDispose) {
+                  this.#dispose?.(v, k, "delete");
+                }
+                if (this.#hasDisposeAfter) {
+                  this.#disposed?.push([v, k, "delete"]);
+                }
+              }
+              this.#keyMap.delete(k);
+              this.#keyList[index] = void 0;
+              this.#valList[index] = void 0;
+              if (index === this.#tail) {
+                this.#tail = this.#prev[index];
+              } else if (index === this.#head) {
+                this.#head = this.#next[index];
+              } else {
+                this.#next[this.#prev[index]] = this.#next[index];
+                this.#prev[this.#next[index]] = this.#prev[index];
+              }
+              this.#size--;
+              this.#free.push(index);
+            }
+          }
+        }
+        if (this.#hasDisposeAfter && this.#disposed?.length) {
+          const dt = this.#disposed;
+          let task;
+          while (task = dt?.shift()) {
+            this.#disposeAfter?.(...task);
+          }
+        }
+        return deleted;
+      }
+      clear() {
+        for (const index of this.#rindexes({ allowStale: true })) {
+          const v = this.#valList[index];
+          if (this.#isBackgroundFetch(v)) {
+            v.__abortController.abort(new Error("deleted"));
+          } else {
+            const k = this.#keyList[index];
+            if (this.#hasDispose) {
+              this.#dispose?.(v, k, "delete");
+            }
+            if (this.#hasDisposeAfter) {
+              this.#disposed?.push([v, k, "delete"]);
+            }
+          }
+        }
+        this.#keyMap.clear();
+        this.#valList.fill(void 0);
+        this.#keyList.fill(void 0);
+        if (this.#ttls && this.#starts) {
+          this.#ttls.fill(0);
+          this.#starts.fill(0);
+        }
+        if (this.#sizes) {
+          this.#sizes.fill(0);
+        }
+        this.#head = 0;
+        this.#tail = 0;
+        this.#free.length = 0;
+        this.#calculatedSize = 0;
+        this.#size = 0;
+        if (this.#hasDisposeAfter && this.#disposed) {
+          const dt = this.#disposed;
+          let task;
+          while (task = dt?.shift()) {
+            this.#disposeAfter?.(...task);
+          }
         }
       }
     };
-    var del = (self2, node) => {
-      if (node) {
-        const hit = node.value;
-        if (self2[DISPOSE])
-          self2[DISPOSE](hit.key, hit.value);
-        self2[LENGTH] -= hit.length;
-        self2[CACHE].delete(hit.key);
-        self2[LRU_LIST].removeNode(node);
-      }
-    };
-    var Entry = class {
-      constructor(key, value, length, now, maxAge) {
-        this.key = key;
-        this.value = value;
-        this.length = length;
-        this.now = now;
-        this.maxAge = maxAge || 0;
-      }
-    };
-    var forEachStep = (self2, fn, node, thisp) => {
-      let hit = node.value;
-      if (isStale(self2, hit)) {
-        del(self2, node);
-        if (!self2[ALLOW_STALE])
-          hit = void 0;
-      }
-      if (hit)
-        fn.call(thisp, hit.value, hit.key, self2);
-    };
-    module2.exports = LRUCache;
+    exports.LRUCache = LRUCache;
+    exports.default = LRUCache;
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/errors.js
+// node_modules/.pnpm/lru-cache@8.0.5/node_modules/lru-cache/dist/cjs/index-cjs.js
+var require_index_cjs = __commonJS({
+  "node_modules/.pnpm/lru-cache@8.0.5/node_modules/lru-cache/dist/cjs/index-cjs.js"(exports, module2) {
+    "use strict";
+    var __importDefault = exports && exports.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    var index_js_1 = __importDefault(require_cjs());
+    module2.exports = Object.assign(index_js_1.default, { default: index_js_1.default, LRUCache: index_js_1.default });
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/errors.js
 var require_errors = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/errors.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/errors.js"(exports) {
     "use strict";
     exports.EE_CANTCREATEFILE = 1;
     exports.EE_READ = 2;
@@ -1241,11 +1645,72 @@ var require_errors = __commonJS({
     exports.EE_CHANGE_OWNERSHIP = 31;
     exports.EE_CHANGE_PERMISSIONS = 32;
     exports.EE_CANT_SEEK = 33;
+    exports.EE_CAPACITY_EXCEEDED = 34;
+    exports.EE_DISK_FULL_WITH_RETRY_MSG = 35;
+    exports.EE_FAILED_TO_CREATE_TIMER = 36;
+    exports.EE_FAILED_TO_DELETE_TIMER = 37;
+    exports.EE_FAILED_TO_CREATE_TIMER_QUEUE = 38;
+    exports.EE_FAILED_TO_START_TIMER_NOTIFY_THREAD = 39;
+    exports.EE_FAILED_TO_CREATE_TIMER_NOTIFY_THREAD_INTERRUPT_EVENT = 40;
+    exports.EE_EXITING_TIMER_NOTIFY_THREAD = 41;
+    exports.EE_WIN_LIBRARY_LOAD_FAILED = 42;
+    exports.EE_WIN_RUN_TIME_ERROR_CHECK = 43;
+    exports.EE_FAILED_TO_DETERMINE_LARGE_PAGE_SIZE = 44;
+    exports.EE_FAILED_TO_KILL_ALL_THREADS = 45;
+    exports.EE_FAILED_TO_CREATE_IO_COMPLETION_PORT = 46;
+    exports.EE_FAILED_TO_OPEN_DEFAULTS_FILE = 47;
+    exports.EE_FAILED_TO_HANDLE_DEFAULTS_FILE = 48;
+    exports.EE_WRONG_DIRECTIVE_IN_CONFIG_FILE = 49;
+    exports.EE_SKIPPING_DIRECTIVE_DUE_TO_MAX_INCLUDE_RECURSION = 50;
+    exports.EE_INCORRECT_GRP_DEFINITION_IN_CONFIG_FILE = 51;
+    exports.EE_OPTION_WITHOUT_GRP_IN_CONFIG_FILE = 52;
+    exports.EE_CONFIG_FILE_PERMISSION_ERROR = 53;
+    exports.EE_IGNORE_WORLD_WRITABLE_CONFIG_FILE = 54;
+    exports.EE_USING_DISABLED_OPTION = 55;
+    exports.EE_USING_DISABLED_SHORT_OPTION = 56;
+    exports.EE_USING_PASSWORD_ON_CLI_IS_INSECURE = 57;
+    exports.EE_UNKNOWN_SUFFIX_FOR_VARIABLE = 58;
+    exports.EE_SSL_ERROR_FROM_FILE = 59;
+    exports.EE_SSL_ERROR = 60;
+    exports.EE_NET_SEND_ERROR_IN_BOOTSTRAP = 61;
+    exports.EE_PACKETS_OUT_OF_ORDER = 62;
+    exports.EE_UNKNOWN_PROTOCOL_OPTION = 63;
+    exports.EE_FAILED_TO_LOCATE_SERVER_PUBLIC_KEY = 64;
+    exports.EE_PUBLIC_KEY_NOT_IN_PEM_FORMAT = 65;
+    exports.EE_DEBUG_INFO = 66;
+    exports.EE_UNKNOWN_VARIABLE = 67;
+    exports.EE_UNKNOWN_OPTION = 68;
+    exports.EE_UNKNOWN_SHORT_OPTION = 69;
+    exports.EE_OPTION_WITHOUT_ARGUMENT = 70;
+    exports.EE_OPTION_REQUIRES_ARGUMENT = 71;
+    exports.EE_SHORT_OPTION_REQUIRES_ARGUMENT = 72;
+    exports.EE_OPTION_IGNORED_DUE_TO_INVALID_VALUE = 73;
+    exports.EE_OPTION_WITH_EMPTY_VALUE = 74;
+    exports.EE_FAILED_TO_ASSIGN_MAX_VALUE_TO_OPTION = 75;
+    exports.EE_INCORRECT_BOOLEAN_VALUE_FOR_OPTION = 76;
+    exports.EE_FAILED_TO_SET_OPTION_VALUE = 77;
+    exports.EE_INCORRECT_INT_VALUE_FOR_OPTION = 78;
+    exports.EE_INCORRECT_UINT_VALUE_FOR_OPTION = 79;
+    exports.EE_ADJUSTED_SIGNED_VALUE_FOR_OPTION = 80;
+    exports.EE_ADJUSTED_UNSIGNED_VALUE_FOR_OPTION = 81;
+    exports.EE_ADJUSTED_ULONGLONG_VALUE_FOR_OPTION = 82;
+    exports.EE_ADJUSTED_DOUBLE_VALUE_FOR_OPTION = 83;
+    exports.EE_INVALID_DECIMAL_VALUE_FOR_OPTION = 84;
+    exports.EE_COLLATION_PARSER_ERROR = 85;
+    exports.EE_FAILED_TO_RESET_BEFORE_PRIMARY_IGNORABLE_CHAR = 86;
+    exports.EE_FAILED_TO_RESET_BEFORE_TERTIARY_IGNORABLE_CHAR = 87;
+    exports.EE_SHIFT_CHAR_OUT_OF_RANGE = 88;
+    exports.EE_RESET_CHAR_OUT_OF_RANGE = 89;
+    exports.EE_UNKNOWN_LDML_TAG = 90;
+    exports.EE_FAILED_TO_RESET_BEFORE_SECONDARY_IGNORABLE_CHAR = 91;
+    exports.EE_FAILED_PROCESSING_DIRECTIVE = 92;
+    exports.EE_PTHREAD_KILL_FAILED = 93;
     exports.HA_ERR_KEY_NOT_FOUND = 120;
     exports.HA_ERR_FOUND_DUPP_KEY = 121;
     exports.HA_ERR_INTERNAL_ERROR = 122;
     exports.HA_ERR_RECORD_CHANGED = 123;
     exports.HA_ERR_WRONG_INDEX = 124;
+    exports.HA_ERR_ROLLED_BACK = 125;
     exports.HA_ERR_CRASHED = 126;
     exports.HA_ERR_WRONG_IN_RECORD = 127;
     exports.HA_ERR_OUT_OF_MEM = 128;
@@ -1258,7 +1723,7 @@ var require_errors = __commonJS({
     exports.HA_ERR_INDEX_FILE_FULL = 136;
     exports.HA_ERR_END_OF_FILE = 137;
     exports.HA_ERR_UNSUPPORTED = 138;
-    exports.HA_ERR_TO_BIG_ROW = 139;
+    exports.HA_ERR_TOO_BIG_ROW = 139;
     exports.HA_WRONG_CREATE_OPTION = 140;
     exports.HA_ERR_FOUND_DUPP_UNIQUE = 141;
     exports.HA_ERR_UNKNOWN_CHARSET = 142;
@@ -1311,6 +1776,24 @@ var require_errors = __commonJS({
     exports.HA_ERR_TEMP_FILE_WRITE_FAILURE = 189;
     exports.HA_ERR_INNODB_FORCED_RECOVERY = 190;
     exports.HA_ERR_FTS_TOO_MANY_WORDS_IN_PHRASE = 191;
+    exports.HA_ERR_FK_DEPTH_EXCEEDED = 192;
+    exports.HA_MISSING_CREATE_OPTION = 193;
+    exports.HA_ERR_SE_OUT_OF_MEMORY = 194;
+    exports.HA_ERR_TABLE_CORRUPT = 195;
+    exports.HA_ERR_QUERY_INTERRUPTED = 196;
+    exports.HA_ERR_TABLESPACE_MISSING = 197;
+    exports.HA_ERR_TABLESPACE_IS_NOT_EMPTY = 198;
+    exports.HA_ERR_WRONG_FILE_NAME = 199;
+    exports.HA_ERR_NOT_ALLOWED_COMMAND = 200;
+    exports.HA_ERR_COMPUTE_FAILED = 201;
+    exports.HA_ERR_ROW_FORMAT_CHANGED = 202;
+    exports.HA_ERR_NO_WAIT_LOCK = 203;
+    exports.HA_ERR_DISK_FULL_NOWAIT = 204;
+    exports.HA_ERR_NO_SESSION_TEMP = 205;
+    exports.HA_ERR_WRONG_TABLE_NAME = 206;
+    exports.HA_ERR_TOO_LONG_PATH = 207;
+    exports.HA_ERR_SAMPLING_INIT_FAILED = 208;
+    exports.HA_ERR_FTS_TOO_MANY_NESTED_EXP = 209;
     exports.ER_HASHCHK = 1e3;
     exports.ER_NISAMCHK = 1001;
     exports.ER_NO = 1002;
@@ -1461,8 +1944,8 @@ var require_errors = __commonJS({
     exports.ER_NONEXISTING_TABLE_GRANT = 1147;
     exports.ER_NOT_ALLOWED_COMMAND = 1148;
     exports.ER_SYNTAX_ERROR = 1149;
-    exports.ER_DELAYED_CANT_CHANGE_LOCK = 1150;
-    exports.ER_TOO_MANY_DELAYED_THREADS = 1151;
+    exports.ER_UNUSED1 = 1150;
+    exports.ER_UNUSED2 = 1151;
     exports.ER_ABORTING_CONNECTION = 1152;
     exports.ER_NET_PACKET_TOO_LARGE = 1153;
     exports.ER_NET_READ_ERROR_FROM_PIPE = 1154;
@@ -1476,7 +1959,7 @@ var require_errors = __commonJS({
     exports.ER_TOO_LONG_STRING = 1162;
     exports.ER_TABLE_CANT_HANDLE_BLOB = 1163;
     exports.ER_TABLE_CANT_HANDLE_AUTO_INCREMENT = 1164;
-    exports.ER_DELAYED_INSERT_TABLE_LOCKED = 1165;
+    exports.ER_UNUSED3 = 1165;
     exports.ER_WRONG_COLUMN_NAME = 1166;
     exports.ER_WRONG_KEY_COLUMN = 1167;
     exports.ER_WRONG_MRG_TABLE = 1168;
@@ -1498,13 +1981,9 @@ var require_errors = __commonJS({
     exports.ER_NEW_ABORTING_CONNECTION = 1184;
     exports.ER_DUMP_NOT_IMPLEMENTED = 1185;
     exports.ER_FLUSH_MASTER_BINLOG_CLOSED = 1186;
-    exports.ER_FLUSH_SOURCE_BINLOG_CLOSED = 1186;
     exports.ER_INDEX_REBUILD = 1187;
-    exports.ER_MASTER = 1188;
     exports.ER_SOURCE = 1188;
-    exports.ER_MASTER_NET_READ = 1189;
     exports.ER_SOURCE_NET_READ = 1189;
-    exports.ER_MASTER_NET_WRITE = 1190;
     exports.ER_SOURCE_NET_WRITE = 1190;
     exports.ER_FT_MATCHING_KEY_NOT_FOUND = 1191;
     exports.ER_LOCK_OR_ACTIVE_TRANSACTION = 1192;
@@ -1514,14 +1993,9 @@ var require_errors = __commonJS({
     exports.ER_WARNING_NOT_COMPLETE_ROLLBACK = 1196;
     exports.ER_TRANS_CACHE_FULL = 1197;
     exports.ER_SLAVE_MUST_STOP = 1198;
-    exports.ER_REPLICA_MUST_STOP = 1198;
-    exports.ER_SLAVE_NOT_RUNNING = 1199;
     exports.ER_REPLICA_NOT_RUNNING = 1199;
-    exports.ER_BAD_SLAVE = 1200;
     exports.ER_BAD_REPLICA = 1200;
-    exports.ER_MASTER_INFO = 1201;
-    exports.ER_SOURCE_INFO = 1201;
-    exports.ER_SLAVE_THREAD = 1202;
+    exports.ER_CONNECTION_METADATA = 1201;
     exports.ER_REPLICA_THREAD = 1202;
     exports.ER_TOO_MANY_USER_CONNECTIONS = 1203;
     exports.ER_SET_CONSTANTS_ONLY = 1204;
@@ -1538,10 +2012,8 @@ var require_errors = __commonJS({
     exports.ER_CANNOT_ADD_FOREIGN = 1215;
     exports.ER_NO_REFERENCED_ROW = 1216;
     exports.ER_ROW_IS_REFERENCED = 1217;
-    exports.ER_CONNECT_TO_MASTER = 1218;
     exports.ER_CONNECT_TO_SOURCE = 1218;
     exports.ER_QUERY_ON_MASTER = 1219;
-    exports.ER_QUERY_ON_SOURCE = 1219;
     exports.ER_ERROR_WHEN_EXECUTING_COMMAND = 1220;
     exports.ER_WRONG_USAGE = 1221;
     exports.ER_WRONG_NUMBER_OF_COLUMNS_IN_SELECT = 1222;
@@ -1558,9 +2030,7 @@ var require_errors = __commonJS({
     exports.ER_VAR_CANT_BE_READ = 1233;
     exports.ER_CANT_USE_OPTION_HERE = 1234;
     exports.ER_NOT_SUPPORTED_YET = 1235;
-    exports.ER_MASTER_FATAL_ERROR_READING_BINLOG = 1236;
     exports.ER_SOURCE_FATAL_ERROR_READING_BINLOG = 1236;
-    exports.ER_SLAVE_IGNORED_TABLE = 1237;
     exports.ER_REPLICA_IGNORED_TABLE = 1237;
     exports.ER_INCORRECT_GLOBAL_LOCAL_VAR = 1238;
     exports.ER_WRONG_FK_DEF = 1239;
@@ -1579,9 +2049,7 @@ var require_errors = __commonJS({
     exports.ER_SPATIAL_CANT_HAVE_NULL = 1252;
     exports.ER_COLLATION_CHARSET_MISMATCH = 1253;
     exports.ER_SLAVE_WAS_RUNNING = 1254;
-    exports.ER_REPLICA_WAS_RUNNING = 1254;
     exports.ER_SLAVE_WAS_NOT_RUNNING = 1255;
-    exports.ER_REPLICA_WAS_NOT_RUNNING = 1255;
     exports.ER_TOO_BIG_FOR_UNCOMPRESS = 1256;
     exports.ER_ZLIB_Z_MEM_ERROR = 1257;
     exports.ER_ZLIB_Z_BUF_ERROR = 1258;
@@ -1591,7 +2059,7 @@ var require_errors = __commonJS({
     exports.ER_WARN_TOO_MANY_RECORDS = 1262;
     exports.ER_WARN_NULL_TO_NOTNULL = 1263;
     exports.ER_WARN_DATA_OUT_OF_RANGE = 1264;
-    exports.ER_WARN_DATA_TRUNCATED = 1265;
+    exports.WARN_DATA_TRUNCATED = 1265;
     exports.ER_WARN_USING_OTHER_HANDLER = 1266;
     exports.ER_CANT_AGGREGATE_2COLLATIONS = 1267;
     exports.ER_DROP_USER = 1268;
@@ -1600,13 +2068,10 @@ var require_errors = __commonJS({
     exports.ER_CANT_AGGREGATE_NCOLLATIONS = 1271;
     exports.ER_VARIABLE_IS_NOT_STRUCT = 1272;
     exports.ER_UNKNOWN_COLLATION = 1273;
-    exports.ER_SLAVE_IGNORED_SSL_PARAMS = 1274;
     exports.ER_REPLICA_IGNORED_SSL_PARAMS = 1274;
     exports.ER_SERVER_IS_IN_SECURE_AUTH_MODE = 1275;
     exports.ER_WARN_FIELD_RESOLVED = 1276;
-    exports.ER_BAD_SLAVE_UNTIL_COND = 1277;
     exports.ER_BAD_REPLICA_UNTIL_COND = 1277;
-    exports.ER_MISSING_SKIP_SLAVE = 1278;
     exports.ER_MISSING_SKIP_REPLICA = 1278;
     exports.ER_UNTIL_COND_IGNORED = 1279;
     exports.ER_WRONG_NAME_FOR_INDEX = 1280;
@@ -1897,7 +2362,7 @@ var require_errors = __commonJS({
     exports.ER_DDL_LOG_ERROR = 1565;
     exports.ER_NULL_IN_VALUES_LESS_THAN = 1566;
     exports.ER_WRONG_PARTITION_NAME = 1567;
-    exports.ER_CANT_CHANGE_TX_ISOLATION = 1568;
+    exports.ER_CANT_CHANGE_TX_CHARACTERISTICS = 1568;
     exports.ER_DUP_ENTRY_AUTOINCREMENT_CASE = 1569;
     exports.ER_EVENT_MODIFY_QUEUE_ERROR = 1570;
     exports.ER_EVENT_SET_VAR_ERROR = 1571;
@@ -1920,19 +2385,13 @@ var require_errors = __commonJS({
     exports.ER_EVENT_CANNOT_CREATE_IN_THE_PAST = 1588;
     exports.ER_EVENT_CANNOT_ALTER_IN_THE_PAST = 1589;
     exports.ER_SLAVE_INCIDENT = 1590;
-    exports.ER_REPLICA_INCIDENT = 1590;
     exports.ER_NO_PARTITION_FOR_GIVEN_VALUE_SILENT = 1591;
     exports.ER_BINLOG_UNSAFE_STATEMENT = 1592;
-    exports.ER_SLAVE_FATAL_ERROR = 1593;
-    exports.ER_REPLICA_FATAL_ERROR = 1593;
+    exports.ER_BINLOG_FATAL_ERROR = 1593;
     exports.ER_SLAVE_RELAY_LOG_READ_FAILURE = 1594;
-    exports.ER_REPLICA_RELAY_LOG_READ_FAILURE = 1594;
     exports.ER_SLAVE_RELAY_LOG_WRITE_FAILURE = 1595;
-    exports.ER_REPLICA_RELAY_LOG_WRITE_FAILURE = 1595;
     exports.ER_SLAVE_CREATE_EVENT_FAILURE = 1596;
-    exports.ER_REPLICA_CREATE_EVENT_FAILURE = 1596;
     exports.ER_SLAVE_MASTER_COM_FAILURE = 1597;
-    exports.ER_REPLICA_SOURCE_COM_FAILURE = 1597;
     exports.ER_BINLOG_LOGGING_IMPOSSIBLE = 1598;
     exports.ER_VIEW_NO_CREATION_CTX = 1599;
     exports.ER_VIEW_INVALID_CREATION_CTX = 1600;
@@ -1945,7 +2404,6 @@ var require_errors = __commonJS({
     exports.ER_CANT_CREATE_SROUTINE = 1607;
     exports.ER_NEVER_USED = 1608;
     exports.ER_NO_FORMAT_DESCRIPTION_EVENT_BEFORE_BINLOG_STATEMENT = 1609;
-    exports.ER_SLAVE_CORRUPT_EVENT = 1610;
     exports.ER_REPLICA_CORRUPT_EVENT = 1610;
     exports.ER_LOAD_DATA_INVALID_COLUMN = 1611;
     exports.ER_LOG_PURGE_NO_FILE = 1612;
@@ -1953,16 +2411,13 @@ var require_errors = __commonJS({
     exports.ER_XA_RBDEADLOCK = 1614;
     exports.ER_NEED_REPREPARE = 1615;
     exports.ER_DELAYED_NOT_SUPPORTED = 1616;
-    exports.WARN_NO_MASTER_INFO = 1617;
-    exports.WARN_NO_SOURCE_INFO = 1617;
+    exports.WARN_NO_CONNECTION_METADATA = 1617;
     exports.WARN_OPTION_IGNORED = 1618;
-    exports.WARN_PLUGIN_DELETE_BUILTIN = 1619;
+    exports.ER_PLUGIN_DELETE_BUILTIN = 1619;
     exports.WARN_PLUGIN_BUSY = 1620;
     exports.ER_VARIABLE_IS_READONLY = 1621;
     exports.ER_WARN_ENGINE_TRANSACTION_ROLLBACK = 1622;
     exports.ER_SLAVE_HEARTBEAT_FAILURE = 1623;
-    exports.ER_REPLICA_HEARTBEAT_FAILURE = 1623;
-    exports.ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE = 1624;
     exports.ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE = 1624;
     exports.ER_NDB_REPLICATION_SCHEMA_ERROR = 1625;
     exports.ER_CONFLICT_FN_PARSE_ERROR = 1626;
@@ -1989,7 +2444,6 @@ var require_errors = __commonJS({
     exports.WARN_COND_ITEM_TRUNCATED = 1647;
     exports.ER_COND_ITEM_TOO_LONG = 1648;
     exports.ER_UNKNOWN_LOCALE = 1649;
-    exports.ER_SLAVE_IGNORE_SERVER_IDS = 1650;
     exports.ER_REPLICA_IGNORE_SERVER_IDS = 1650;
     exports.ER_QUERY_CACHE_DISABLED = 1651;
     exports.ER_SAME_NAME_PARTITION_FIELD = 1652;
@@ -2009,7 +2463,7 @@ var require_errors = __commonJS({
     exports.ER_BINLOG_ROW_INJECTION_AND_STMT_MODE = 1666;
     exports.ER_BINLOG_MULTIPLE_ENGINES_AND_SELF_LOGGING_ENGINE = 1667;
     exports.ER_BINLOG_UNSAFE_LIMIT = 1668;
-    exports.ER_BINLOG_UNSAFE_INSERT_DELAYED = 1669;
+    exports.ER_UNUSED4 = 1669;
     exports.ER_BINLOG_UNSAFE_SYSTEM_TABLE = 1670;
     exports.ER_BINLOG_UNSAFE_AUTOINC_COLUMNS = 1671;
     exports.ER_BINLOG_UNSAFE_UDF = 1672;
@@ -2018,8 +2472,6 @@ var require_errors = __commonJS({
     exports.ER_BINLOG_UNSAFE_NONTRANS_AFTER_TRANS = 1675;
     exports.ER_MESSAGE_AND_STATEMENT = 1676;
     exports.ER_SLAVE_CONVERSION_FAILED = 1677;
-    exports.ER_REPLICA_CONVERSION_FAILED = 1677;
-    exports.ER_SLAVE_CANT_CREATE_CONVERSION = 1678;
     exports.ER_REPLICA_CANT_CREATE_CONVERSION = 1678;
     exports.ER_INSIDE_TRANSACTION_PREVENTS_SWITCH_BINLOG_FORMAT = 1679;
     exports.ER_PATH_LENGTH = 1680;
@@ -2045,9 +2497,7 @@ var require_errors = __commonJS({
     exports.ER_GRANT_PLUGIN_USER_EXISTS = 1700;
     exports.ER_TRUNCATE_ILLEGAL_FK = 1701;
     exports.ER_PLUGIN_IS_PERMANENT = 1702;
-    exports.ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN = 1703;
     exports.ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MIN = 1703;
-    exports.ER_SLAVE_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX = 1704;
     exports.ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE_MAX = 1704;
     exports.ER_STMT_CACHE_FULL = 1705;
     exports.ER_MULTI_UPDATE_KEY_CONFLICT = 1706;
@@ -2073,7 +2523,6 @@ var require_errors = __commonJS({
     exports.ER_UNSUPPORTED_ENGINE = 1726;
     exports.ER_BINLOG_UNSAFE_AUTOINC_NOT_FIRST = 1727;
     exports.ER_CANNOT_LOAD_FROM_TABLE_V2 = 1728;
-    exports.ER_MASTER_DELAY_VALUE_OUT_OF_RANGE = 1729;
     exports.ER_SOURCE_DELAY_VALUE_OUT_OF_RANGE = 1729;
     exports.ER_ONLY_FD_AND_RBR_EVENTS_ALLOWED_IN_BINLOG_STATEMENT = 1730;
     exports.ER_PARTITION_EXCHANGE_DIFFERENT_OPTION = 1731;
@@ -2098,24 +2547,22 @@ var require_errors = __commonJS({
     exports.ER_CHANGE_RPL_INFO_REPOSITORY_FAILURE = 1750;
     exports.ER_WARNING_NOT_COMPLETE_ROLLBACK_WITH_CREATED_TEMP_TABLE = 1751;
     exports.ER_WARNING_NOT_COMPLETE_ROLLBACK_WITH_DROPPED_TEMP_TABLE = 1752;
-    exports.ER_MTS_FEATURE_IS_NOT_SUPPORTED = 1753;
-    exports.ER_MTS_UPDATED_DBS_GREATER_MAX = 1754;
-    exports.ER_MTS_CANT_PARALLEL = 1755;
-    exports.ER_MTS_INCONSISTENT_DATA = 1756;
+    exports.ER_MTA_FEATURE_IS_NOT_SUPPORTED = 1753;
+    exports.ER_MTA_UPDATED_DBS_GREATER_MAX = 1754;
+    exports.ER_MTA_CANT_PARALLEL = 1755;
+    exports.ER_MTA_INCONSISTENT_DATA = 1756;
     exports.ER_FULLTEXT_NOT_SUPPORTED_WITH_PARTITIONING = 1757;
     exports.ER_DA_INVALID_CONDITION_NUMBER = 1758;
     exports.ER_INSECURE_PLAIN_TEXT = 1759;
-    exports.ER_INSECURE_CHANGE_MASTER = 1760;
     exports.ER_INSECURE_CHANGE_SOURCE = 1760;
     exports.ER_FOREIGN_DUPLICATE_KEY_WITH_CHILD_INFO = 1761;
     exports.ER_FOREIGN_DUPLICATE_KEY_WITHOUT_CHILD_INFO = 1762;
-    exports.ER_SQLTHREAD_WITH_SECURE_SLAVE = 1763;
     exports.ER_SQLTHREAD_WITH_SECURE_REPLICA = 1763;
     exports.ER_TABLE_HAS_NO_FT = 1764;
     exports.ER_VARIABLE_NOT_SETTABLE_IN_SF_OR_TRIGGER = 1765;
     exports.ER_VARIABLE_NOT_SETTABLE_IN_TRANSACTION = 1766;
     exports.ER_GTID_NEXT_IS_NOT_IN_GTID_NEXT_LIST = 1767;
-    exports.ER_CANT_CHANGE_GTID_NEXT_IN_TRANSACTION_WHEN_GTID_NEXT_LIST_IS_NULL = 1768;
+    exports.ER_CANT_CHANGE_GTID_NEXT_IN_TRANSACTION = 1768;
     exports.ER_SET_STATEMENT_CANNOT_INVOKE_FUNCTION = 1769;
     exports.ER_GTID_NEXT_CANT_BE_AUTOMATIC_IF_GTID_NEXT_LIST_IS_NON_NULL = 1770;
     exports.ER_SKIPPING_LOGGED_TRANSACTION = 1771;
@@ -2123,11 +2570,10 @@ var require_errors = __commonJS({
     exports.ER_MALFORMED_GTID_SET_ENCODING = 1773;
     exports.ER_MALFORMED_GTID_SPECIFICATION = 1774;
     exports.ER_GNO_EXHAUSTED = 1775;
-    exports.ER_BAD_SLAVE_AUTO_POSITION = 1776;
     exports.ER_BAD_REPLICA_AUTO_POSITION = 1776;
-    exports.ER_AUTO_POSITION_REQUIRES_GTID_MODE_ON = 1777;
+    exports.ER_AUTO_POSITION_REQUIRES_GTID_MODE_NOT_OFF = 1777;
     exports.ER_CANT_DO_IMPLICIT_COMMIT_IN_TRX_WHEN_GTID_NEXT_IS_SET = 1778;
-    exports.ER_GTID_MODE_2_OR_3_REQUIRES_ENFORCE_GTID_CONSISTENCY_ON = 1779;
+    exports.ER_GTID_MODE_ON_REQUIRES_ENFORCE_GTID_CONSISTENCY_ON = 1779;
     exports.ER_GTID_MODE_REQUIRES_BINLOG = 1780;
     exports.ER_CANT_SET_GTID_NEXT_TO_GTID_WHEN_GTID_MODE_IS_OFF = 1781;
     exports.ER_CANT_SET_GTID_NEXT_TO_ANONYMOUS_WHEN_GTID_MODE_IS_ON = 1782;
@@ -2135,15 +2581,13 @@ var require_errors = __commonJS({
     exports.ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF = 1784;
     exports.ER_GTID_UNSAFE_NON_TRANSACTIONAL_TABLE = 1785;
     exports.ER_GTID_UNSAFE_CREATE_SELECT = 1786;
-    exports.ER_GTID_UNSAFE_CREATE_DROP_TEMPORARY_TABLE_IN_TRANSACTION = 1787;
+    exports.ER_GTID_UNSAFE_CREATE_DROP_TEMP_TABLE_IN_TRANSACTION = 1787;
     exports.ER_GTID_MODE_CAN_ONLY_CHANGE_ONE_STEP_AT_A_TIME = 1788;
-    exports.ER_MASTER_HAS_PURGED_REQUIRED_GTIDS = 1789;
     exports.ER_SOURCE_HAS_PURGED_REQUIRED_GTIDS = 1789;
     exports.ER_CANT_SET_GTID_NEXT_WHEN_OWNING_GTID = 1790;
     exports.ER_UNKNOWN_EXPLAIN_FORMAT = 1791;
     exports.ER_CANT_EXECUTE_IN_READ_ONLY_TRANSACTION = 1792;
     exports.ER_TOO_LONG_TABLE_PARTITION_COMMENT = 1793;
-    exports.ER_SLAVE_CONFIGURATION = 1794;
     exports.ER_REPLICA_CONFIGURATION = 1794;
     exports.ER_INNODB_FT_LIMIT = 1795;
     exports.ER_INNODB_NO_FT_TEMP_TABLE = 1796;
@@ -2152,12 +2596,10 @@ var require_errors = __commonJS({
     exports.ER_INNODB_ONLINE_LOG_TOO_BIG = 1799;
     exports.ER_UNKNOWN_ALTER_ALGORITHM = 1800;
     exports.ER_UNKNOWN_ALTER_LOCK = 1801;
-    exports.ER_MTS_CHANGE_MASTER_CANT_RUN_WITH_GAPS = 1802;
-    exports.ER_MTS_CHANGE_SOURCE_CANT_RUN_WITH_GAPS = 1802;
-    exports.ER_MTS_RECOVERY_FAILURE = 1803;
-    exports.ER_MTS_RESET_WORKERS = 1804;
+    exports.ER_MTA_CHANGE_SOURCE_CANT_RUN_WITH_GAPS = 1802;
+    exports.ER_MTA_RECOVERY_FAILURE = 1803;
+    exports.ER_MTA_RESET_WORKERS = 1804;
     exports.ER_COL_COUNT_DOESNT_MATCH_CORRUPTED_V2 = 1805;
-    exports.ER_SLAVE_SILENT_RETRY_TRANSACTION = 1806;
     exports.ER_REPLICA_SILENT_RETRY_TRANSACTION = 1806;
     exports.ER_DISCARD_FK_CHECKS_RUNNING = 1807;
     exports.ER_TABLE_SCHEMA_MISMATCH = 1808;
@@ -2186,10 +2628,10 @@ var require_errors = __commonJS({
     exports.ER_DUP_INDEX = 1831;
     exports.ER_FK_COLUMN_CANNOT_CHANGE = 1832;
     exports.ER_FK_COLUMN_CANNOT_CHANGE_CHILD = 1833;
-    exports.ER_FK_CANNOT_DELETE_PARENT = 1834;
+    exports.ER_UNUSED5 = 1834;
     exports.ER_MALFORMED_PACKET = 1835;
     exports.ER_READ_ONLY_MODE = 1836;
-    exports.ER_GTID_NEXT_TYPE_UNDEFINED_GROUP = 1837;
+    exports.ER_GTID_NEXT_TYPE_UNDEFINED_GTID = 1837;
     exports.ER_VARIABLE_NOT_SETTABLE_IN_SP = 1838;
     exports.ER_CANT_SET_GTID_PURGED_WHEN_GTID_MODE_IS_OFF = 1839;
     exports.ER_CANT_SET_GTID_PURGED_WHEN_GTID_EXECUTED_IS_NOT_EMPTY = 1840;
@@ -2204,35 +2646,30 @@ var require_errors = __commonJS({
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_FK_RENAME = 1849;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_COLUMN_TYPE = 1850;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_FK_CHECK = 1851;
-    exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_IGNORE = 1852;
+    exports.ER_UNUSED6 = 1852;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOPK = 1853;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_AUTOINC = 1854;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_HIDDEN_FTS = 1855;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_CHANGE_FTS = 1856;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_FTS = 1857;
-    exports.ER_SQL_SLAVE_SKIP_COUNTER_NOT_SETTABLE_IN_GTID_MODE = 1858;
     exports.ER_SQL_REPLICA_SKIP_COUNTER_NOT_SETTABLE_IN_GTID_MODE = 1858;
     exports.ER_DUP_UNKNOWN_IN_INDEX = 1859;
     exports.ER_IDENT_CAUSES_TOO_LONG_PATH = 1860;
     exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOT_NULL = 1861;
     exports.ER_MUST_CHANGE_PASSWORD_LOGIN = 1862;
     exports.ER_ROW_IN_WRONG_PARTITION = 1863;
-    exports.ER_MTS_EVENT_BIGGER_PENDING_JOBS_SIZE_MAX = 1864;
+    exports.ER_MTA_EVENT_BIGGER_PENDING_JOBS_SIZE_MAX = 1864;
     exports.ER_INNODB_NO_FT_USES_PARSER = 1865;
     exports.ER_BINLOG_LOGICAL_CORRUPTION = 1866;
     exports.ER_WARN_PURGE_LOG_IN_USE = 1867;
     exports.ER_WARN_PURGE_LOG_IS_ACTIVE = 1868;
     exports.ER_AUTO_INCREMENT_CONFLICT = 1869;
     exports.WARN_ON_BLOCKHOLE_IN_RBR = 1870;
-    exports.ER_SLAVE_MI_INIT_REPOSITORY = 1871;
-    exports.ER_REPLICA_MI_INIT_REPOSITORY = 1871;
-    exports.ER_SLAVE_RLI_INIT_REPOSITORY = 1872;
-    exports.ER_REPLICA_RLI_INIT_REPOSITORY = 1872;
+    exports.ER_REPLICA_CM_INIT_REPOSITORY = 1871;
+    exports.ER_REPLICA_AM_INIT_REPOSITORY = 1872;
     exports.ER_ACCESS_DENIED_CHANGE_USER_ERROR = 1873;
     exports.ER_INNODB_READ_ONLY = 1874;
-    exports.ER_STOP_SLAVE_SQL_THREAD_TIMEOUT = 1875;
     exports.ER_STOP_REPLICA_SQL_THREAD_TIMEOUT = 1875;
-    exports.ER_STOP_SLAVE_IO_THREAD_TIMEOUT = 1876;
     exports.ER_STOP_REPLICA_IO_THREAD_TIMEOUT = 1876;
     exports.ER_TABLE_CORRUPT = 1877;
     exports.ER_TEMP_FILE_WRITE_FAILURE = 1878;
@@ -2240,36 +2677,913 @@ var require_errors = __commonJS({
     exports.ER_OLD_TEMPORALS_UPGRADED = 1880;
     exports.ER_INNODB_FORCED_RECOVERY = 1881;
     exports.ER_AES_INVALID_IV = 1882;
-    exports.ER_FILE_CORRUPT = 1883;
-    exports.ER_ERROR_ON_SOURCE = 1884;
-    exports.ER_INCONSISTENT_ERROR = 1885;
-    exports.ER_STORAGE_ENGINE_NOT_LOADED = 1886;
-    exports.ER_GET_STACKED_DA_WITHOUT_ACTIVE_HANDLER = 1887;
-    exports.ER_WARN_LEGACY_SYNTAX_CONVERTED = 1888;
-    exports.ER_BINLOG_UNSAFE_FULLTEXT_PLUGIN = 1889;
-    exports.ER_CANNOT_DISCARD_TEMPORARY_TABLE = 1890;
-    exports.ER_FK_DEPTH_EXCEEDED = 1891;
-    exports.ER_COL_COUNT_DOESNT_MATCH_PLEASE_UPDATE_V2 = 1892;
-    exports.ER_WARN_TRIGGER_DOESNT_HAVE_CREATED = 1893;
-    exports.ER_REFERENCED_TRG_DOES_NOT_EXIST = 1894;
-    exports.ER_EXPLAIN_NOT_SUPPORTED = 1895;
-    exports.ER_INVALID_FIELD_SIZE = 1896;
-    exports.ER_MISSING_HA_CREATE_OPTION = 1897;
-    exports.ER_ENGINE_OUT_OF_MEMORY = 1898;
-    exports.ER_PASSWORD_EXPIRE_ANONYMOUS_USER = 1899;
-    exports.ER_REPLICA_SQL_THREAD_MUST_STOP = 1900;
-    exports.ER_NO_FT_MATERIALIZED_SUBQUERY = 1901;
-    exports.ER_INNODB_UNDO_LOG_FULL = 1902;
-    exports.ER_INVALID_ARGUMENT_FOR_LOGARITHM = 1903;
-    exports.ER_REPLICA_IO_THREAD_MUST_STOP = 1904;
-    exports.ER_WARN_OPEN_TEMP_TABLES_MUST_BE_ZERO = 1905;
-    exports.ER_WARN_ONLY_SOURCE_LOG_FILE_NO_POS = 1906;
-    exports.ER_QUERY_TIMEOUT = 1907;
-    exports.ER_NON_RO_SELECT_DISABLE_TIMER = 1908;
-    exports.ER_DUP_LIST_ENTRY = 1909;
-    exports.ER_SQL_MODE_NO_EFFECT = 1910;
+    exports.ER_PLUGIN_CANNOT_BE_UNINSTALLED = 1883;
+    exports.ER_GTID_UNSAFE_BINLOG_SPLITTABLE_STATEMENT_AND_ASSIGNED_GTID = 1884;
+    exports.ER_REPLICA_HAS_MORE_GTIDS_THAN_SOURCE = 1885;
+    exports.ER_MISSING_KEY = 1886;
+    exports.WARN_NAMED_PIPE_ACCESS_EVERYONE = 1887;
+    exports.ER_FILE_CORRUPT = 3e3;
+    exports.ER_ERROR_ON_SOURCE = 3001;
+    exports.ER_INCONSISTENT_ERROR = 3002;
+    exports.ER_STORAGE_ENGINE_NOT_LOADED = 3003;
+    exports.ER_GET_STACKED_DA_WITHOUT_ACTIVE_HANDLER = 3004;
+    exports.ER_WARN_LEGACY_SYNTAX_CONVERTED = 3005;
+    exports.ER_BINLOG_UNSAFE_FULLTEXT_PLUGIN = 3006;
+    exports.ER_CANNOT_DISCARD_TEMPORARY_TABLE = 3007;
+    exports.ER_FK_DEPTH_EXCEEDED = 3008;
+    exports.ER_COL_COUNT_DOESNT_MATCH_PLEASE_UPDATE_V2 = 3009;
+    exports.ER_WARN_TRIGGER_DOESNT_HAVE_CREATED = 3010;
+    exports.ER_REFERENCED_TRG_DOES_NOT_EXIST = 3011;
+    exports.ER_EXPLAIN_NOT_SUPPORTED = 3012;
+    exports.ER_INVALID_FIELD_SIZE = 3013;
+    exports.ER_MISSING_HA_CREATE_OPTION = 3014;
+    exports.ER_ENGINE_OUT_OF_MEMORY = 3015;
+    exports.ER_PASSWORD_EXPIRE_ANONYMOUS_USER = 3016;
+    exports.ER_REPLICA_SQL_THREAD_MUST_STOP = 3017;
+    exports.ER_NO_FT_MATERIALIZED_SUBQUERY = 3018;
+    exports.ER_INNODB_UNDO_LOG_FULL = 3019;
+    exports.ER_INVALID_ARGUMENT_FOR_LOGARITHM = 3020;
+    exports.ER_REPLICA_CHANNEL_IO_THREAD_MUST_STOP = 3021;
+    exports.ER_WARN_OPEN_TEMP_TABLES_MUST_BE_ZERO = 3022;
+    exports.ER_WARN_ONLY_SOURCE_LOG_FILE_NO_POS = 3023;
+    exports.ER_QUERY_TIMEOUT = 3024;
+    exports.ER_NON_RO_SELECT_DISABLE_TIMER = 3025;
+    exports.ER_DUP_LIST_ENTRY = 3026;
+    exports.ER_SQL_MODE_NO_EFFECT = 3027;
+    exports.ER_AGGREGATE_ORDER_FOR_UNION = 3028;
+    exports.ER_AGGREGATE_ORDER_NON_AGG_QUERY = 3029;
+    exports.ER_REPLICA_WORKER_STOPPED_PREVIOUS_THD_ERROR = 3030;
+    exports.ER_DONT_SUPPORT_REPLICA_PRESERVE_COMMIT_ORDER = 3031;
+    exports.ER_SERVER_OFFLINE_MODE = 3032;
+    exports.ER_GIS_DIFFERENT_SRIDS = 3033;
+    exports.ER_GIS_UNSUPPORTED_ARGUMENT = 3034;
+    exports.ER_GIS_UNKNOWN_ERROR = 3035;
+    exports.ER_GIS_UNKNOWN_EXCEPTION = 3036;
+    exports.ER_GIS_INVALID_DATA = 3037;
+    exports.ER_BOOST_GEOMETRY_EMPTY_INPUT_EXCEPTION = 3038;
+    exports.ER_BOOST_GEOMETRY_CENTROID_EXCEPTION = 3039;
+    exports.ER_BOOST_GEOMETRY_OVERLAY_INVALID_INPUT_EXCEPTION = 3040;
+    exports.ER_BOOST_GEOMETRY_TURN_INFO_EXCEPTION = 3041;
+    exports.ER_BOOST_GEOMETRY_SELF_INTERSECTION_POINT_EXCEPTION = 3042;
+    exports.ER_BOOST_GEOMETRY_UNKNOWN_EXCEPTION = 3043;
+    exports.ER_STD_BAD_ALLOC_ERROR = 3044;
+    exports.ER_STD_DOMAIN_ERROR = 3045;
+    exports.ER_STD_LENGTH_ERROR = 3046;
+    exports.ER_STD_INVALID_ARGUMENT = 3047;
+    exports.ER_STD_OUT_OF_RANGE_ERROR = 3048;
+    exports.ER_STD_OVERFLOW_ERROR = 3049;
+    exports.ER_STD_RANGE_ERROR = 3050;
+    exports.ER_STD_UNDERFLOW_ERROR = 3051;
+    exports.ER_STD_LOGIC_ERROR = 3052;
+    exports.ER_STD_RUNTIME_ERROR = 3053;
+    exports.ER_STD_UNKNOWN_EXCEPTION = 3054;
+    exports.ER_GIS_DATA_WRONG_ENDIANESS = 3055;
+    exports.ER_CHANGE_SOURCE_PASSWORD_LENGTH = 3056;
+    exports.ER_USER_LOCK_WRONG_NAME = 3057;
+    exports.ER_USER_LOCK_DEADLOCK = 3058;
+    exports.ER_REPLACE_INACCESSIBLE_ROWS = 3059;
+    exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_GIS = 3060;
+    exports.ER_ILLEGAL_USER_VAR = 3061;
+    exports.ER_GTID_MODE_OFF = 3062;
+    exports.ER_UNSUPPORTED_BY_REPLICATION_THREAD = 3063;
+    exports.ER_INCORRECT_TYPE = 3064;
+    exports.ER_FIELD_IN_ORDER_NOT_SELECT = 3065;
+    exports.ER_AGGREGATE_IN_ORDER_NOT_SELECT = 3066;
+    exports.ER_INVALID_RPL_WILD_TABLE_FILTER_PATTERN = 3067;
+    exports.ER_NET_OK_PACKET_TOO_LARGE = 3068;
+    exports.ER_INVALID_JSON_DATA = 3069;
+    exports.ER_INVALID_GEOJSON_MISSING_MEMBER = 3070;
+    exports.ER_INVALID_GEOJSON_WRONG_TYPE = 3071;
+    exports.ER_INVALID_GEOJSON_UNSPECIFIED = 3072;
+    exports.ER_DIMENSION_UNSUPPORTED = 3073;
+    exports.ER_REPLICA_CHANNEL_DOES_NOT_EXIST = 3074;
+    exports.ER_SLAVE_MULTIPLE_CHANNELS_HOST_PORT = 3075;
+    exports.ER_REPLICA_CHANNEL_NAME_INVALID_OR_TOO_LONG = 3076;
+    exports.ER_REPLICA_NEW_CHANNEL_WRONG_REPOSITORY = 3077;
+    exports.ER_SLAVE_CHANNEL_DELETE = 3078;
+    exports.ER_REPLICA_MULTIPLE_CHANNELS_CMD = 3079;
+    exports.ER_REPLICA_MAX_CHANNELS_EXCEEDED = 3080;
+    exports.ER_REPLICA_CHANNEL_MUST_STOP = 3081;
+    exports.ER_REPLICA_CHANNEL_NOT_RUNNING = 3082;
+    exports.ER_REPLICA_CHANNEL_WAS_RUNNING = 3083;
+    exports.ER_REPLICA_CHANNEL_WAS_NOT_RUNNING = 3084;
+    exports.ER_REPLICA_CHANNEL_SQL_THREAD_MUST_STOP = 3085;
+    exports.ER_REPLICA_CHANNEL_SQL_SKIP_COUNTER = 3086;
+    exports.ER_WRONG_FIELD_WITH_GROUP_V2 = 3087;
+    exports.ER_MIX_OF_GROUP_FUNC_AND_FIELDS_V2 = 3088;
+    exports.ER_WARN_DEPRECATED_SYSVAR_UPDATE = 3089;
+    exports.ER_WARN_DEPRECATED_SQLMODE = 3090;
+    exports.ER_CANNOT_LOG_PARTIAL_DROP_DATABASE_WITH_GTID = 3091;
+    exports.ER_GROUP_REPLICATION_CONFIGURATION = 3092;
+    exports.ER_GROUP_REPLICATION_RUNNING = 3093;
+    exports.ER_GROUP_REPLICATION_APPLIER_INIT_ERROR = 3094;
+    exports.ER_GROUP_REPLICATION_STOP_APPLIER_THREAD_TIMEOUT = 3095;
+    exports.ER_GROUP_REPLICATION_COMMUNICATION_LAYER_SESSION_ERROR = 3096;
+    exports.ER_GROUP_REPLICATION_COMMUNICATION_LAYER_JOIN_ERROR = 3097;
+    exports.ER_BEFORE_DML_VALIDATION_ERROR = 3098;
+    exports.ER_PREVENTS_VARIABLE_WITHOUT_RBR = 3099;
+    exports.ER_RUN_HOOK_ERROR = 3100;
+    exports.ER_TRANSACTION_ROLLBACK_DURING_COMMIT = 3101;
+    exports.ER_GENERATED_COLUMN_FUNCTION_IS_NOT_ALLOWED = 3102;
+    exports.ER_UNSUPPORTED_ALTER_INPLACE_ON_VIRTUAL_COLUMN = 3103;
+    exports.ER_WRONG_FK_OPTION_FOR_GENERATED_COLUMN = 3104;
+    exports.ER_NON_DEFAULT_VALUE_FOR_GENERATED_COLUMN = 3105;
+    exports.ER_UNSUPPORTED_ACTION_ON_GENERATED_COLUMN = 3106;
+    exports.ER_GENERATED_COLUMN_NON_PRIOR = 3107;
+    exports.ER_DEPENDENT_BY_GENERATED_COLUMN = 3108;
+    exports.ER_GENERATED_COLUMN_REF_AUTO_INC = 3109;
+    exports.ER_FEATURE_NOT_AVAILABLE = 3110;
+    exports.ER_CANT_SET_GTID_MODE = 3111;
+    exports.ER_CANT_USE_AUTO_POSITION_WITH_GTID_MODE_OFF = 3112;
+    exports.ER_CANT_REPLICATE_ANONYMOUS_WITH_AUTO_POSITION = 3113;
+    exports.ER_CANT_REPLICATE_ANONYMOUS_WITH_GTID_MODE_ON = 3114;
+    exports.ER_CANT_REPLICATE_GTID_WITH_GTID_MODE_OFF = 3115;
+    exports.ER_CANT_ENFORCE_GTID_CONSISTENCY_WITH_ONGOING_GTID_VIOLATING_TX = 3116;
+    exports.ER_ENFORCE_GTID_CONSISTENCY_WARN_WITH_ONGOING_GTID_VIOLATING_TX = 3117;
+    exports.ER_ACCOUNT_HAS_BEEN_LOCKED = 3118;
+    exports.ER_WRONG_TABLESPACE_NAME = 3119;
+    exports.ER_TABLESPACE_IS_NOT_EMPTY = 3120;
+    exports.ER_WRONG_FILE_NAME = 3121;
+    exports.ER_BOOST_GEOMETRY_INCONSISTENT_TURNS_EXCEPTION = 3122;
+    exports.ER_WARN_OPTIMIZER_HINT_SYNTAX_ERROR = 3123;
+    exports.ER_WARN_BAD_MAX_EXECUTION_TIME = 3124;
+    exports.ER_WARN_UNSUPPORTED_MAX_EXECUTION_TIME = 3125;
+    exports.ER_WARN_CONFLICTING_HINT = 3126;
+    exports.ER_WARN_UNKNOWN_QB_NAME = 3127;
+    exports.ER_UNRESOLVED_HINT_NAME = 3128;
+    exports.ER_WARN_ON_MODIFYING_GTID_EXECUTED_TABLE = 3129;
+    exports.ER_PLUGGABLE_PROTOCOL_COMMAND_NOT_SUPPORTED = 3130;
+    exports.ER_LOCKING_SERVICE_WRONG_NAME = 3131;
+    exports.ER_LOCKING_SERVICE_DEADLOCK = 3132;
+    exports.ER_LOCKING_SERVICE_TIMEOUT = 3133;
+    exports.ER_GIS_MAX_POINTS_IN_GEOMETRY_OVERFLOWED = 3134;
+    exports.ER_SQL_MODE_MERGED = 3135;
+    exports.ER_VTOKEN_PLUGIN_TOKEN_MISMATCH = 3136;
+    exports.ER_VTOKEN_PLUGIN_TOKEN_NOT_FOUND = 3137;
+    exports.ER_CANT_SET_VARIABLE_WHEN_OWNING_GTID = 3138;
+    exports.ER_REPLICA_CHANNEL_OPERATION_NOT_ALLOWED = 3139;
+    exports.ER_INVALID_JSON_TEXT = 3140;
+    exports.ER_INVALID_JSON_TEXT_IN_PARAM = 3141;
+    exports.ER_INVALID_JSON_BINARY_DATA = 3142;
+    exports.ER_INVALID_JSON_PATH = 3143;
+    exports.ER_INVALID_JSON_CHARSET = 3144;
+    exports.ER_INVALID_JSON_CHARSET_IN_FUNCTION = 3145;
+    exports.ER_INVALID_TYPE_FOR_JSON = 3146;
+    exports.ER_INVALID_CAST_TO_JSON = 3147;
+    exports.ER_INVALID_JSON_PATH_CHARSET = 3148;
+    exports.ER_INVALID_JSON_PATH_WILDCARD = 3149;
+    exports.ER_JSON_VALUE_TOO_BIG = 3150;
+    exports.ER_JSON_KEY_TOO_BIG = 3151;
+    exports.ER_JSON_USED_AS_KEY = 3152;
+    exports.ER_JSON_VACUOUS_PATH = 3153;
+    exports.ER_JSON_BAD_ONE_OR_ALL_ARG = 3154;
+    exports.ER_NUMERIC_JSON_VALUE_OUT_OF_RANGE = 3155;
+    exports.ER_INVALID_JSON_VALUE_FOR_CAST = 3156;
+    exports.ER_JSON_DOCUMENT_TOO_DEEP = 3157;
+    exports.ER_JSON_DOCUMENT_NULL_KEY = 3158;
+    exports.ER_SECURE_TRANSPORT_REQUIRED = 3159;
+    exports.ER_NO_SECURE_TRANSPORTS_CONFIGURED = 3160;
+    exports.ER_DISABLED_STORAGE_ENGINE = 3161;
+    exports.ER_USER_DOES_NOT_EXIST = 3162;
+    exports.ER_USER_ALREADY_EXISTS = 3163;
+    exports.ER_AUDIT_API_ABORT = 3164;
+    exports.ER_INVALID_JSON_PATH_ARRAY_CELL = 3165;
+    exports.ER_BUFPOOL_RESIZE_INPROGRESS = 3166;
+    exports.ER_FEATURE_DISABLED_SEE_DOC = 3167;
+    exports.ER_SERVER_ISNT_AVAILABLE = 3168;
     exports.ER_SESSION_WAS_KILLED = 3169;
+    exports.ER_CAPACITY_EXCEEDED = 3170;
+    exports.ER_CAPACITY_EXCEEDED_IN_RANGE_OPTIMIZER = 3171;
+    exports.ER_TABLE_NEEDS_UPG_PART = 3172;
+    exports.ER_CANT_WAIT_FOR_EXECUTED_GTID_SET_WHILE_OWNING_A_GTID = 3173;
+    exports.ER_CANNOT_ADD_FOREIGN_BASE_COL_VIRTUAL = 3174;
+    exports.ER_CANNOT_CREATE_VIRTUAL_INDEX_CONSTRAINT = 3175;
+    exports.ER_ERROR_ON_MODIFYING_GTID_EXECUTED_TABLE = 3176;
+    exports.ER_LOCK_REFUSED_BY_ENGINE = 3177;
+    exports.ER_UNSUPPORTED_ALTER_ONLINE_ON_VIRTUAL_COLUMN = 3178;
+    exports.ER_MASTER_KEY_ROTATION_NOT_SUPPORTED_BY_SE = 3179;
+    exports.ER_MASTER_KEY_ROTATION_ERROR_BY_SE = 3180;
+    exports.ER_MASTER_KEY_ROTATION_BINLOG_FAILED = 3181;
+    exports.ER_MASTER_KEY_ROTATION_SE_UNAVAILABLE = 3182;
+    exports.ER_TABLESPACE_CANNOT_ENCRYPT = 3183;
+    exports.ER_INVALID_ENCRYPTION_OPTION = 3184;
+    exports.ER_CANNOT_FIND_KEY_IN_KEYRING = 3185;
+    exports.ER_CAPACITY_EXCEEDED_IN_PARSER = 3186;
+    exports.ER_UNSUPPORTED_ALTER_ENCRYPTION_INPLACE = 3187;
+    exports.ER_KEYRING_UDF_KEYRING_SERVICE_ERROR = 3188;
+    exports.ER_USER_COLUMN_OLD_LENGTH = 3189;
+    exports.ER_CANT_RESET_SOURCE = 3190;
+    exports.ER_GROUP_REPLICATION_MAX_GROUP_SIZE = 3191;
+    exports.ER_CANNOT_ADD_FOREIGN_BASE_COL_STORED = 3192;
+    exports.ER_TABLE_REFERENCED = 3193;
+    exports.ER_PARTITION_ENGINE_DEPRECATED_FOR_TABLE = 3194;
+    exports.ER_WARN_USING_GEOMFROMWKB_TO_SET_SRID_ZERO = 3195;
+    exports.ER_WARN_USING_GEOMFROMWKB_TO_SET_SRID = 3196;
+    exports.ER_XA_RETRY = 3197;
+    exports.ER_KEYRING_AWS_UDF_AWS_KMS_ERROR = 3198;
+    exports.ER_BINLOG_UNSAFE_XA = 3199;
+    exports.ER_UDF_ERROR = 3200;
+    exports.ER_KEYRING_MIGRATION_FAILURE = 3201;
+    exports.ER_KEYRING_ACCESS_DENIED_ERROR = 3202;
+    exports.ER_KEYRING_MIGRATION_STATUS = 3203;
+    exports.ER_PLUGIN_FAILED_TO_OPEN_TABLES = 3204;
+    exports.ER_PLUGIN_FAILED_TO_OPEN_TABLE = 3205;
+    exports.ER_AUDIT_LOG_NO_KEYRING_PLUGIN_INSTALLED = 3206;
+    exports.ER_AUDIT_LOG_ENCRYPTION_PASSWORD_HAS_NOT_BEEN_SET = 3207;
+    exports.ER_AUDIT_LOG_COULD_NOT_CREATE_AES_KEY = 3208;
+    exports.ER_AUDIT_LOG_ENCRYPTION_PASSWORD_CANNOT_BE_FETCHED = 3209;
+    exports.ER_AUDIT_LOG_JSON_FILTERING_NOT_ENABLED = 3210;
+    exports.ER_AUDIT_LOG_UDF_INSUFFICIENT_PRIVILEGE = 3211;
+    exports.ER_AUDIT_LOG_SUPER_PRIVILEGE_REQUIRED = 3212;
+    exports.ER_COULD_NOT_REINITIALIZE_AUDIT_LOG_FILTERS = 3213;
+    exports.ER_AUDIT_LOG_UDF_INVALID_ARGUMENT_TYPE = 3214;
+    exports.ER_AUDIT_LOG_UDF_INVALID_ARGUMENT_COUNT = 3215;
+    exports.ER_AUDIT_LOG_HAS_NOT_BEEN_INSTALLED = 3216;
+    exports.ER_AUDIT_LOG_UDF_READ_INVALID_MAX_ARRAY_LENGTH_ARG_TYPE = 3217;
+    exports.ER_AUDIT_LOG_UDF_READ_INVALID_MAX_ARRAY_LENGTH_ARG_VALUE = 3218;
+    exports.ER_AUDIT_LOG_JSON_FILTER_PARSING_ERROR = 3219;
+    exports.ER_AUDIT_LOG_JSON_FILTER_NAME_CANNOT_BE_EMPTY = 3220;
+    exports.ER_AUDIT_LOG_JSON_USER_NAME_CANNOT_BE_EMPTY = 3221;
+    exports.ER_AUDIT_LOG_JSON_FILTER_DOES_NOT_EXISTS = 3222;
+    exports.ER_AUDIT_LOG_USER_FIRST_CHARACTER_MUST_BE_ALPHANUMERIC = 3223;
+    exports.ER_AUDIT_LOG_USER_NAME_INVALID_CHARACTER = 3224;
+    exports.ER_AUDIT_LOG_HOST_NAME_INVALID_CHARACTER = 3225;
+    exports.WARN_DEPRECATED_MAXDB_SQL_MODE_FOR_TIMESTAMP = 3226;
+    exports.ER_XA_REPLICATION_FILTERS = 3227;
+    exports.ER_CANT_OPEN_ERROR_LOG = 3228;
+    exports.ER_GROUPING_ON_TIMESTAMP_IN_DST = 3229;
+    exports.ER_CANT_START_SERVER_NAMED_PIPE = 3230;
+    exports.ER_WRITE_SET_EXCEEDS_LIMIT = 3231;
+    exports.ER_DEPRECATED_TLS_VERSION_SESSION_57 = 3232;
+    exports.ER_WARN_DEPRECATED_TLS_VERSION_57 = 3233;
+    exports.ER_WARN_WRONG_NATIVE_TABLE_STRUCTURE = 3234;
+    exports.ER_AES_INVALID_KDF_NAME = 3235;
+    exports.ER_AES_INVALID_KDF_ITERATIONS = 3236;
+    exports.WARN_AES_KEY_SIZE = 3237;
+    exports.ER_AES_INVALID_KDF_OPTION_SIZE = 3238;
+    exports.ER_UNSUPPORT_COMPRESSED_TEMPORARY_TABLE = 3500;
+    exports.ER_ACL_OPERATION_FAILED = 3501;
+    exports.ER_UNSUPPORTED_INDEX_ALGORITHM = 3502;
+    exports.ER_NO_SUCH_DB = 3503;
+    exports.ER_TOO_BIG_ENUM = 3504;
+    exports.ER_TOO_LONG_SET_ENUM_VALUE = 3505;
+    exports.ER_INVALID_DD_OBJECT = 3506;
+    exports.ER_UPDATING_DD_TABLE = 3507;
+    exports.ER_INVALID_DD_OBJECT_ID = 3508;
+    exports.ER_INVALID_DD_OBJECT_NAME = 3509;
+    exports.ER_TABLESPACE_MISSING_WITH_NAME = 3510;
+    exports.ER_TOO_LONG_ROUTINE_COMMENT = 3511;
+    exports.ER_SP_LOAD_FAILED = 3512;
+    exports.ER_INVALID_BITWISE_OPERANDS_SIZE = 3513;
+    exports.ER_INVALID_BITWISE_AGGREGATE_OPERANDS_SIZE = 3514;
+    exports.ER_WARN_UNSUPPORTED_HINT = 3515;
+    exports.ER_UNEXPECTED_GEOMETRY_TYPE = 3516;
+    exports.ER_SRS_PARSE_ERROR = 3517;
+    exports.ER_SRS_PROJ_PARAMETER_MISSING = 3518;
+    exports.ER_WARN_SRS_NOT_FOUND = 3519;
+    exports.ER_SRS_NOT_CARTESIAN = 3520;
+    exports.ER_SRS_NOT_CARTESIAN_UNDEFINED = 3521;
+    exports.ER_PK_INDEX_CANT_BE_INVISIBLE = 3522;
+    exports.ER_UNKNOWN_AUTHID = 3523;
+    exports.ER_FAILED_ROLE_GRANT = 3524;
+    exports.ER_OPEN_ROLE_TABLES = 3525;
+    exports.ER_FAILED_DEFAULT_ROLES = 3526;
+    exports.ER_COMPONENTS_NO_SCHEME = 3527;
+    exports.ER_COMPONENTS_NO_SCHEME_SERVICE = 3528;
+    exports.ER_COMPONENTS_CANT_LOAD = 3529;
+    exports.ER_ROLE_NOT_GRANTED = 3530;
+    exports.ER_FAILED_REVOKE_ROLE = 3531;
+    exports.ER_RENAME_ROLE = 3532;
+    exports.ER_COMPONENTS_CANT_ACQUIRE_SERVICE_IMPLEMENTATION = 3533;
+    exports.ER_COMPONENTS_CANT_SATISFY_DEPENDENCY = 3534;
+    exports.ER_COMPONENTS_LOAD_CANT_REGISTER_SERVICE_IMPLEMENTATION = 3535;
+    exports.ER_COMPONENTS_LOAD_CANT_INITIALIZE = 3536;
+    exports.ER_COMPONENTS_UNLOAD_NOT_LOADED = 3537;
+    exports.ER_COMPONENTS_UNLOAD_CANT_DEINITIALIZE = 3538;
+    exports.ER_COMPONENTS_CANT_RELEASE_SERVICE = 3539;
+    exports.ER_COMPONENTS_UNLOAD_CANT_UNREGISTER_SERVICE = 3540;
+    exports.ER_COMPONENTS_CANT_UNLOAD = 3541;
+    exports.ER_WARN_UNLOAD_THE_NOT_PERSISTED = 3542;
+    exports.ER_COMPONENT_TABLE_INCORRECT = 3543;
+    exports.ER_COMPONENT_MANIPULATE_ROW_FAILED = 3544;
+    exports.ER_COMPONENTS_UNLOAD_DUPLICATE_IN_GROUP = 3545;
+    exports.ER_CANT_SET_GTID_PURGED_DUE_SETS_CONSTRAINTS = 3546;
+    exports.ER_CANNOT_LOCK_USER_MANAGEMENT_CACHES = 3547;
+    exports.ER_SRS_NOT_FOUND = 3548;
+    exports.ER_VARIABLE_NOT_PERSISTED = 3549;
+    exports.ER_IS_QUERY_INVALID_CLAUSE = 3550;
+    exports.ER_UNABLE_TO_STORE_STATISTICS = 3551;
+    exports.ER_NO_SYSTEM_SCHEMA_ACCESS = 3552;
+    exports.ER_NO_SYSTEM_TABLESPACE_ACCESS = 3553;
+    exports.ER_NO_SYSTEM_TABLE_ACCESS = 3554;
+    exports.ER_NO_SYSTEM_TABLE_ACCESS_FOR_DICTIONARY_TABLE = 3555;
+    exports.ER_NO_SYSTEM_TABLE_ACCESS_FOR_SYSTEM_TABLE = 3556;
+    exports.ER_NO_SYSTEM_TABLE_ACCESS_FOR_TABLE = 3557;
+    exports.ER_INVALID_OPTION_KEY = 3558;
+    exports.ER_INVALID_OPTION_VALUE = 3559;
+    exports.ER_INVALID_OPTION_KEY_VALUE_PAIR = 3560;
+    exports.ER_INVALID_OPTION_START_CHARACTER = 3561;
+    exports.ER_INVALID_OPTION_END_CHARACTER = 3562;
+    exports.ER_INVALID_OPTION_CHARACTERS = 3563;
+    exports.ER_DUPLICATE_OPTION_KEY = 3564;
+    exports.ER_WARN_SRS_NOT_FOUND_AXIS_ORDER = 3565;
+    exports.ER_NO_ACCESS_TO_NATIVE_FCT = 3566;
+    exports.ER_RESET_SOURCE_TO_VALUE_OUT_OF_RANGE = 3567;
+    exports.ER_UNRESOLVED_TABLE_LOCK = 3568;
+    exports.ER_DUPLICATE_TABLE_LOCK = 3569;
+    exports.ER_BINLOG_UNSAFE_SKIP_LOCKED = 3570;
+    exports.ER_BINLOG_UNSAFE_NOWAIT = 3571;
+    exports.ER_LOCK_NOWAIT = 3572;
+    exports.ER_CTE_RECURSIVE_REQUIRES_UNION = 3573;
+    exports.ER_CTE_RECURSIVE_REQUIRES_NONRECURSIVE_FIRST = 3574;
+    exports.ER_CTE_RECURSIVE_FORBIDS_AGGREGATION = 3575;
+    exports.ER_CTE_RECURSIVE_FORBIDDEN_JOIN_ORDER = 3576;
+    exports.ER_CTE_RECURSIVE_REQUIRES_SINGLE_REFERENCE = 3577;
+    exports.ER_SWITCH_TMP_ENGINE = 3578;
+    exports.ER_WINDOW_NO_SUCH_WINDOW = 3579;
+    exports.ER_WINDOW_CIRCULARITY_IN_WINDOW_GRAPH = 3580;
+    exports.ER_WINDOW_NO_CHILD_PARTITIONING = 3581;
+    exports.ER_WINDOW_NO_INHERIT_FRAME = 3582;
+    exports.ER_WINDOW_NO_REDEFINE_ORDER_BY = 3583;
+    exports.ER_WINDOW_FRAME_START_ILLEGAL = 3584;
+    exports.ER_WINDOW_FRAME_END_ILLEGAL = 3585;
+    exports.ER_WINDOW_FRAME_ILLEGAL = 3586;
+    exports.ER_WINDOW_RANGE_FRAME_ORDER_TYPE = 3587;
+    exports.ER_WINDOW_RANGE_FRAME_TEMPORAL_TYPE = 3588;
+    exports.ER_WINDOW_RANGE_FRAME_NUMERIC_TYPE = 3589;
+    exports.ER_WINDOW_RANGE_BOUND_NOT_CONSTANT = 3590;
+    exports.ER_WINDOW_DUPLICATE_NAME = 3591;
+    exports.ER_WINDOW_ILLEGAL_ORDER_BY = 3592;
+    exports.ER_WINDOW_INVALID_WINDOW_FUNC_USE = 3593;
+    exports.ER_WINDOW_INVALID_WINDOW_FUNC_ALIAS_USE = 3594;
+    exports.ER_WINDOW_NESTED_WINDOW_FUNC_USE_IN_WINDOW_SPEC = 3595;
+    exports.ER_WINDOW_ROWS_INTERVAL_USE = 3596;
+    exports.ER_WINDOW_NO_GROUP_ORDER = 3597;
+    exports.ER_WINDOW_EXPLAIN_JSON = 3598;
+    exports.ER_WINDOW_FUNCTION_IGNORES_FRAME = 3599;
+    exports.ER_WL9236_NOW = 3600;
+    exports.ER_INVALID_NO_OF_ARGS = 3601;
+    exports.ER_FIELD_IN_GROUPING_NOT_GROUP_BY = 3602;
+    exports.ER_TOO_LONG_TABLESPACE_COMMENT = 3603;
+    exports.ER_ENGINE_CANT_DROP_TABLE = 3604;
+    exports.ER_ENGINE_CANT_DROP_MISSING_TABLE = 3605;
+    exports.ER_TABLESPACE_DUP_FILENAME = 3606;
+    exports.ER_DB_DROP_RMDIR2 = 3607;
+    exports.ER_IMP_NO_FILES_MATCHED = 3608;
+    exports.ER_IMP_SCHEMA_DOES_NOT_EXIST = 3609;
+    exports.ER_IMP_TABLE_ALREADY_EXISTS = 3610;
+    exports.ER_IMP_INCOMPATIBLE_MYSQLD_VERSION = 3611;
+    exports.ER_IMP_INCOMPATIBLE_DD_VERSION = 3612;
+    exports.ER_IMP_INCOMPATIBLE_SDI_VERSION = 3613;
+    exports.ER_WARN_INVALID_HINT = 3614;
+    exports.ER_VAR_DOES_NOT_EXIST = 3615;
+    exports.ER_LONGITUDE_OUT_OF_RANGE = 3616;
+    exports.ER_LATITUDE_OUT_OF_RANGE = 3617;
+    exports.ER_NOT_IMPLEMENTED_FOR_GEOGRAPHIC_SRS = 3618;
+    exports.ER_ILLEGAL_PRIVILEGE_LEVEL = 3619;
+    exports.ER_NO_SYSTEM_VIEW_ACCESS = 3620;
+    exports.ER_COMPONENT_FILTER_FLABBERGASTED = 3621;
+    exports.ER_PART_EXPR_TOO_LONG = 3622;
+    exports.ER_UDF_DROP_DYNAMICALLY_REGISTERED = 3623;
+    exports.ER_UNABLE_TO_STORE_COLUMN_STATISTICS = 3624;
+    exports.ER_UNABLE_TO_UPDATE_COLUMN_STATISTICS = 3625;
+    exports.ER_UNABLE_TO_DROP_COLUMN_STATISTICS = 3626;
+    exports.ER_UNABLE_TO_BUILD_HISTOGRAM = 3627;
+    exports.ER_MANDATORY_ROLE = 3628;
+    exports.ER_MISSING_TABLESPACE_FILE = 3629;
+    exports.ER_PERSIST_ONLY_ACCESS_DENIED_ERROR = 3630;
+    exports.ER_CMD_NEED_SUPER = 3631;
+    exports.ER_PATH_IN_DATADIR = 3632;
+    exports.ER_CLONE_DDL_IN_PROGRESS = 3633;
+    exports.ER_CLONE_TOO_MANY_CONCURRENT_CLONES = 3634;
+    exports.ER_APPLIER_LOG_EVENT_VALIDATION_ERROR = 3635;
+    exports.ER_CTE_MAX_RECURSION_DEPTH = 3636;
+    exports.ER_NOT_HINT_UPDATABLE_VARIABLE = 3637;
+    exports.ER_CREDENTIALS_CONTRADICT_TO_HISTORY = 3638;
+    exports.ER_WARNING_PASSWORD_HISTORY_CLAUSES_VOID = 3639;
+    exports.ER_CLIENT_DOES_NOT_SUPPORT = 3640;
+    exports.ER_I_S_SKIPPED_TABLESPACE = 3641;
+    exports.ER_TABLESPACE_ENGINE_MISMATCH = 3642;
+    exports.ER_WRONG_SRID_FOR_COLUMN = 3643;
+    exports.ER_CANNOT_ALTER_SRID_DUE_TO_INDEX = 3644;
+    exports.ER_WARN_BINLOG_PARTIAL_UPDATES_DISABLED = 3645;
+    exports.ER_WARN_BINLOG_V1_ROW_EVENTS_DISABLED = 3646;
+    exports.ER_WARN_BINLOG_PARTIAL_UPDATES_SUGGESTS_PARTIAL_IMAGES = 3647;
+    exports.ER_COULD_NOT_APPLY_JSON_DIFF = 3648;
+    exports.ER_CORRUPTED_JSON_DIFF = 3649;
+    exports.ER_RESOURCE_GROUP_EXISTS = 3650;
+    exports.ER_RESOURCE_GROUP_NOT_EXISTS = 3651;
+    exports.ER_INVALID_VCPU_ID = 3652;
+    exports.ER_INVALID_VCPU_RANGE = 3653;
+    exports.ER_INVALID_THREAD_PRIORITY = 3654;
+    exports.ER_DISALLOWED_OPERATION = 3655;
+    exports.ER_RESOURCE_GROUP_BUSY = 3656;
+    exports.ER_RESOURCE_GROUP_DISABLED = 3657;
+    exports.ER_FEATURE_UNSUPPORTED = 3658;
+    exports.ER_ATTRIBUTE_IGNORED = 3659;
+    exports.ER_INVALID_THREAD_ID = 3660;
+    exports.ER_RESOURCE_GROUP_BIND_FAILED = 3661;
+    exports.ER_INVALID_USE_OF_FORCE_OPTION = 3662;
+    exports.ER_GROUP_REPLICATION_COMMAND_FAILURE = 3663;
+    exports.ER_SDI_OPERATION_FAILED = 3664;
+    exports.ER_MISSING_JSON_TABLE_VALUE = 3665;
+    exports.ER_WRONG_JSON_TABLE_VALUE = 3666;
+    exports.ER_TF_MUST_HAVE_ALIAS = 3667;
+    exports.ER_TF_FORBIDDEN_JOIN_TYPE = 3668;
+    exports.ER_JT_VALUE_OUT_OF_RANGE = 3669;
+    exports.ER_JT_MAX_NESTED_PATH = 3670;
+    exports.ER_PASSWORD_EXPIRATION_NOT_SUPPORTED_BY_AUTH_METHOD = 3671;
+    exports.ER_INVALID_GEOJSON_CRS_NOT_TOP_LEVEL = 3672;
+    exports.ER_BAD_NULL_ERROR_NOT_IGNORED = 3673;
+    exports.WARN_USELESS_SPATIAL_INDEX = 3674;
+    exports.ER_DISK_FULL_NOWAIT = 3675;
+    exports.ER_PARSE_ERROR_IN_DIGEST_FN = 3676;
+    exports.ER_UNDISCLOSED_PARSE_ERROR_IN_DIGEST_FN = 3677;
+    exports.ER_SCHEMA_DIR_EXISTS = 3678;
+    exports.ER_SCHEMA_DIR_MISSING = 3679;
+    exports.ER_SCHEMA_DIR_CREATE_FAILED = 3680;
+    exports.ER_SCHEMA_DIR_UNKNOWN = 3681;
+    exports.ER_ONLY_IMPLEMENTED_FOR_SRID_0_AND_4326 = 3682;
+    exports.ER_BINLOG_EXPIRE_LOG_DAYS_AND_SECS_USED_TOGETHER = 3683;
+    exports.ER_REGEXP_BUFFER_OVERFLOW = 3684;
+    exports.ER_REGEXP_ILLEGAL_ARGUMENT = 3685;
+    exports.ER_REGEXP_INDEX_OUTOFBOUNDS_ERROR = 3686;
+    exports.ER_REGEXP_INTERNAL_ERROR = 3687;
+    exports.ER_REGEXP_RULE_SYNTAX = 3688;
+    exports.ER_REGEXP_BAD_ESCAPE_SEQUENCE = 3689;
+    exports.ER_REGEXP_UNIMPLEMENTED = 3690;
+    exports.ER_REGEXP_MISMATCHED_PAREN = 3691;
+    exports.ER_REGEXP_BAD_INTERVAL = 3692;
+    exports.ER_REGEXP_MAX_LT_MIN = 3693;
+    exports.ER_REGEXP_INVALID_BACK_REF = 3694;
+    exports.ER_REGEXP_LOOK_BEHIND_LIMIT = 3695;
+    exports.ER_REGEXP_MISSING_CLOSE_BRACKET = 3696;
+    exports.ER_REGEXP_INVALID_RANGE = 3697;
+    exports.ER_REGEXP_STACK_OVERFLOW = 3698;
+    exports.ER_REGEXP_TIME_OUT = 3699;
+    exports.ER_REGEXP_PATTERN_TOO_BIG = 3700;
+    exports.ER_CANT_SET_ERROR_LOG_SERVICE = 3701;
+    exports.ER_EMPTY_PIPELINE_FOR_ERROR_LOG_SERVICE = 3702;
+    exports.ER_COMPONENT_FILTER_DIAGNOSTICS = 3703;
+    exports.ER_NOT_IMPLEMENTED_FOR_CARTESIAN_SRS = 3704;
+    exports.ER_NOT_IMPLEMENTED_FOR_PROJECTED_SRS = 3705;
+    exports.ER_NONPOSITIVE_RADIUS = 3706;
+    exports.ER_RESTART_SERVER_FAILED = 3707;
+    exports.ER_SRS_MISSING_MANDATORY_ATTRIBUTE = 3708;
+    exports.ER_SRS_MULTIPLE_ATTRIBUTE_DEFINITIONS = 3709;
+    exports.ER_SRS_NAME_CANT_BE_EMPTY_OR_WHITESPACE = 3710;
+    exports.ER_SRS_ORGANIZATION_CANT_BE_EMPTY_OR_WHITESPACE = 3711;
+    exports.ER_SRS_ID_ALREADY_EXISTS = 3712;
+    exports.ER_WARN_SRS_ID_ALREADY_EXISTS = 3713;
+    exports.ER_CANT_MODIFY_SRID_0 = 3714;
+    exports.ER_WARN_RESERVED_SRID_RANGE = 3715;
+    exports.ER_CANT_MODIFY_SRS_USED_BY_COLUMN = 3716;
+    exports.ER_SRS_INVALID_CHARACTER_IN_ATTRIBUTE = 3717;
+    exports.ER_SRS_ATTRIBUTE_STRING_TOO_LONG = 3718;
+    exports.ER_DEPRECATED_UTF8_ALIAS = 3719;
+    exports.ER_DEPRECATED_NATIONAL = 3720;
+    exports.ER_INVALID_DEFAULT_UTF8MB4_COLLATION = 3721;
+    exports.ER_UNABLE_TO_COLLECT_LOG_STATUS = 3722;
+    exports.ER_RESERVED_TABLESPACE_NAME = 3723;
+    exports.ER_UNABLE_TO_SET_OPTION = 3724;
+    exports.ER_REPLICA_POSSIBLY_DIVERGED_AFTER_DDL = 3725;
+    exports.ER_SRS_NOT_GEOGRAPHIC = 3726;
+    exports.ER_POLYGON_TOO_LARGE = 3727;
+    exports.ER_SPATIAL_UNIQUE_INDEX = 3728;
+    exports.ER_INDEX_TYPE_NOT_SUPPORTED_FOR_SPATIAL_INDEX = 3729;
+    exports.ER_FK_CANNOT_DROP_PARENT = 3730;
+    exports.ER_GEOMETRY_PARAM_LONGITUDE_OUT_OF_RANGE = 3731;
+    exports.ER_GEOMETRY_PARAM_LATITUDE_OUT_OF_RANGE = 3732;
+    exports.ER_FK_CANNOT_USE_VIRTUAL_COLUMN = 3733;
+    exports.ER_FK_NO_COLUMN_PARENT = 3734;
+    exports.ER_CANT_SET_ERROR_SUPPRESSION_LIST = 3735;
+    exports.ER_SRS_GEOGCS_INVALID_AXES = 3736;
+    exports.ER_SRS_INVALID_SEMI_MAJOR_AXIS = 3737;
+    exports.ER_SRS_INVALID_INVERSE_FLATTENING = 3738;
+    exports.ER_SRS_INVALID_ANGULAR_UNIT = 3739;
+    exports.ER_SRS_INVALID_PRIME_MERIDIAN = 3740;
+    exports.ER_TRANSFORM_SOURCE_SRS_NOT_SUPPORTED = 3741;
+    exports.ER_TRANSFORM_TARGET_SRS_NOT_SUPPORTED = 3742;
+    exports.ER_TRANSFORM_SOURCE_SRS_MISSING_TOWGS84 = 3743;
+    exports.ER_TRANSFORM_TARGET_SRS_MISSING_TOWGS84 = 3744;
+    exports.ER_TEMP_TABLE_PREVENTS_SWITCH_SESSION_BINLOG_FORMAT = 3745;
+    exports.ER_TEMP_TABLE_PREVENTS_SWITCH_GLOBAL_BINLOG_FORMAT = 3746;
+    exports.ER_RUNNING_APPLIER_PREVENTS_SWITCH_GLOBAL_BINLOG_FORMAT = 3747;
+    exports.ER_CLIENT_GTID_UNSAFE_CREATE_DROP_TEMP_TABLE_IN_TRX_IN_SBR = 3748;
+    exports.ER_XA_CANT_CREATE_MDL_BACKUP = 3749;
+    exports.ER_TABLE_WITHOUT_PK = 3750;
+    exports.ER_WARN_DATA_TRUNCATED_FUNCTIONAL_INDEX = 3751;
+    exports.ER_WARN_DATA_OUT_OF_RANGE_FUNCTIONAL_INDEX = 3752;
+    exports.ER_FUNCTIONAL_INDEX_ON_JSON_OR_GEOMETRY_FUNCTION = 3753;
+    exports.ER_FUNCTIONAL_INDEX_REF_AUTO_INCREMENT = 3754;
+    exports.ER_CANNOT_DROP_COLUMN_FUNCTIONAL_INDEX = 3755;
+    exports.ER_FUNCTIONAL_INDEX_PRIMARY_KEY = 3756;
+    exports.ER_FUNCTIONAL_INDEX_ON_LOB = 3757;
+    exports.ER_FUNCTIONAL_INDEX_FUNCTION_IS_NOT_ALLOWED = 3758;
+    exports.ER_FULLTEXT_FUNCTIONAL_INDEX = 3759;
+    exports.ER_SPATIAL_FUNCTIONAL_INDEX = 3760;
+    exports.ER_WRONG_KEY_COLUMN_FUNCTIONAL_INDEX = 3761;
+    exports.ER_FUNCTIONAL_INDEX_ON_FIELD = 3762;
+    exports.ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED = 3763;
+    exports.ER_GENERATED_COLUMN_ROW_VALUE = 3764;
+    exports.ER_GENERATED_COLUMN_VARIABLES = 3765;
+    exports.ER_DEPENDENT_BY_DEFAULT_GENERATED_VALUE = 3766;
+    exports.ER_DEFAULT_VAL_GENERATED_NON_PRIOR = 3767;
+    exports.ER_DEFAULT_VAL_GENERATED_REF_AUTO_INC = 3768;
+    exports.ER_DEFAULT_VAL_GENERATED_FUNCTION_IS_NOT_ALLOWED = 3769;
+    exports.ER_DEFAULT_VAL_GENERATED_NAMED_FUNCTION_IS_NOT_ALLOWED = 3770;
+    exports.ER_DEFAULT_VAL_GENERATED_ROW_VALUE = 3771;
+    exports.ER_DEFAULT_VAL_GENERATED_VARIABLES = 3772;
+    exports.ER_DEFAULT_AS_VAL_GENERATED = 3773;
+    exports.ER_UNSUPPORTED_ACTION_ON_DEFAULT_VAL_GENERATED = 3774;
+    exports.ER_GTID_UNSAFE_ALTER_ADD_COL_WITH_DEFAULT_EXPRESSION = 3775;
+    exports.ER_FK_CANNOT_CHANGE_ENGINE = 3776;
+    exports.ER_WARN_DEPRECATED_USER_SET_EXPR = 3777;
+    exports.ER_WARN_DEPRECATED_UTF8MB3_COLLATION = 3778;
+    exports.ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX = 3779;
+    exports.ER_FK_INCOMPATIBLE_COLUMNS = 3780;
+    exports.ER_GR_HOLD_WAIT_TIMEOUT = 3781;
+    exports.ER_GR_HOLD_KILLED = 3782;
+    exports.ER_GR_HOLD_MEMBER_STATUS_ERROR = 3783;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_FETCH_KEY = 3784;
+    exports.ER_RPL_ENCRYPTION_KEY_NOT_FOUND = 3785;
+    exports.ER_RPL_ENCRYPTION_KEYRING_INVALID_KEY = 3786;
+    exports.ER_RPL_ENCRYPTION_HEADER_ERROR = 3787;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_ROTATE_LOGS = 3788;
+    exports.ER_RPL_ENCRYPTION_KEY_EXISTS_UNEXPECTED = 3789;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_GENERATE_KEY = 3790;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_STORE_KEY = 3791;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_REMOVE_KEY = 3792;
+    exports.ER_RPL_ENCRYPTION_UNABLE_TO_CHANGE_OPTION = 3793;
+    exports.ER_RPL_ENCRYPTION_MASTER_KEY_RECOVERY_FAILED = 3794;
+    exports.ER_SLOW_LOG_MODE_IGNORED_WHEN_NOT_LOGGING_TO_FILE = 3795;
+    exports.ER_GRP_TRX_CONSISTENCY_NOT_ALLOWED = 3796;
+    exports.ER_GRP_TRX_CONSISTENCY_BEFORE = 3797;
+    exports.ER_GRP_TRX_CONSISTENCY_AFTER_ON_TRX_BEGIN = 3798;
+    exports.ER_GRP_TRX_CONSISTENCY_BEGIN_NOT_ALLOWED = 3799;
+    exports.ER_FUNCTIONAL_INDEX_ROW_VALUE_IS_NOT_ALLOWED = 3800;
+    exports.ER_RPL_ENCRYPTION_FAILED_TO_ENCRYPT = 3801;
+    exports.ER_PAGE_TRACKING_NOT_STARTED = 3802;
+    exports.ER_PAGE_TRACKING_RANGE_NOT_TRACKED = 3803;
+    exports.ER_PAGE_TRACKING_CANNOT_PURGE = 3804;
+    exports.ER_RPL_ENCRYPTION_CANNOT_ROTATE_BINLOG_MASTER_KEY = 3805;
+    exports.ER_BINLOG_MASTER_KEY_RECOVERY_OUT_OF_COMBINATION = 3806;
+    exports.ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_OPERATE_KEY = 3807;
+    exports.ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_ROTATE_LOGS = 3808;
+    exports.ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_REENCRYPT_LOG = 3809;
+    exports.ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_CLEANUP_UNUSED_KEYS = 3810;
+    exports.ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_CLEANUP_AUX_KEY = 3811;
+    exports.ER_NON_BOOLEAN_EXPR_FOR_CHECK_CONSTRAINT = 3812;
+    exports.ER_COLUMN_CHECK_CONSTRAINT_REFERENCES_OTHER_COLUMN = 3813;
+    exports.ER_CHECK_CONSTRAINT_NAMED_FUNCTION_IS_NOT_ALLOWED = 3814;
+    exports.ER_CHECK_CONSTRAINT_FUNCTION_IS_NOT_ALLOWED = 3815;
+    exports.ER_CHECK_CONSTRAINT_VARIABLES = 3816;
+    exports.ER_CHECK_CONSTRAINT_ROW_VALUE = 3817;
+    exports.ER_CHECK_CONSTRAINT_REFERS_AUTO_INCREMENT_COLUMN = 3818;
+    exports.ER_CHECK_CONSTRAINT_VIOLATED = 3819;
+    exports.ER_CHECK_CONSTRAINT_REFERS_UNKNOWN_COLUMN = 3820;
+    exports.ER_CHECK_CONSTRAINT_NOT_FOUND = 3821;
+    exports.ER_CHECK_CONSTRAINT_DUP_NAME = 3822;
+    exports.ER_CHECK_CONSTRAINT_CLAUSE_USING_FK_REFER_ACTION_COLUMN = 3823;
+    exports.WARN_UNENCRYPTED_TABLE_IN_ENCRYPTED_DB = 3824;
+    exports.ER_INVALID_ENCRYPTION_REQUEST = 3825;
+    exports.ER_CANNOT_SET_TABLE_ENCRYPTION = 3826;
+    exports.ER_CANNOT_SET_DATABASE_ENCRYPTION = 3827;
+    exports.ER_CANNOT_SET_TABLESPACE_ENCRYPTION = 3828;
+    exports.ER_TABLESPACE_CANNOT_BE_ENCRYPTED = 3829;
+    exports.ER_TABLESPACE_CANNOT_BE_DECRYPTED = 3830;
+    exports.ER_TABLESPACE_TYPE_UNKNOWN = 3831;
+    exports.ER_TARGET_TABLESPACE_UNENCRYPTED = 3832;
+    exports.ER_CANNOT_USE_ENCRYPTION_CLAUSE = 3833;
+    exports.ER_INVALID_MULTIPLE_CLAUSES = 3834;
+    exports.ER_UNSUPPORTED_USE_OF_GRANT_AS = 3835;
+    exports.ER_UKNOWN_AUTH_ID_OR_ACCESS_DENIED_FOR_GRANT_AS = 3836;
+    exports.ER_DEPENDENT_BY_FUNCTIONAL_INDEX = 3837;
+    exports.ER_PLUGIN_NOT_EARLY = 3838;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_START_SUBDIR_PATH = 3839;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_START_TIMEOUT = 3840;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_DIRS_INVALID = 3841;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_LABEL_NOT_FOUND = 3842;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_DIR_EMPTY = 3843;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_NO_SUCH_DIR = 3844;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_DIR_CLASH = 3845;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_DIR_PERMISSIONS = 3846;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_FILE_CREATE = 3847;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_ACTIVE = 3848;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_INACTIVE = 3849;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_FAILED = 3850;
+    exports.ER_INNODB_REDO_LOG_ARCHIVE_SESSION = 3851;
+    exports.ER_STD_REGEX_ERROR = 3852;
+    exports.ER_INVALID_JSON_TYPE = 3853;
+    exports.ER_CANNOT_CONVERT_STRING = 3854;
+    exports.ER_DEPENDENT_BY_PARTITION_FUNC = 3855;
+    exports.ER_WARN_DEPRECATED_FLOAT_AUTO_INCREMENT = 3856;
+    exports.ER_RPL_CANT_STOP_REPLICA_WHILE_LOCKED_BACKUP = 3857;
+    exports.ER_WARN_DEPRECATED_FLOAT_DIGITS = 3858;
+    exports.ER_WARN_DEPRECATED_FLOAT_UNSIGNED = 3859;
+    exports.ER_WARN_DEPRECATED_INTEGER_DISPLAY_WIDTH = 3860;
+    exports.ER_WARN_DEPRECATED_ZEROFILL = 3861;
+    exports.ER_CLONE_DONOR = 3862;
+    exports.ER_CLONE_PROTOCOL = 3863;
+    exports.ER_CLONE_DONOR_VERSION = 3864;
+    exports.ER_CLONE_OS = 3865;
+    exports.ER_CLONE_PLATFORM = 3866;
+    exports.ER_CLONE_CHARSET = 3867;
+    exports.ER_CLONE_CONFIG = 3868;
+    exports.ER_CLONE_SYS_CONFIG = 3869;
+    exports.ER_CLONE_PLUGIN_MATCH = 3870;
+    exports.ER_CLONE_LOOPBACK = 3871;
+    exports.ER_CLONE_ENCRYPTION = 3872;
+    exports.ER_CLONE_DISK_SPACE = 3873;
+    exports.ER_CLONE_IN_PROGRESS = 3874;
+    exports.ER_CLONE_DISALLOWED = 3875;
+    exports.ER_CANNOT_GRANT_ROLES_TO_ANONYMOUS_USER = 3876;
+    exports.ER_SECONDARY_ENGINE_PLUGIN = 3877;
+    exports.ER_SECOND_PASSWORD_CANNOT_BE_EMPTY = 3878;
+    exports.ER_DB_ACCESS_DENIED = 3879;
+    exports.ER_DA_AUTH_ID_WITH_SYSTEM_USER_PRIV_IN_MANDATORY_ROLES = 3880;
+    exports.ER_DA_RPL_GTID_TABLE_CANNOT_OPEN = 3881;
+    exports.ER_GEOMETRY_IN_UNKNOWN_LENGTH_UNIT = 3882;
+    exports.ER_DA_PLUGIN_INSTALL_ERROR = 3883;
+    exports.ER_NO_SESSION_TEMP = 3884;
+    exports.ER_DA_UNKNOWN_ERROR_NUMBER = 3885;
+    exports.ER_COLUMN_CHANGE_SIZE = 3886;
+    exports.ER_REGEXP_INVALID_CAPTURE_GROUP_NAME = 3887;
+    exports.ER_DA_SSL_LIBRARY_ERROR = 3888;
+    exports.ER_SECONDARY_ENGINE = 3889;
+    exports.ER_SECONDARY_ENGINE_DDL = 3890;
+    exports.ER_INCORRECT_CURRENT_PASSWORD = 3891;
+    exports.ER_MISSING_CURRENT_PASSWORD = 3892;
+    exports.ER_CURRENT_PASSWORD_NOT_REQUIRED = 3893;
+    exports.ER_PASSWORD_CANNOT_BE_RETAINED_ON_PLUGIN_CHANGE = 3894;
+    exports.ER_CURRENT_PASSWORD_CANNOT_BE_RETAINED = 3895;
+    exports.ER_PARTIAL_REVOKES_EXIST = 3896;
+    exports.ER_CANNOT_GRANT_SYSTEM_PRIV_TO_MANDATORY_ROLE = 3897;
+    exports.ER_XA_REPLICATION_FILTERS = 3898;
+    exports.ER_UNSUPPORTED_SQL_MODE = 3899;
+    exports.ER_REGEXP_INVALID_FLAG = 3900;
+    exports.ER_PARTIAL_REVOKE_AND_DB_GRANT_BOTH_EXISTS = 3901;
+    exports.ER_UNIT_NOT_FOUND = 3902;
+    exports.ER_INVALID_JSON_VALUE_FOR_FUNC_INDEX = 3903;
+    exports.ER_JSON_VALUE_OUT_OF_RANGE_FOR_FUNC_INDEX = 3904;
+    exports.ER_EXCEEDED_MV_KEYS_NUM = 3905;
+    exports.ER_EXCEEDED_MV_KEYS_SPACE = 3906;
+    exports.ER_FUNCTIONAL_INDEX_DATA_IS_TOO_LONG = 3907;
+    exports.ER_WRONG_MVI_VALUE = 3908;
+    exports.ER_WARN_FUNC_INDEX_NOT_APPLICABLE = 3909;
+    exports.ER_GRP_RPL_UDF_ERROR = 3910;
+    exports.ER_UPDATE_GTID_PURGED_WITH_GR = 3911;
+    exports.ER_GROUPING_ON_TIMESTAMP_IN_DST = 3912;
+    exports.ER_TABLE_NAME_CAUSES_TOO_LONG_PATH = 3913;
+    exports.ER_AUDIT_LOG_INSUFFICIENT_PRIVILEGE = 3914;
+    exports.ER_AUDIT_LOG_PASSWORD_HAS_BEEN_COPIED = 3915;
+    exports.ER_DA_GRP_RPL_STARTED_AUTO_REJOIN = 3916;
+    exports.ER_SYSVAR_CHANGE_DURING_QUERY = 3917;
+    exports.ER_GLOBSTAT_CHANGE_DURING_QUERY = 3918;
+    exports.ER_GRP_RPL_MESSAGE_SERVICE_INIT_FAILURE = 3919;
+    exports.ER_CHANGE_SOURCE_WRONG_COMPRESSION_ALGORITHM_CLIENT = 3920;
+    exports.ER_CHANGE_SOURCE_WRONG_COMPRESSION_LEVEL_CLIENT = 3921;
+    exports.ER_WRONG_COMPRESSION_ALGORITHM_CLIENT = 3922;
+    exports.ER_WRONG_COMPRESSION_LEVEL_CLIENT = 3923;
+    exports.ER_CHANGE_SOURCE_WRONG_COMPRESSION_ALGORITHM_LIST_CLIENT = 3924;
+    exports.ER_CLIENT_PRIVILEGE_CHECKS_USER_CANNOT_BE_ANONYMOUS = 3925;
+    exports.ER_CLIENT_PRIVILEGE_CHECKS_USER_DOES_NOT_EXIST = 3926;
+    exports.ER_CLIENT_PRIVILEGE_CHECKS_USER_CORRUPT = 3927;
+    exports.ER_CLIENT_PRIVILEGE_CHECKS_USER_NEEDS_RPL_APPLIER_PRIV = 3928;
+    exports.ER_WARN_DA_PRIVILEGE_NOT_REGISTERED = 3929;
+    exports.ER_CLIENT_KEYRING_UDF_KEY_INVALID = 3930;
+    exports.ER_CLIENT_KEYRING_UDF_KEY_TYPE_INVALID = 3931;
+    exports.ER_CLIENT_KEYRING_UDF_KEY_TOO_LONG = 3932;
+    exports.ER_CLIENT_KEYRING_UDF_KEY_TYPE_TOO_LONG = 3933;
+    exports.ER_JSON_SCHEMA_VALIDATION_ERROR_WITH_DETAILED_REPORT = 3934;
+    exports.ER_DA_UDF_INVALID_CHARSET_SPECIFIED = 3935;
+    exports.ER_DA_UDF_INVALID_CHARSET = 3936;
+    exports.ER_DA_UDF_INVALID_COLLATION = 3937;
+    exports.ER_DA_UDF_INVALID_EXTENSION_ARGUMENT_TYPE = 3938;
+    exports.ER_MULTIPLE_CONSTRAINTS_WITH_SAME_NAME = 3939;
+    exports.ER_CONSTRAINT_NOT_FOUND = 3940;
+    exports.ER_ALTER_CONSTRAINT_ENFORCEMENT_NOT_SUPPORTED = 3941;
+    exports.ER_TABLE_VALUE_CONSTRUCTOR_MUST_HAVE_COLUMNS = 3942;
+    exports.ER_TABLE_VALUE_CONSTRUCTOR_CANNOT_HAVE_DEFAULT = 3943;
+    exports.ER_CLIENT_QUERY_FAILURE_INVALID_NON_ROW_FORMAT = 3944;
+    exports.ER_REQUIRE_ROW_FORMAT_INVALID_VALUE = 3945;
+    exports.ER_FAILED_TO_DETERMINE_IF_ROLE_IS_MANDATORY = 3946;
+    exports.ER_FAILED_TO_FETCH_MANDATORY_ROLE_LIST = 3947;
+    exports.ER_CLIENT_LOCAL_FILES_DISABLED = 3948;
+    exports.ER_IMP_INCOMPATIBLE_CFG_VERSION = 3949;
+    exports.ER_DA_OOM = 3950;
+    exports.ER_DA_UDF_INVALID_ARGUMENT_TO_SET_CHARSET = 3951;
+    exports.ER_DA_UDF_INVALID_RETURN_TYPE_TO_SET_CHARSET = 3952;
+    exports.ER_MULTIPLE_INTO_CLAUSES = 3953;
+    exports.ER_MISPLACED_INTO = 3954;
+    exports.ER_USER_ACCESS_DENIED_FOR_USER_ACCOUNT_BLOCKED_BY_PASSWORD_LOCK = 3955;
+    exports.ER_WARN_DEPRECATED_YEAR_UNSIGNED = 3956;
+    exports.ER_CLONE_NETWORK_PACKET = 3957;
+    exports.ER_SDI_OPERATION_FAILED_MISSING_RECORD = 3958;
+    exports.ER_DEPENDENT_BY_CHECK_CONSTRAINT = 3959;
+    exports.ER_GRP_OPERATION_NOT_ALLOWED_GR_MUST_STOP = 3960;
+    exports.ER_WARN_DEPRECATED_JSON_TABLE_ON_ERROR_ON_EMPTY = 3961;
+    exports.ER_WARN_DEPRECATED_INNER_INTO = 3962;
+    exports.ER_WARN_DEPRECATED_VALUES_FUNCTION_ALWAYS_NULL = 3963;
+    exports.ER_WARN_DEPRECATED_SQL_CALC_FOUND_ROWS = 3964;
+    exports.ER_WARN_DEPRECATED_FOUND_ROWS = 3965;
+    exports.ER_MISSING_JSON_VALUE = 3966;
+    exports.ER_MULTIPLE_JSON_VALUES = 3967;
+    exports.ER_HOSTNAME_TOO_LONG = 3968;
+    exports.ER_WARN_CLIENT_DEPRECATED_PARTITION_PREFIX_KEY = 3969;
+    exports.ER_GROUP_REPLICATION_USER_EMPTY_MSG = 3970;
+    exports.ER_GROUP_REPLICATION_USER_MANDATORY_MSG = 3971;
+    exports.ER_GROUP_REPLICATION_PASSWORD_LENGTH = 3972;
+    exports.ER_SUBQUERY_TRANSFORM_REJECTED = 3973;
+    exports.ER_DA_GRP_RPL_RECOVERY_ENDPOINT_FORMAT = 3974;
+    exports.ER_DA_GRP_RPL_RECOVERY_ENDPOINT_INVALID = 3975;
+    exports.ER_WRONG_VALUE_FOR_VAR_PLUS_ACTIONABLE_PART = 3976;
+    exports.ER_STATEMENT_NOT_ALLOWED_AFTER_START_TRANSACTION = 3977;
+    exports.ER_FOREIGN_KEY_WITH_ATOMIC_CREATE_SELECT = 3978;
+    exports.ER_NOT_ALLOWED_WITH_START_TRANSACTION = 3979;
+    exports.ER_INVALID_JSON_ATTRIBUTE = 3980;
+    exports.ER_ENGINE_ATTRIBUTE_NOT_SUPPORTED = 3981;
+    exports.ER_INVALID_USER_ATTRIBUTE_JSON = 3982;
+    exports.ER_INNODB_REDO_DISABLED = 3983;
+    exports.ER_INNODB_REDO_ARCHIVING_ENABLED = 3984;
+    exports.ER_MDL_OUT_OF_RESOURCES = 3985;
+    exports.ER_IMPLICIT_COMPARISON_FOR_JSON = 3986;
+    exports.ER_FUNCTION_DOES_NOT_SUPPORT_CHARACTER_SET = 3987;
+    exports.ER_IMPOSSIBLE_STRING_CONVERSION = 3988;
+    exports.ER_SCHEMA_READ_ONLY = 3989;
+    exports.ER_RPL_ASYNC_RECONNECT_GTID_MODE_OFF = 3990;
+    exports.ER_RPL_ASYNC_RECONNECT_AUTO_POSITION_OFF = 3991;
+    exports.ER_DISABLE_GTID_MODE_REQUIRES_ASYNC_RECONNECT_OFF = 3992;
+    exports.ER_DISABLE_AUTO_POSITION_REQUIRES_ASYNC_RECONNECT_OFF = 3993;
+    exports.ER_INVALID_PARAMETER_USE = 3994;
+    exports.ER_CHARACTER_SET_MISMATCH = 3995;
+    exports.ER_WARN_VAR_VALUE_CHANGE_NOT_SUPPORTED = 3996;
+    exports.ER_INVALID_TIME_ZONE_INTERVAL = 3997;
+    exports.ER_INVALID_CAST = 3998;
+    exports.ER_HYPERGRAPH_NOT_SUPPORTED_YET = 3999;
+    exports.ER_WARN_HYPERGRAPH_EXPERIMENTAL = 4e3;
+    exports.ER_DA_NO_ERROR_LOG_PARSER_CONFIGURED = 4001;
+    exports.ER_DA_ERROR_LOG_TABLE_DISABLED = 4002;
+    exports.ER_DA_ERROR_LOG_MULTIPLE_FILTERS = 4003;
+    exports.ER_DA_CANT_OPEN_ERROR_LOG = 4004;
+    exports.ER_USER_REFERENCED_AS_DEFINER = 4005;
+    exports.ER_CANNOT_USER_REFERENCED_AS_DEFINER = 4006;
+    exports.ER_REGEX_NUMBER_TOO_BIG = 4007;
+    exports.ER_SPVAR_NONINTEGER_TYPE = 4008;
+    exports.WARN_UNSUPPORTED_ACL_TABLES_READ = 4009;
+    exports.ER_BINLOG_UNSAFE_ACL_TABLE_READ_IN_DML_DDL = 4010;
+    exports.ER_STOP_REPLICA_MONITOR_IO_THREAD_TIMEOUT = 4011;
+    exports.ER_STARTING_REPLICA_MONITOR_IO_THREAD = 4012;
+    exports.ER_CANT_USE_ANONYMOUS_TO_GTID_WITH_GTID_MODE_NOT_ON = 4013;
+    exports.ER_CANT_COMBINE_ANONYMOUS_TO_GTID_AND_AUTOPOSITION = 4014;
+    exports.ER_ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS_REQUIRES_GTID_MODE_ON = 4015;
+    exports.ER_SQL_REPLICA_SKIP_COUNTER_USED_WITH_GTID_MODE_ON = 4016;
+    exports.ER_USING_ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS_AS_LOCAL_OR_UUID = 4017;
+    exports.ER_CANT_SET_ANONYMOUS_TO_GTID_AND_WAIT_UNTIL_SQL_THD_AFTER_GTIDS = 4018;
+    exports.ER_CANT_SET_SQL_AFTER_OR_BEFORE_GTIDS_WITH_ANONYMOUS_TO_GTID = 4019;
+    exports.ER_ANONYMOUS_TO_GTID_UUID_SAME_AS_GROUP_NAME = 4020;
+    exports.ER_CANT_USE_SAME_UUID_AS_GROUP_NAME = 4021;
+    exports.ER_GRP_RPL_RECOVERY_CHANNEL_STILL_RUNNING = 4022;
+    exports.ER_INNODB_INVALID_AUTOEXTEND_SIZE_VALUE = 4023;
+    exports.ER_INNODB_INCOMPATIBLE_WITH_TABLESPACE = 4024;
+    exports.ER_INNODB_AUTOEXTEND_SIZE_OUT_OF_RANGE = 4025;
+    exports.ER_CANNOT_USE_AUTOEXTEND_SIZE_CLAUSE = 4026;
+    exports.ER_ROLE_GRANTED_TO_ITSELF = 4027;
+    exports.ER_TABLE_MUST_HAVE_A_VISIBLE_COLUMN = 4028;
+    exports.ER_INNODB_COMPRESSION_FAILURE = 4029;
+    exports.ER_WARN_ASYNC_CONN_FAILOVER_NETWORK_NAMESPACE = 4030;
     exports.ER_CLIENT_INTERACTION_TIMEOUT = 4031;
+    exports.ER_INVALID_CAST_TO_GEOMETRY = 4032;
+    exports.ER_INVALID_CAST_POLYGON_RING_DIRECTION = 4033;
+    exports.ER_GIS_DIFFERENT_SRIDS_AGGREGATION = 4034;
+    exports.ER_RELOAD_KEYRING_FAILURE = 4035;
+    exports.ER_SDI_GET_KEYS_INVALID_TABLESPACE = 4036;
+    exports.ER_CHANGE_RPL_SRC_WRONG_COMPRESSION_ALGORITHM_SIZE = 4037;
+    exports.ER_WARN_DEPRECATED_TLS_VERSION_FOR_CHANNEL_CLI = 4038;
+    exports.ER_CANT_USE_SAME_UUID_AS_VIEW_CHANGE_UUID = 4039;
+    exports.ER_ANONYMOUS_TO_GTID_UUID_SAME_AS_VIEW_CHANGE_UUID = 4040;
+    exports.ER_GRP_RPL_VIEW_CHANGE_UUID_FAIL_GET_VARIABLE = 4041;
+    exports.ER_WARN_ADUIT_LOG_MAX_SIZE_AND_PRUNE_SECONDS = 4042;
+    exports.ER_WARN_ADUIT_LOG_MAX_SIZE_CLOSE_TO_ROTATE_ON_SIZE = 4043;
+    exports.ER_KERBEROS_CREATE_USER = 4044;
+    exports.ER_INSTALL_PLUGIN_CONFLICT_CLIENT = 4045;
+    exports.ER_DA_ERROR_LOG_COMPONENT_FLUSH_FAILED = 4046;
+    exports.ER_WARN_SQL_AFTER_MTS_GAPS_GAP_NOT_CALCULATED = 4047;
+    exports.ER_INVALID_ASSIGNMENT_TARGET = 4048;
+    exports.ER_OPERATION_NOT_ALLOWED_ON_GR_SECONDARY = 4049;
+    exports.ER_GRP_RPL_FAILOVER_CHANNEL_STATUS_PROPAGATION = 4050;
+    exports.ER_WARN_AUDIT_LOG_FORMAT_UNIX_TIMESTAMP_ONLY_WHEN_JSON = 4051;
+    exports.ER_INVALID_MFA_PLUGIN_SPECIFIED = 4052;
+    exports.ER_IDENTIFIED_BY_UNSUPPORTED = 4053;
+    exports.ER_INVALID_PLUGIN_FOR_REGISTRATION = 4054;
+    exports.ER_PLUGIN_REQUIRES_REGISTRATION = 4055;
+    exports.ER_MFA_METHOD_EXISTS = 4056;
+    exports.ER_MFA_METHOD_NOT_EXISTS = 4057;
+    exports.ER_AUTHENTICATION_POLICY_MISMATCH = 4058;
+    exports.ER_PLUGIN_REGISTRATION_DONE = 4059;
+    exports.ER_INVALID_USER_FOR_REGISTRATION = 4060;
+    exports.ER_USER_REGISTRATION_FAILED = 4061;
+    exports.ER_MFA_METHODS_INVALID_ORDER = 4062;
+    exports.ER_MFA_METHODS_IDENTICAL = 4063;
+    exports.ER_INVALID_MFA_OPERATIONS_FOR_PASSWORDLESS_USER = 4064;
+    exports.ER_CHANGE_REPLICATION_SOURCE_NO_OPTIONS_FOR_GTID_ONLY = 4065;
+    exports.ER_CHANGE_REP_SOURCE_CANT_DISABLE_REQ_ROW_FORMAT_WITH_GTID_ONLY = 4066;
+    exports.ER_CHANGE_REP_SOURCE_CANT_DISABLE_AUTO_POSITION_WITH_GTID_ONLY = 4067;
+    exports.ER_CHANGE_REP_SOURCE_CANT_DISABLE_GTID_ONLY_WITHOUT_POSITIONS = 4068;
+    exports.ER_CHANGE_REP_SOURCE_CANT_DISABLE_AUTO_POS_WITHOUT_POSITIONS = 4069;
+    exports.ER_CHANGE_REP_SOURCE_GR_CHANNEL_WITH_GTID_MODE_NOT_ON = 4070;
+    exports.ER_CANT_USE_GTID_ONLY_WITH_GTID_MODE_NOT_ON = 4071;
+    exports.ER_WARN_C_DISABLE_GTID_ONLY_WITH_SOURCE_AUTO_POS_INVALID_POS = 4072;
+    exports.ER_DA_SSL_FIPS_MODE_ERROR = 4073;
+    exports.ER_VALUE_OUT_OF_RANGE = 4074;
+    exports.ER_FULLTEXT_WITH_ROLLUP = 4075;
+    exports.ER_REGEXP_MISSING_RESOURCE = 4076;
+    exports.ER_WARN_REGEXP_USING_DEFAULT = 4077;
+    exports.ER_REGEXP_MISSING_FILE = 4078;
+    exports.ER_WARN_DEPRECATED_COLLATION = 4079;
+    exports.ER_CONCURRENT_PROCEDURE_USAGE = 4080;
+    exports.ER_DA_GLOBAL_CONN_LIMIT = 4081;
+    exports.ER_DA_CONN_LIMIT = 4082;
+    exports.ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_COLUMN_TYPE_INSTANT = 4083;
+    exports.ER_WARN_SF_UDF_NAME_COLLISION = 4084;
+    exports.ER_CANNOT_PURGE_BINLOG_WITH_BACKUP_LOCK = 4085;
+    exports.ER_TOO_MANY_WINDOWS = 4086;
+    exports.ER_MYSQLBACKUP_CLIENT_MSG = 4087;
+    exports.ER_COMMENT_CONTAINS_INVALID_STRING = 4088;
+    exports.ER_DEFINITION_CONTAINS_INVALID_STRING = 4089;
+    exports.ER_CANT_EXECUTE_COMMAND_WITH_ASSIGNED_GTID_NEXT = 4090;
+    exports.ER_XA_TEMP_TABLE = 4091;
+    exports.ER_INNODB_MAX_ROW_VERSION = 4092;
+    exports.ER_INNODB_INSTANT_ADD_NOT_SUPPORTED_MAX_SIZE = 4093;
+    exports.ER_OPERATION_NOT_ALLOWED_WHILE_PRIMARY_CHANGE_IS_RUNNING = 4094;
+    exports.ER_WARN_DEPRECATED_DATETIME_DELIMITER = 4095;
+    exports.ER_WARN_DEPRECATED_SUPERFLUOUS_DELIMITER = 4096;
+    exports.ER_CANNOT_PERSIST_SENSITIVE_VARIABLES = 4097;
+    exports.ER_WARN_CANNOT_SECURELY_PERSIST_SENSITIVE_VARIABLES = 4098;
+    exports.ER_WARN_TRG_ALREADY_EXISTS = 4099;
+    exports.ER_IF_NOT_EXISTS_UNSUPPORTED_TRG_EXISTS_ON_DIFFERENT_TABLE = 4100;
+    exports.ER_IF_NOT_EXISTS_UNSUPPORTED_UDF_NATIVE_FCT_NAME_COLLISION = 4101;
+    exports.ER_SET_PASSWORD_AUTH_PLUGIN_ERROR = 4102;
+    exports.ER_REDUCED_DBLWR_FILE_CORRUPTED = 4103;
+    exports.ER_REDUCED_DBLWR_PAGE_FOUND = 4104;
+    exports.ER_SRS_INVALID_LATITUDE_OF_ORIGIN = 4105;
+    exports.ER_SRS_INVALID_LONGITUDE_OF_ORIGIN = 4106;
+    exports.ER_SRS_UNUSED_PROJ_PARAMETER_PRESENT = 4107;
+    exports.ER_GIPK_COLUMN_EXISTS = 4108;
+    exports.ER_GIPK_FAILED_AUTOINC_COLUMN_EXISTS = 4109;
+    exports.ER_GIPK_COLUMN_ALTER_NOT_ALLOWED = 4110;
+    exports.ER_DROP_PK_COLUMN_TO_DROP_GIPK = 4111;
+    exports.ER_CREATE_SELECT_WITH_GIPK_DISALLOWED_IN_SBR = 4112;
+    exports.ER_DA_EXPIRE_LOGS_DAYS_IGNORED = 4113;
+    exports.ER_CTE_RECURSIVE_NOT_UNION = 4114;
+    exports.ER_COMMAND_BACKEND_FAILED_TO_FETCH_SECURITY_CTX = 4115;
+    exports.ER_COMMAND_SERVICE_BACKEND_FAILED = 4116;
+    exports.ER_CLIENT_FILE_PRIVILEGE_FOR_REPLICATION_CHECKS = 4117;
+    exports.ER_GROUP_REPLICATION_FORCE_MEMBERS_COMMAND_FAILURE = 4118;
+    exports.ER_WARN_DEPRECATED_IDENT = 4119;
+    exports.ER_INTERSECT_ALL_MAX_DUPLICATES_EXCEEDED = 4120;
+    exports.ER_TP_QUERY_THRS_PER_GRP_EXCEEDS_TXN_THR_LIMIT = 4121;
+    exports.ER_BAD_TIMESTAMP_FORMAT = 4122;
+    exports.ER_SHAPE_PRIDICTION_UDF = 4123;
+    exports.ER_SRS_INVALID_HEIGHT = 4124;
+    exports.ER_SRS_INVALID_SCALING = 4125;
+    exports.ER_SRS_INVALID_ZONE_WIDTH = 4126;
+    exports.ER_SRS_INVALID_LATITUDE_POLAR_STERE_VAR_A = 4127;
+    exports.ER_WARN_DEPRECATED_CLIENT_NO_SCHEMA_OPTION = 4128;
+    exports.ER_TABLE_NOT_EMPTY = 4129;
+    exports.ER_TABLE_NO_PRIMARY_KEY = 4130;
+    exports.ER_TABLE_IN_SHARED_TABLESPACE = 4131;
+    exports.ER_INDEX_OTHER_THAN_PK = 4132;
+    exports.ER_LOAD_BULK_DATA_UNSORTED = 4133;
+    exports.ER_BULK_EXECUTOR_ERROR = 4134;
+    exports.ER_BULK_READER_LIBCURL_INIT_FAILED = 4135;
+    exports.ER_BULK_READER_LIBCURL_ERROR = 4136;
+    exports.ER_BULK_READER_SERVER_ERROR = 4137;
+    exports.ER_BULK_READER_COMMUNICATION_ERROR = 4138;
+    exports.ER_BULK_LOAD_DATA_FAILED = 4139;
+    exports.ER_BULK_LOADER_COLUMN_TOO_BIG_FOR_LEFTOVER_BUFFER = 4140;
+    exports.ER_BULK_LOADER_COMPONENT_ERROR = 4141;
+    exports.ER_BULK_LOADER_FILE_CONTAINS_LESS_LINES_THAN_IGNORE_CLAUSE = 4142;
+    exports.ER_BULK_PARSER_MISSING_ENCLOSED_BY = 4143;
+    exports.ER_BULK_PARSER_ROW_BUFFER_MAX_TOTAL_COLS_EXCEEDED = 4144;
+    exports.ER_BULK_PARSER_COPY_BUFFER_SIZE_EXCEEDED = 4145;
+    exports.ER_BULK_PARSER_UNEXPECTED_END_OF_INPUT = 4146;
+    exports.ER_BULK_PARSER_UNEXPECTED_ROW_TERMINATOR = 4147;
+    exports.ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_ENDING_ENCLOSED_BY = 4148;
+    exports.ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_NULL_ESCAPE = 4149;
+    exports.ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_COLUMN_TERMINATOR = 4150;
+    exports.ER_BULK_PARSER_INCOMPLETE_ESCAPE_SEQUENCE = 4151;
+    exports.ER_LOAD_BULK_DATA_FAILED = 4152;
+    exports.ER_LOAD_BULK_DATA_WRONG_VALUE_FOR_FIELD = 4153;
+    exports.ER_LOAD_BULK_DATA_WARN_NULL_TO_NOTNULL = 4154;
+    exports.ER_REQUIRE_TABLE_PRIMARY_KEY_CHECK_GENERATE_WITH_GR = 4155;
+    exports.ER_CANT_CHANGE_SYS_VAR_IN_READ_ONLY_MODE = 4156;
+    exports.ER_INNODB_INSTANT_ADD_DROP_NOT_SUPPORTED_MAX_SIZE = 4157;
+    exports.ER_INNODB_INSTANT_ADD_NOT_SUPPORTED_MAX_FIELDS = 4158;
+    exports.ER_CANT_SET_PERSISTED = 4159;
+    exports.ER_INSTALL_COMPONENT_SET_NULL_VALUE = 4160;
+    exports.ER_INSTALL_COMPONENT_SET_UNUSED_VALUE = 4161;
+    exports.ER_WARN_DEPRECATED_USER_DEFINED_COLLATIONS = 4162;
     exports[1] = "EE_CANTCREATEFILE";
     exports[2] = "EE_READ";
     exports[3] = "EE_WRITE";
@@ -2302,11 +3616,72 @@ var require_errors = __commonJS({
     exports[31] = "EE_CHANGE_OWNERSHIP";
     exports[32] = "EE_CHANGE_PERMISSIONS";
     exports[33] = "EE_CANT_SEEK";
+    exports[34] = "EE_CAPACITY_EXCEEDED";
+    exports[35] = "EE_DISK_FULL_WITH_RETRY_MSG";
+    exports[36] = "EE_FAILED_TO_CREATE_TIMER";
+    exports[37] = "EE_FAILED_TO_DELETE_TIMER";
+    exports[38] = "EE_FAILED_TO_CREATE_TIMER_QUEUE";
+    exports[39] = "EE_FAILED_TO_START_TIMER_NOTIFY_THREAD";
+    exports[40] = "EE_FAILED_TO_CREATE_TIMER_NOTIFY_THREAD_INTERRUPT_EVENT";
+    exports[41] = "EE_EXITING_TIMER_NOTIFY_THREAD";
+    exports[42] = "EE_WIN_LIBRARY_LOAD_FAILED";
+    exports[43] = "EE_WIN_RUN_TIME_ERROR_CHECK";
+    exports[44] = "EE_FAILED_TO_DETERMINE_LARGE_PAGE_SIZE";
+    exports[45] = "EE_FAILED_TO_KILL_ALL_THREADS";
+    exports[46] = "EE_FAILED_TO_CREATE_IO_COMPLETION_PORT";
+    exports[47] = "EE_FAILED_TO_OPEN_DEFAULTS_FILE";
+    exports[48] = "EE_FAILED_TO_HANDLE_DEFAULTS_FILE";
+    exports[49] = "EE_WRONG_DIRECTIVE_IN_CONFIG_FILE";
+    exports[50] = "EE_SKIPPING_DIRECTIVE_DUE_TO_MAX_INCLUDE_RECURSION";
+    exports[51] = "EE_INCORRECT_GRP_DEFINITION_IN_CONFIG_FILE";
+    exports[52] = "EE_OPTION_WITHOUT_GRP_IN_CONFIG_FILE";
+    exports[53] = "EE_CONFIG_FILE_PERMISSION_ERROR";
+    exports[54] = "EE_IGNORE_WORLD_WRITABLE_CONFIG_FILE";
+    exports[55] = "EE_USING_DISABLED_OPTION";
+    exports[56] = "EE_USING_DISABLED_SHORT_OPTION";
+    exports[57] = "EE_USING_PASSWORD_ON_CLI_IS_INSECURE";
+    exports[58] = "EE_UNKNOWN_SUFFIX_FOR_VARIABLE";
+    exports[59] = "EE_SSL_ERROR_FROM_FILE";
+    exports[60] = "EE_SSL_ERROR";
+    exports[61] = "EE_NET_SEND_ERROR_IN_BOOTSTRAP";
+    exports[62] = "EE_PACKETS_OUT_OF_ORDER";
+    exports[63] = "EE_UNKNOWN_PROTOCOL_OPTION";
+    exports[64] = "EE_FAILED_TO_LOCATE_SERVER_PUBLIC_KEY";
+    exports[65] = "EE_PUBLIC_KEY_NOT_IN_PEM_FORMAT";
+    exports[66] = "EE_DEBUG_INFO";
+    exports[67] = "EE_UNKNOWN_VARIABLE";
+    exports[68] = "EE_UNKNOWN_OPTION";
+    exports[69] = "EE_UNKNOWN_SHORT_OPTION";
+    exports[70] = "EE_OPTION_WITHOUT_ARGUMENT";
+    exports[71] = "EE_OPTION_REQUIRES_ARGUMENT";
+    exports[72] = "EE_SHORT_OPTION_REQUIRES_ARGUMENT";
+    exports[73] = "EE_OPTION_IGNORED_DUE_TO_INVALID_VALUE";
+    exports[74] = "EE_OPTION_WITH_EMPTY_VALUE";
+    exports[75] = "EE_FAILED_TO_ASSIGN_MAX_VALUE_TO_OPTION";
+    exports[76] = "EE_INCORRECT_BOOLEAN_VALUE_FOR_OPTION";
+    exports[77] = "EE_FAILED_TO_SET_OPTION_VALUE";
+    exports[78] = "EE_INCORRECT_INT_VALUE_FOR_OPTION";
+    exports[79] = "EE_INCORRECT_UINT_VALUE_FOR_OPTION";
+    exports[80] = "EE_ADJUSTED_SIGNED_VALUE_FOR_OPTION";
+    exports[81] = "EE_ADJUSTED_UNSIGNED_VALUE_FOR_OPTION";
+    exports[82] = "EE_ADJUSTED_ULONGLONG_VALUE_FOR_OPTION";
+    exports[83] = "EE_ADJUSTED_DOUBLE_VALUE_FOR_OPTION";
+    exports[84] = "EE_INVALID_DECIMAL_VALUE_FOR_OPTION";
+    exports[85] = "EE_COLLATION_PARSER_ERROR";
+    exports[86] = "EE_FAILED_TO_RESET_BEFORE_PRIMARY_IGNORABLE_CHAR";
+    exports[87] = "EE_FAILED_TO_RESET_BEFORE_TERTIARY_IGNORABLE_CHAR";
+    exports[88] = "EE_SHIFT_CHAR_OUT_OF_RANGE";
+    exports[89] = "EE_RESET_CHAR_OUT_OF_RANGE";
+    exports[90] = "EE_UNKNOWN_LDML_TAG";
+    exports[91] = "EE_FAILED_TO_RESET_BEFORE_SECONDARY_IGNORABLE_CHAR";
+    exports[92] = "EE_FAILED_PROCESSING_DIRECTIVE";
+    exports[93] = "EE_PTHREAD_KILL_FAILED";
     exports[120] = "HA_ERR_KEY_NOT_FOUND";
     exports[121] = "HA_ERR_FOUND_DUPP_KEY";
     exports[122] = "HA_ERR_INTERNAL_ERROR";
     exports[123] = "HA_ERR_RECORD_CHANGED";
     exports[124] = "HA_ERR_WRONG_INDEX";
+    exports[125] = "HA_ERR_ROLLED_BACK";
     exports[126] = "HA_ERR_CRASHED";
     exports[127] = "HA_ERR_WRONG_IN_RECORD";
     exports[128] = "HA_ERR_OUT_OF_MEM";
@@ -2319,7 +3694,7 @@ var require_errors = __commonJS({
     exports[136] = "HA_ERR_INDEX_FILE_FULL";
     exports[137] = "HA_ERR_END_OF_FILE";
     exports[138] = "HA_ERR_UNSUPPORTED";
-    exports[139] = "HA_ERR_TO_BIG_ROW";
+    exports[139] = "HA_ERR_TOO_BIG_ROW";
     exports[140] = "HA_WRONG_CREATE_OPTION";
     exports[141] = "HA_ERR_FOUND_DUPP_UNIQUE";
     exports[142] = "HA_ERR_UNKNOWN_CHARSET";
@@ -2372,6 +3747,24 @@ var require_errors = __commonJS({
     exports[189] = "HA_ERR_TEMP_FILE_WRITE_FAILURE";
     exports[190] = "HA_ERR_INNODB_FORCED_RECOVERY";
     exports[191] = "HA_ERR_FTS_TOO_MANY_WORDS_IN_PHRASE";
+    exports[192] = "HA_ERR_FK_DEPTH_EXCEEDED";
+    exports[193] = "HA_MISSING_CREATE_OPTION";
+    exports[194] = "HA_ERR_SE_OUT_OF_MEMORY";
+    exports[195] = "HA_ERR_TABLE_CORRUPT";
+    exports[196] = "HA_ERR_QUERY_INTERRUPTED";
+    exports[197] = "HA_ERR_TABLESPACE_MISSING";
+    exports[198] = "HA_ERR_TABLESPACE_IS_NOT_EMPTY";
+    exports[199] = "HA_ERR_WRONG_FILE_NAME";
+    exports[200] = "HA_ERR_NOT_ALLOWED_COMMAND";
+    exports[201] = "HA_ERR_COMPUTE_FAILED";
+    exports[202] = "HA_ERR_ROW_FORMAT_CHANGED";
+    exports[203] = "HA_ERR_NO_WAIT_LOCK";
+    exports[204] = "HA_ERR_DISK_FULL_NOWAIT";
+    exports[205] = "HA_ERR_NO_SESSION_TEMP";
+    exports[206] = "HA_ERR_WRONG_TABLE_NAME";
+    exports[207] = "HA_ERR_TOO_LONG_PATH";
+    exports[208] = "HA_ERR_SAMPLING_INIT_FAILED";
+    exports[209] = "HA_ERR_FTS_TOO_MANY_NESTED_EXP";
     exports[1e3] = "ER_HASHCHK";
     exports[1001] = "ER_NISAMCHK";
     exports[1002] = "ER_NO";
@@ -2522,8 +3915,8 @@ var require_errors = __commonJS({
     exports[1147] = "ER_NONEXISTING_TABLE_GRANT";
     exports[1148] = "ER_NOT_ALLOWED_COMMAND";
     exports[1149] = "ER_SYNTAX_ERROR";
-    exports[1150] = "ER_DELAYED_CANT_CHANGE_LOCK";
-    exports[1151] = "ER_TOO_MANY_DELAYED_THREADS";
+    exports[1150] = "ER_UNUSED1";
+    exports[1151] = "ER_UNUSED2";
     exports[1152] = "ER_ABORTING_CONNECTION";
     exports[1153] = "ER_NET_PACKET_TOO_LARGE";
     exports[1154] = "ER_NET_READ_ERROR_FROM_PIPE";
@@ -2537,7 +3930,7 @@ var require_errors = __commonJS({
     exports[1162] = "ER_TOO_LONG_STRING";
     exports[1163] = "ER_TABLE_CANT_HANDLE_BLOB";
     exports[1164] = "ER_TABLE_CANT_HANDLE_AUTO_INCREMENT";
-    exports[1165] = "ER_DELAYED_INSERT_TABLE_LOCKED";
+    exports[1165] = "ER_UNUSED3";
     exports[1166] = "ER_WRONG_COLUMN_NAME";
     exports[1167] = "ER_WRONG_KEY_COLUMN";
     exports[1168] = "ER_WRONG_MRG_TABLE";
@@ -2558,7 +3951,7 @@ var require_errors = __commonJS({
     exports[1183] = "ER_ERROR_DURING_CHECKPOINT";
     exports[1184] = "ER_NEW_ABORTING_CONNECTION";
     exports[1185] = "ER_DUMP_NOT_IMPLEMENTED";
-    exports[1186] = "ER_FLUSH_SOURCE_BINLOG_CLOSED";
+    exports[1186] = "ER_FLUSH_MASTER_BINLOG_CLOSED";
     exports[1187] = "ER_INDEX_REBUILD";
     exports[1188] = "ER_SOURCE";
     exports[1189] = "ER_SOURCE_NET_READ";
@@ -2570,10 +3963,10 @@ var require_errors = __commonJS({
     exports[1195] = "ER_CRASHED_ON_REPAIR";
     exports[1196] = "ER_WARNING_NOT_COMPLETE_ROLLBACK";
     exports[1197] = "ER_TRANS_CACHE_FULL";
-    exports[1198] = "ER_REPLICA_MUST_STOP";
+    exports[1198] = "ER_SLAVE_MUST_STOP";
     exports[1199] = "ER_REPLICA_NOT_RUNNING";
     exports[1200] = "ER_BAD_REPLICA";
-    exports[1201] = "ER_SOURCE_INFO";
+    exports[1201] = "ER_CONNECTION_METADATA";
     exports[1202] = "ER_REPLICA_THREAD";
     exports[1203] = "ER_TOO_MANY_USER_CONNECTIONS";
     exports[1204] = "ER_SET_CONSTANTS_ONLY";
@@ -2591,7 +3984,7 @@ var require_errors = __commonJS({
     exports[1216] = "ER_NO_REFERENCED_ROW";
     exports[1217] = "ER_ROW_IS_REFERENCED";
     exports[1218] = "ER_CONNECT_TO_SOURCE";
-    exports[1219] = "ER_QUERY_ON_SOURCE";
+    exports[1219] = "ER_QUERY_ON_MASTER";
     exports[1220] = "ER_ERROR_WHEN_EXECUTING_COMMAND";
     exports[1221] = "ER_WRONG_USAGE";
     exports[1222] = "ER_WRONG_NUMBER_OF_COLUMNS_IN_SELECT";
@@ -2626,8 +4019,8 @@ var require_errors = __commonJS({
     exports[1251] = "ER_NOT_SUPPORTED_AUTH_MODE";
     exports[1252] = "ER_SPATIAL_CANT_HAVE_NULL";
     exports[1253] = "ER_COLLATION_CHARSET_MISMATCH";
-    exports[1254] = "ER_REPLICA_WAS_RUNNING";
-    exports[1255] = "ER_REPLICA_WAS_NOT_RUNNING";
+    exports[1254] = "ER_SLAVE_WAS_RUNNING";
+    exports[1255] = "ER_SLAVE_WAS_NOT_RUNNING";
     exports[1256] = "ER_TOO_BIG_FOR_UNCOMPRESS";
     exports[1257] = "ER_ZLIB_Z_MEM_ERROR";
     exports[1258] = "ER_ZLIB_Z_BUF_ERROR";
@@ -2637,7 +4030,7 @@ var require_errors = __commonJS({
     exports[1262] = "ER_WARN_TOO_MANY_RECORDS";
     exports[1263] = "ER_WARN_NULL_TO_NOTNULL";
     exports[1264] = "ER_WARN_DATA_OUT_OF_RANGE";
-    exports[1265] = "ER_WARN_DATA_TRUNCATED";
+    exports[1265] = "WARN_DATA_TRUNCATED";
     exports[1266] = "ER_WARN_USING_OTHER_HANDLER";
     exports[1267] = "ER_CANT_AGGREGATE_2COLLATIONS";
     exports[1268] = "ER_DROP_USER";
@@ -2773,7 +4166,7 @@ var require_errors = __commonJS({
     exports[1398] = "ER_XAER_INVAL";
     exports[1399] = "ER_XAER_RMFAIL";
     exports[1400] = "ER_XAER_OUTSIDE";
-    exports[1401] = "ER_XA_RMERR";
+    exports[1401] = "ER_XAER_RMERR";
     exports[1402] = "ER_XA_RBROLLBACK";
     exports[1403] = "ER_NONEXISTING_PROC_GRANT";
     exports[1404] = "ER_PROC_AUTO_GRANT_FAIL";
@@ -2940,7 +4333,7 @@ var require_errors = __commonJS({
     exports[1565] = "ER_DDL_LOG_ERROR";
     exports[1566] = "ER_NULL_IN_VALUES_LESS_THAN";
     exports[1567] = "ER_WRONG_PARTITION_NAME";
-    exports[1568] = "ER_CANT_CHANGE_TX_ISOLATION";
+    exports[1568] = "ER_CANT_CHANGE_TX_CHARACTERISTICS";
     exports[1569] = "ER_DUP_ENTRY_AUTOINCREMENT_CASE";
     exports[1570] = "ER_EVENT_MODIFY_QUEUE_ERROR";
     exports[1571] = "ER_EVENT_SET_VAR_ERROR";
@@ -2962,14 +4355,14 @@ var require_errors = __commonJS({
     exports[1587] = "ER_BINLOG_PURGE_EMFILE";
     exports[1588] = "ER_EVENT_CANNOT_CREATE_IN_THE_PAST";
     exports[1589] = "ER_EVENT_CANNOT_ALTER_IN_THE_PAST";
-    exports[1590] = "ER_REPLICA_INCIDENT";
+    exports[1590] = "ER_SLAVE_INCIDENT";
     exports[1591] = "ER_NO_PARTITION_FOR_GIVEN_VALUE_SILENT";
     exports[1592] = "ER_BINLOG_UNSAFE_STATEMENT";
-    exports[1593] = "ER_REPLICA_FATAL_ERROR";
-    exports[1594] = "ER_REPLICA_RELAY_LOG_READ_FAILURE";
-    exports[1595] = "ER_REPLICA_RELAY_LOG_WRITE_FAILURE";
-    exports[1596] = "ER_REPLICA_CREATE_EVENT_FAILURE";
-    exports[1597] = "ER_REPLICA_SOURCE_COM_FAILURE";
+    exports[1593] = "ER_BINLOG_FATAL_ERROR";
+    exports[1594] = "ER_SLAVE_RELAY_LOG_READ_FAILURE";
+    exports[1595] = "ER_SLAVE_RELAY_LOG_WRITE_FAILURE";
+    exports[1596] = "ER_SLAVE_CREATE_EVENT_FAILURE";
+    exports[1597] = "ER_SLAVE_MASTER_COM_FAILURE";
     exports[1598] = "ER_BINLOG_LOGGING_IMPOSSIBLE";
     exports[1599] = "ER_VIEW_NO_CREATION_CTX";
     exports[1600] = "ER_VIEW_INVALID_CREATION_CTX";
@@ -2989,13 +4382,13 @@ var require_errors = __commonJS({
     exports[1614] = "ER_XA_RBDEADLOCK";
     exports[1615] = "ER_NEED_REPREPARE";
     exports[1616] = "ER_DELAYED_NOT_SUPPORTED";
-    exports[1617] = "WARN_NO_SOURCE_INFO";
+    exports[1617] = "WARN_NO_CONNECTION_METADATA";
     exports[1618] = "WARN_OPTION_IGNORED";
-    exports[1619] = "WARN_PLUGIN_DELETE_BUILTIN";
+    exports[1619] = "ER_PLUGIN_DELETE_BUILTIN";
     exports[1620] = "WARN_PLUGIN_BUSY";
     exports[1621] = "ER_VARIABLE_IS_READONLY";
     exports[1622] = "ER_WARN_ENGINE_TRANSACTION_ROLLBACK";
-    exports[1623] = "ER_REPLICA_HEARTBEAT_FAILURE";
+    exports[1623] = "ER_SLAVE_HEARTBEAT_FAILURE";
     exports[1624] = "ER_REPLICA_HEARTBEAT_VALUE_OUT_OF_RANGE";
     exports[1625] = "ER_NDB_REPLICATION_SCHEMA_ERROR";
     exports[1626] = "ER_CONFLICT_FN_PARSE_ERROR";
@@ -3041,7 +4434,7 @@ var require_errors = __commonJS({
     exports[1666] = "ER_BINLOG_ROW_INJECTION_AND_STMT_MODE";
     exports[1667] = "ER_BINLOG_MULTIPLE_ENGINES_AND_SELF_LOGGING_ENGINE";
     exports[1668] = "ER_BINLOG_UNSAFE_LIMIT";
-    exports[1669] = "ER_BINLOG_UNSAFE_INSERT_DELAYED";
+    exports[1669] = "ER_UNUSED4";
     exports[1670] = "ER_BINLOG_UNSAFE_SYSTEM_TABLE";
     exports[1671] = "ER_BINLOG_UNSAFE_AUTOINC_COLUMNS";
     exports[1672] = "ER_BINLOG_UNSAFE_UDF";
@@ -3049,7 +4442,7 @@ var require_errors = __commonJS({
     exports[1674] = "ER_BINLOG_UNSAFE_SYSTEM_FUNCTION";
     exports[1675] = "ER_BINLOG_UNSAFE_NONTRANS_AFTER_TRANS";
     exports[1676] = "ER_MESSAGE_AND_STATEMENT";
-    exports[1677] = "ER_REPLICA_CONVERSION_FAILED";
+    exports[1677] = "ER_SLAVE_CONVERSION_FAILED";
     exports[1678] = "ER_REPLICA_CANT_CREATE_CONVERSION";
     exports[1679] = "ER_INSIDE_TRANSACTION_PREVENTS_SWITCH_BINLOG_FORMAT";
     exports[1680] = "ER_PATH_LENGTH";
@@ -3125,10 +4518,10 @@ var require_errors = __commonJS({
     exports[1750] = "ER_CHANGE_RPL_INFO_REPOSITORY_FAILURE";
     exports[1751] = "ER_WARNING_NOT_COMPLETE_ROLLBACK_WITH_CREATED_TEMP_TABLE";
     exports[1752] = "ER_WARNING_NOT_COMPLETE_ROLLBACK_WITH_DROPPED_TEMP_TABLE";
-    exports[1753] = "ER_MTS_FEATURE_IS_NOT_SUPPORTED";
-    exports[1754] = "ER_MTS_UPDATED_DBS_GREATER_MAX";
-    exports[1755] = "ER_MTS_CANT_PARALLEL";
-    exports[1756] = "ER_MTS_INCONSISTENT_DATA";
+    exports[1753] = "ER_MTA_FEATURE_IS_NOT_SUPPORTED";
+    exports[1754] = "ER_MTA_UPDATED_DBS_GREATER_MAX";
+    exports[1755] = "ER_MTA_CANT_PARALLEL";
+    exports[1756] = "ER_MTA_INCONSISTENT_DATA";
     exports[1757] = "ER_FULLTEXT_NOT_SUPPORTED_WITH_PARTITIONING";
     exports[1758] = "ER_DA_INVALID_CONDITION_NUMBER";
     exports[1759] = "ER_INSECURE_PLAIN_TEXT";
@@ -3140,7 +4533,7 @@ var require_errors = __commonJS({
     exports[1765] = "ER_VARIABLE_NOT_SETTABLE_IN_SF_OR_TRIGGER";
     exports[1766] = "ER_VARIABLE_NOT_SETTABLE_IN_TRANSACTION";
     exports[1767] = "ER_GTID_NEXT_IS_NOT_IN_GTID_NEXT_LIST";
-    exports[1768] = "ER_CANT_CHANGE_GTID_NEXT_IN_TRANSACTION_WHEN_GTID_NEXT_LIST_IS_NULL";
+    exports[1768] = "ER_CANT_CHANGE_GTID_NEXT_IN_TRANSACTION";
     exports[1769] = "ER_SET_STATEMENT_CANNOT_INVOKE_FUNCTION";
     exports[1770] = "ER_GTID_NEXT_CANT_BE_AUTOMATIC_IF_GTID_NEXT_LIST_IS_NON_NULL";
     exports[1771] = "ER_SKIPPING_LOGGED_TRANSACTION";
@@ -3149,9 +4542,9 @@ var require_errors = __commonJS({
     exports[1774] = "ER_MALFORMED_GTID_SPECIFICATION";
     exports[1775] = "ER_GNO_EXHAUSTED";
     exports[1776] = "ER_BAD_REPLICA_AUTO_POSITION";
-    exports[1777] = "ER_AUTO_POSITION_REQUIRES_GTID_MODE_ON";
+    exports[1777] = "ER_AUTO_POSITION_REQUIRES_GTID_MODE_NOT_OFF";
     exports[1778] = "ER_CANT_DO_IMPLICIT_COMMIT_IN_TRX_WHEN_GTID_NEXT_IS_SET";
-    exports[1779] = "ER_GTID_MODE_2_OR_3_REQUIRES_ENFORCE_GTID_CONSISTENCY_ON";
+    exports[1779] = "ER_GTID_MODE_ON_REQUIRES_ENFORCE_GTID_CONSISTENCY_ON";
     exports[1780] = "ER_GTID_MODE_REQUIRES_BINLOG";
     exports[1781] = "ER_CANT_SET_GTID_NEXT_TO_GTID_WHEN_GTID_MODE_IS_OFF";
     exports[1782] = "ER_CANT_SET_GTID_NEXT_TO_ANONYMOUS_WHEN_GTID_MODE_IS_ON";
@@ -3159,7 +4552,7 @@ var require_errors = __commonJS({
     exports[1784] = "ER_FOUND_GTID_EVENT_WHEN_GTID_MODE_IS_OFF";
     exports[1785] = "ER_GTID_UNSAFE_NON_TRANSACTIONAL_TABLE";
     exports[1786] = "ER_GTID_UNSAFE_CREATE_SELECT";
-    exports[1787] = "ER_GTID_UNSAFE_CREATE_DROP_TEMPORARY_TABLE_IN_TRANSACTION";
+    exports[1787] = "ER_GTID_UNSAFE_CREATE_DROP_TEMP_TABLE_IN_TRANSACTION";
     exports[1788] = "ER_GTID_MODE_CAN_ONLY_CHANGE_ONE_STEP_AT_A_TIME";
     exports[1789] = "ER_SOURCE_HAS_PURGED_REQUIRED_GTIDS";
     exports[1790] = "ER_CANT_SET_GTID_NEXT_WHEN_OWNING_GTID";
@@ -3174,9 +4567,9 @@ var require_errors = __commonJS({
     exports[1799] = "ER_INNODB_ONLINE_LOG_TOO_BIG";
     exports[1800] = "ER_UNKNOWN_ALTER_ALGORITHM";
     exports[1801] = "ER_UNKNOWN_ALTER_LOCK";
-    exports[1802] = "ER_MTS_CHANGE_SOURCE_CANT_RUN_WITH_GAPS";
-    exports[1803] = "ER_MTS_RECOVERY_FAILURE";
-    exports[1804] = "ER_MTS_RESET_WORKERS";
+    exports[1802] = "ER_MTA_CHANGE_SOURCE_CANT_RUN_WITH_GAPS";
+    exports[1803] = "ER_MTA_RECOVERY_FAILURE";
+    exports[1804] = "ER_MTA_RESET_WORKERS";
     exports[1805] = "ER_COL_COUNT_DOESNT_MATCH_CORRUPTED_V2";
     exports[1806] = "ER_REPLICA_SILENT_RETRY_TRANSACTION";
     exports[1807] = "ER_DISCARD_FK_CHECKS_RUNNING";
@@ -3206,10 +4599,10 @@ var require_errors = __commonJS({
     exports[1831] = "ER_DUP_INDEX";
     exports[1832] = "ER_FK_COLUMN_CANNOT_CHANGE";
     exports[1833] = "ER_FK_COLUMN_CANNOT_CHANGE_CHILD";
-    exports[1834] = "ER_FK_CANNOT_DELETE_PARENT";
+    exports[1834] = "ER_UNUSED5";
     exports[1835] = "ER_MALFORMED_PACKET";
     exports[1836] = "ER_READ_ONLY_MODE";
-    exports[1837] = "ER_GTID_NEXT_TYPE_UNDEFINED_GROUP";
+    exports[1837] = "ER_GTID_NEXT_TYPE_UNDEFINED_GTID";
     exports[1838] = "ER_VARIABLE_NOT_SETTABLE_IN_SP";
     exports[1839] = "ER_CANT_SET_GTID_PURGED_WHEN_GTID_MODE_IS_OFF";
     exports[1840] = "ER_CANT_SET_GTID_PURGED_WHEN_GTID_EXECUTED_IS_NOT_EMPTY";
@@ -3224,7 +4617,7 @@ var require_errors = __commonJS({
     exports[1849] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_FK_RENAME";
     exports[1850] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_COLUMN_TYPE";
     exports[1851] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_FK_CHECK";
-    exports[1852] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_IGNORE";
+    exports[1852] = "ER_UNUSED6";
     exports[1853] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOPK";
     exports[1854] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_AUTOINC";
     exports[1855] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_HIDDEN_FTS";
@@ -3236,15 +4629,15 @@ var require_errors = __commonJS({
     exports[1861] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_NOT_NULL";
     exports[1862] = "ER_MUST_CHANGE_PASSWORD_LOGIN";
     exports[1863] = "ER_ROW_IN_WRONG_PARTITION";
-    exports[1864] = "ER_MTS_EVENT_BIGGER_PENDING_JOBS_SIZE_MAX";
+    exports[1864] = "ER_MTA_EVENT_BIGGER_PENDING_JOBS_SIZE_MAX";
     exports[1865] = "ER_INNODB_NO_FT_USES_PARSER";
     exports[1866] = "ER_BINLOG_LOGICAL_CORRUPTION";
     exports[1867] = "ER_WARN_PURGE_LOG_IN_USE";
     exports[1868] = "ER_WARN_PURGE_LOG_IS_ACTIVE";
     exports[1869] = "ER_AUTO_INCREMENT_CONFLICT";
     exports[1870] = "WARN_ON_BLOCKHOLE_IN_RBR";
-    exports[1871] = "ER_REPLICA_MI_INIT_REPOSITORY";
-    exports[1872] = "ER_REPLICA_RLI_INIT_REPOSITORY";
+    exports[1871] = "ER_REPLICA_CM_INIT_REPOSITORY";
+    exports[1872] = "ER_REPLICA_AM_INIT_REPOSITORY";
     exports[1873] = "ER_ACCESS_DENIED_CHANGE_USER_ERROR";
     exports[1874] = "ER_INNODB_READ_ONLY";
     exports[1875] = "ER_STOP_REPLICA_SQL_THREAD_TIMEOUT";
@@ -3255,861 +4648,1501 @@ var require_errors = __commonJS({
     exports[1880] = "ER_OLD_TEMPORALS_UPGRADED";
     exports[1881] = "ER_INNODB_FORCED_RECOVERY";
     exports[1882] = "ER_AES_INVALID_IV";
-    exports[1883] = "ER_FILE_CORRUPT";
-    exports[1884] = "ER_ERROR_ON_SOURCE";
-    exports[1885] = "ER_INCONSISTENT_ERROR";
-    exports[1886] = "ER_STORAGE_ENGINE_NOT_LOADED";
-    exports[1887] = "ER_GET_STACKED_DA_WITHOUT_ACTIVE_HANDLER";
-    exports[1888] = "ER_WARN_LEGACY_SYNTAX_CONVERTED";
-    exports[1889] = "ER_BINLOG_UNSAFE_FULLTEXT_PLUGIN";
-    exports[1890] = "ER_CANNOT_DISCARD_TEMPORARY_TABLE";
-    exports[1891] = "ER_FK_DEPTH_EXCEEDED";
-    exports[1892] = "ER_COL_COUNT_DOESNT_MATCH_PLEASE_UPDATE_V2";
-    exports[1893] = "ER_WARN_TRIGGER_DOESNT_HAVE_CREATED";
-    exports[1894] = "ER_REFERENCED_TRG_DOES_NOT_EXIST";
-    exports[1895] = "ER_EXPLAIN_NOT_SUPPORTED";
-    exports[1896] = "ER_INVALID_FIELD_SIZE";
-    exports[1897] = "ER_MISSING_HA_CREATE_OPTION";
-    exports[1898] = "ER_ENGINE_OUT_OF_MEMORY";
-    exports[1899] = "ER_PASSWORD_EXPIRE_ANONYMOUS_USER";
-    exports[1900] = "ER_REPLICA_SQL_THREAD_MUST_STOP";
-    exports[1901] = "ER_NO_FT_MATERIALIZED_SUBQUERY";
-    exports[1902] = "ER_INNODB_UNDO_LOG_FULL";
-    exports[1903] = "ER_INVALID_ARGUMENT_FOR_LOGARITHM";
-    exports[1904] = "ER_REPLICA_IO_THREAD_MUST_STOP";
-    exports[1905] = "ER_WARN_OPEN_TEMP_TABLES_MUST_BE_ZERO";
-    exports[1906] = "ER_WARN_ONLY_SOURCE_LOG_FILE_NO_POS";
-    exports[1907] = "ER_QUERY_TIMEOUT";
-    exports[1908] = "ER_NON_RO_SELECT_DISABLE_TIMER";
-    exports[1909] = "ER_DUP_LIST_ENTRY";
-    exports[1910] = "ER_SQL_MODE_NO_EFFECT";
+    exports[1883] = "ER_PLUGIN_CANNOT_BE_UNINSTALLED";
+    exports[1884] = "ER_GTID_UNSAFE_BINLOG_SPLITTABLE_STATEMENT_AND_ASSIGNED_GTID";
+    exports[1885] = "ER_REPLICA_HAS_MORE_GTIDS_THAN_SOURCE";
+    exports[1886] = "ER_MISSING_KEY";
+    exports[1887] = "WARN_NAMED_PIPE_ACCESS_EVERYONE";
+    exports[3e3] = "ER_FILE_CORRUPT";
+    exports[3001] = "ER_ERROR_ON_SOURCE";
+    exports[3002] = "ER_INCONSISTENT_ERROR";
+    exports[3003] = "ER_STORAGE_ENGINE_NOT_LOADED";
+    exports[3004] = "ER_GET_STACKED_DA_WITHOUT_ACTIVE_HANDLER";
+    exports[3005] = "ER_WARN_LEGACY_SYNTAX_CONVERTED";
+    exports[3006] = "ER_BINLOG_UNSAFE_FULLTEXT_PLUGIN";
+    exports[3007] = "ER_CANNOT_DISCARD_TEMPORARY_TABLE";
+    exports[3008] = "ER_FK_DEPTH_EXCEEDED";
+    exports[3009] = "ER_COL_COUNT_DOESNT_MATCH_PLEASE_UPDATE_V2";
+    exports[3010] = "ER_WARN_TRIGGER_DOESNT_HAVE_CREATED";
+    exports[3011] = "ER_REFERENCED_TRG_DOES_NOT_EXIST";
+    exports[3012] = "ER_EXPLAIN_NOT_SUPPORTED";
+    exports[3013] = "ER_INVALID_FIELD_SIZE";
+    exports[3014] = "ER_MISSING_HA_CREATE_OPTION";
+    exports[3015] = "ER_ENGINE_OUT_OF_MEMORY";
+    exports[3016] = "ER_PASSWORD_EXPIRE_ANONYMOUS_USER";
+    exports[3017] = "ER_REPLICA_SQL_THREAD_MUST_STOP";
+    exports[3018] = "ER_NO_FT_MATERIALIZED_SUBQUERY";
+    exports[3019] = "ER_INNODB_UNDO_LOG_FULL";
+    exports[3020] = "ER_INVALID_ARGUMENT_FOR_LOGARITHM";
+    exports[3021] = "ER_REPLICA_CHANNEL_IO_THREAD_MUST_STOP";
+    exports[3022] = "ER_WARN_OPEN_TEMP_TABLES_MUST_BE_ZERO";
+    exports[3023] = "ER_WARN_ONLY_SOURCE_LOG_FILE_NO_POS";
+    exports[3024] = "ER_QUERY_TIMEOUT";
+    exports[3025] = "ER_NON_RO_SELECT_DISABLE_TIMER";
+    exports[3026] = "ER_DUP_LIST_ENTRY";
+    exports[3027] = "ER_SQL_MODE_NO_EFFECT";
+    exports[3028] = "ER_AGGREGATE_ORDER_FOR_UNION";
+    exports[3029] = "ER_AGGREGATE_ORDER_NON_AGG_QUERY";
+    exports[3030] = "ER_REPLICA_WORKER_STOPPED_PREVIOUS_THD_ERROR";
+    exports[3031] = "ER_DONT_SUPPORT_REPLICA_PRESERVE_COMMIT_ORDER";
+    exports[3032] = "ER_SERVER_OFFLINE_MODE";
+    exports[3033] = "ER_GIS_DIFFERENT_SRIDS";
+    exports[3034] = "ER_GIS_UNSUPPORTED_ARGUMENT";
+    exports[3035] = "ER_GIS_UNKNOWN_ERROR";
+    exports[3036] = "ER_GIS_UNKNOWN_EXCEPTION";
+    exports[3037] = "ER_GIS_INVALID_DATA";
+    exports[3038] = "ER_BOOST_GEOMETRY_EMPTY_INPUT_EXCEPTION";
+    exports[3039] = "ER_BOOST_GEOMETRY_CENTROID_EXCEPTION";
+    exports[3040] = "ER_BOOST_GEOMETRY_OVERLAY_INVALID_INPUT_EXCEPTION";
+    exports[3041] = "ER_BOOST_GEOMETRY_TURN_INFO_EXCEPTION";
+    exports[3042] = "ER_BOOST_GEOMETRY_SELF_INTERSECTION_POINT_EXCEPTION";
+    exports[3043] = "ER_BOOST_GEOMETRY_UNKNOWN_EXCEPTION";
+    exports[3044] = "ER_STD_BAD_ALLOC_ERROR";
+    exports[3045] = "ER_STD_DOMAIN_ERROR";
+    exports[3046] = "ER_STD_LENGTH_ERROR";
+    exports[3047] = "ER_STD_INVALID_ARGUMENT";
+    exports[3048] = "ER_STD_OUT_OF_RANGE_ERROR";
+    exports[3049] = "ER_STD_OVERFLOW_ERROR";
+    exports[3050] = "ER_STD_RANGE_ERROR";
+    exports[3051] = "ER_STD_UNDERFLOW_ERROR";
+    exports[3052] = "ER_STD_LOGIC_ERROR";
+    exports[3053] = "ER_STD_RUNTIME_ERROR";
+    exports[3054] = "ER_STD_UNKNOWN_EXCEPTION";
+    exports[3055] = "ER_GIS_DATA_WRONG_ENDIANESS";
+    exports[3056] = "ER_CHANGE_SOURCE_PASSWORD_LENGTH";
+    exports[3057] = "ER_USER_LOCK_WRONG_NAME";
+    exports[3058] = "ER_USER_LOCK_DEADLOCK";
+    exports[3059] = "ER_REPLACE_INACCESSIBLE_ROWS";
+    exports[3060] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_GIS";
+    exports[3061] = "ER_ILLEGAL_USER_VAR";
+    exports[3062] = "ER_GTID_MODE_OFF";
+    exports[3063] = "ER_UNSUPPORTED_BY_REPLICATION_THREAD";
+    exports[3064] = "ER_INCORRECT_TYPE";
+    exports[3065] = "ER_FIELD_IN_ORDER_NOT_SELECT";
+    exports[3066] = "ER_AGGREGATE_IN_ORDER_NOT_SELECT";
+    exports[3067] = "ER_INVALID_RPL_WILD_TABLE_FILTER_PATTERN";
+    exports[3068] = "ER_NET_OK_PACKET_TOO_LARGE";
+    exports[3069] = "ER_INVALID_JSON_DATA";
+    exports[3070] = "ER_INVALID_GEOJSON_MISSING_MEMBER";
+    exports[3071] = "ER_INVALID_GEOJSON_WRONG_TYPE";
+    exports[3072] = "ER_INVALID_GEOJSON_UNSPECIFIED";
+    exports[3073] = "ER_DIMENSION_UNSUPPORTED";
+    exports[3074] = "ER_REPLICA_CHANNEL_DOES_NOT_EXIST";
+    exports[3075] = "ER_SLAVE_MULTIPLE_CHANNELS_HOST_PORT";
+    exports[3076] = "ER_REPLICA_CHANNEL_NAME_INVALID_OR_TOO_LONG";
+    exports[3077] = "ER_REPLICA_NEW_CHANNEL_WRONG_REPOSITORY";
+    exports[3078] = "ER_SLAVE_CHANNEL_DELETE";
+    exports[3079] = "ER_REPLICA_MULTIPLE_CHANNELS_CMD";
+    exports[3080] = "ER_REPLICA_MAX_CHANNELS_EXCEEDED";
+    exports[3081] = "ER_REPLICA_CHANNEL_MUST_STOP";
+    exports[3082] = "ER_REPLICA_CHANNEL_NOT_RUNNING";
+    exports[3083] = "ER_REPLICA_CHANNEL_WAS_RUNNING";
+    exports[3084] = "ER_REPLICA_CHANNEL_WAS_NOT_RUNNING";
+    exports[3085] = "ER_REPLICA_CHANNEL_SQL_THREAD_MUST_STOP";
+    exports[3086] = "ER_REPLICA_CHANNEL_SQL_SKIP_COUNTER";
+    exports[3087] = "ER_WRONG_FIELD_WITH_GROUP_V2";
+    exports[3088] = "ER_MIX_OF_GROUP_FUNC_AND_FIELDS_V2";
+    exports[3089] = "ER_WARN_DEPRECATED_SYSVAR_UPDATE";
+    exports[3090] = "ER_WARN_DEPRECATED_SQLMODE";
+    exports[3091] = "ER_CANNOT_LOG_PARTIAL_DROP_DATABASE_WITH_GTID";
+    exports[3092] = "ER_GROUP_REPLICATION_CONFIGURATION";
+    exports[3093] = "ER_GROUP_REPLICATION_RUNNING";
+    exports[3094] = "ER_GROUP_REPLICATION_APPLIER_INIT_ERROR";
+    exports[3095] = "ER_GROUP_REPLICATION_STOP_APPLIER_THREAD_TIMEOUT";
+    exports[3096] = "ER_GROUP_REPLICATION_COMMUNICATION_LAYER_SESSION_ERROR";
+    exports[3097] = "ER_GROUP_REPLICATION_COMMUNICATION_LAYER_JOIN_ERROR";
+    exports[3098] = "ER_BEFORE_DML_VALIDATION_ERROR";
+    exports[3099] = "ER_PREVENTS_VARIABLE_WITHOUT_RBR";
+    exports[3100] = "ER_RUN_HOOK_ERROR";
+    exports[3101] = "ER_TRANSACTION_ROLLBACK_DURING_COMMIT";
+    exports[3102] = "ER_GENERATED_COLUMN_FUNCTION_IS_NOT_ALLOWED";
+    exports[3103] = "ER_UNSUPPORTED_ALTER_INPLACE_ON_VIRTUAL_COLUMN";
+    exports[3104] = "ER_WRONG_FK_OPTION_FOR_GENERATED_COLUMN";
+    exports[3105] = "ER_NON_DEFAULT_VALUE_FOR_GENERATED_COLUMN";
+    exports[3106] = "ER_UNSUPPORTED_ACTION_ON_GENERATED_COLUMN";
+    exports[3107] = "ER_GENERATED_COLUMN_NON_PRIOR";
+    exports[3108] = "ER_DEPENDENT_BY_GENERATED_COLUMN";
+    exports[3109] = "ER_GENERATED_COLUMN_REF_AUTO_INC";
+    exports[3110] = "ER_FEATURE_NOT_AVAILABLE";
+    exports[3111] = "ER_CANT_SET_GTID_MODE";
+    exports[3112] = "ER_CANT_USE_AUTO_POSITION_WITH_GTID_MODE_OFF";
+    exports[3113] = "ER_CANT_REPLICATE_ANONYMOUS_WITH_AUTO_POSITION";
+    exports[3114] = "ER_CANT_REPLICATE_ANONYMOUS_WITH_GTID_MODE_ON";
+    exports[3115] = "ER_CANT_REPLICATE_GTID_WITH_GTID_MODE_OFF";
+    exports[3116] = "ER_CANT_ENFORCE_GTID_CONSISTENCY_WITH_ONGOING_GTID_VIOLATING_TX";
+    exports[3117] = "ER_ENFORCE_GTID_CONSISTENCY_WARN_WITH_ONGOING_GTID_VIOLATING_TX";
+    exports[3118] = "ER_ACCOUNT_HAS_BEEN_LOCKED";
+    exports[3119] = "ER_WRONG_TABLESPACE_NAME";
+    exports[3120] = "ER_TABLESPACE_IS_NOT_EMPTY";
+    exports[3121] = "ER_WRONG_FILE_NAME";
+    exports[3122] = "ER_BOOST_GEOMETRY_INCONSISTENT_TURNS_EXCEPTION";
+    exports[3123] = "ER_WARN_OPTIMIZER_HINT_SYNTAX_ERROR";
+    exports[3124] = "ER_WARN_BAD_MAX_EXECUTION_TIME";
+    exports[3125] = "ER_WARN_UNSUPPORTED_MAX_EXECUTION_TIME";
+    exports[3126] = "ER_WARN_CONFLICTING_HINT";
+    exports[3127] = "ER_WARN_UNKNOWN_QB_NAME";
+    exports[3128] = "ER_UNRESOLVED_HINT_NAME";
+    exports[3129] = "ER_WARN_ON_MODIFYING_GTID_EXECUTED_TABLE";
+    exports[3130] = "ER_PLUGGABLE_PROTOCOL_COMMAND_NOT_SUPPORTED";
+    exports[3131] = "ER_LOCKING_SERVICE_WRONG_NAME";
+    exports[3132] = "ER_LOCKING_SERVICE_DEADLOCK";
+    exports[3133] = "ER_LOCKING_SERVICE_TIMEOUT";
+    exports[3134] = "ER_GIS_MAX_POINTS_IN_GEOMETRY_OVERFLOWED";
+    exports[3135] = "ER_SQL_MODE_MERGED";
+    exports[3136] = "ER_VTOKEN_PLUGIN_TOKEN_MISMATCH";
+    exports[3137] = "ER_VTOKEN_PLUGIN_TOKEN_NOT_FOUND";
+    exports[3138] = "ER_CANT_SET_VARIABLE_WHEN_OWNING_GTID";
+    exports[3139] = "ER_REPLICA_CHANNEL_OPERATION_NOT_ALLOWED";
+    exports[3140] = "ER_INVALID_JSON_TEXT";
+    exports[3141] = "ER_INVALID_JSON_TEXT_IN_PARAM";
+    exports[3142] = "ER_INVALID_JSON_BINARY_DATA";
+    exports[3143] = "ER_INVALID_JSON_PATH";
+    exports[3144] = "ER_INVALID_JSON_CHARSET";
+    exports[3145] = "ER_INVALID_JSON_CHARSET_IN_FUNCTION";
+    exports[3146] = "ER_INVALID_TYPE_FOR_JSON";
+    exports[3147] = "ER_INVALID_CAST_TO_JSON";
+    exports[3148] = "ER_INVALID_JSON_PATH_CHARSET";
+    exports[3149] = "ER_INVALID_JSON_PATH_WILDCARD";
+    exports[3150] = "ER_JSON_VALUE_TOO_BIG";
+    exports[3151] = "ER_JSON_KEY_TOO_BIG";
+    exports[3152] = "ER_JSON_USED_AS_KEY";
+    exports[3153] = "ER_JSON_VACUOUS_PATH";
+    exports[3154] = "ER_JSON_BAD_ONE_OR_ALL_ARG";
+    exports[3155] = "ER_NUMERIC_JSON_VALUE_OUT_OF_RANGE";
+    exports[3156] = "ER_INVALID_JSON_VALUE_FOR_CAST";
+    exports[3157] = "ER_JSON_DOCUMENT_TOO_DEEP";
+    exports[3158] = "ER_JSON_DOCUMENT_NULL_KEY";
+    exports[3159] = "ER_SECURE_TRANSPORT_REQUIRED";
+    exports[3160] = "ER_NO_SECURE_TRANSPORTS_CONFIGURED";
+    exports[3161] = "ER_DISABLED_STORAGE_ENGINE";
+    exports[3162] = "ER_USER_DOES_NOT_EXIST";
+    exports[3163] = "ER_USER_ALREADY_EXISTS";
+    exports[3164] = "ER_AUDIT_API_ABORT";
+    exports[3165] = "ER_INVALID_JSON_PATH_ARRAY_CELL";
+    exports[3166] = "ER_BUFPOOL_RESIZE_INPROGRESS";
+    exports[3167] = "ER_FEATURE_DISABLED_SEE_DOC";
+    exports[3168] = "ER_SERVER_ISNT_AVAILABLE";
     exports[3169] = "ER_SESSION_WAS_KILLED";
+    exports[3170] = "ER_CAPACITY_EXCEEDED";
+    exports[3171] = "ER_CAPACITY_EXCEEDED_IN_RANGE_OPTIMIZER";
+    exports[3172] = "ER_TABLE_NEEDS_UPG_PART";
+    exports[3173] = "ER_CANT_WAIT_FOR_EXECUTED_GTID_SET_WHILE_OWNING_A_GTID";
+    exports[3174] = "ER_CANNOT_ADD_FOREIGN_BASE_COL_VIRTUAL";
+    exports[3175] = "ER_CANNOT_CREATE_VIRTUAL_INDEX_CONSTRAINT";
+    exports[3176] = "ER_ERROR_ON_MODIFYING_GTID_EXECUTED_TABLE";
+    exports[3177] = "ER_LOCK_REFUSED_BY_ENGINE";
+    exports[3178] = "ER_UNSUPPORTED_ALTER_ONLINE_ON_VIRTUAL_COLUMN";
+    exports[3179] = "ER_MASTER_KEY_ROTATION_NOT_SUPPORTED_BY_SE";
+    exports[3180] = "ER_MASTER_KEY_ROTATION_ERROR_BY_SE";
+    exports[3181] = "ER_MASTER_KEY_ROTATION_BINLOG_FAILED";
+    exports[3182] = "ER_MASTER_KEY_ROTATION_SE_UNAVAILABLE";
+    exports[3183] = "ER_TABLESPACE_CANNOT_ENCRYPT";
+    exports[3184] = "ER_INVALID_ENCRYPTION_OPTION";
+    exports[3185] = "ER_CANNOT_FIND_KEY_IN_KEYRING";
+    exports[3186] = "ER_CAPACITY_EXCEEDED_IN_PARSER";
+    exports[3187] = "ER_UNSUPPORTED_ALTER_ENCRYPTION_INPLACE";
+    exports[3188] = "ER_KEYRING_UDF_KEYRING_SERVICE_ERROR";
+    exports[3189] = "ER_USER_COLUMN_OLD_LENGTH";
+    exports[3190] = "ER_CANT_RESET_SOURCE";
+    exports[3191] = "ER_GROUP_REPLICATION_MAX_GROUP_SIZE";
+    exports[3192] = "ER_CANNOT_ADD_FOREIGN_BASE_COL_STORED";
+    exports[3193] = "ER_TABLE_REFERENCED";
+    exports[3194] = "ER_PARTITION_ENGINE_DEPRECATED_FOR_TABLE";
+    exports[3195] = "ER_WARN_USING_GEOMFROMWKB_TO_SET_SRID_ZERO";
+    exports[3196] = "ER_WARN_USING_GEOMFROMWKB_TO_SET_SRID";
+    exports[3197] = "ER_XA_RETRY";
+    exports[3198] = "ER_KEYRING_AWS_UDF_AWS_KMS_ERROR";
+    exports[3199] = "ER_BINLOG_UNSAFE_XA";
+    exports[3200] = "ER_UDF_ERROR";
+    exports[3201] = "ER_KEYRING_MIGRATION_FAILURE";
+    exports[3202] = "ER_KEYRING_ACCESS_DENIED_ERROR";
+    exports[3203] = "ER_KEYRING_MIGRATION_STATUS";
+    exports[3204] = "ER_PLUGIN_FAILED_TO_OPEN_TABLES";
+    exports[3205] = "ER_PLUGIN_FAILED_TO_OPEN_TABLE";
+    exports[3206] = "ER_AUDIT_LOG_NO_KEYRING_PLUGIN_INSTALLED";
+    exports[3207] = "ER_AUDIT_LOG_ENCRYPTION_PASSWORD_HAS_NOT_BEEN_SET";
+    exports[3208] = "ER_AUDIT_LOG_COULD_NOT_CREATE_AES_KEY";
+    exports[3209] = "ER_AUDIT_LOG_ENCRYPTION_PASSWORD_CANNOT_BE_FETCHED";
+    exports[3210] = "ER_AUDIT_LOG_JSON_FILTERING_NOT_ENABLED";
+    exports[3211] = "ER_AUDIT_LOG_UDF_INSUFFICIENT_PRIVILEGE";
+    exports[3212] = "ER_AUDIT_LOG_SUPER_PRIVILEGE_REQUIRED";
+    exports[3213] = "ER_COULD_NOT_REINITIALIZE_AUDIT_LOG_FILTERS";
+    exports[3214] = "ER_AUDIT_LOG_UDF_INVALID_ARGUMENT_TYPE";
+    exports[3215] = "ER_AUDIT_LOG_UDF_INVALID_ARGUMENT_COUNT";
+    exports[3216] = "ER_AUDIT_LOG_HAS_NOT_BEEN_INSTALLED";
+    exports[3217] = "ER_AUDIT_LOG_UDF_READ_INVALID_MAX_ARRAY_LENGTH_ARG_TYPE";
+    exports[3218] = "ER_AUDIT_LOG_UDF_READ_INVALID_MAX_ARRAY_LENGTH_ARG_VALUE";
+    exports[3219] = "ER_AUDIT_LOG_JSON_FILTER_PARSING_ERROR";
+    exports[3220] = "ER_AUDIT_LOG_JSON_FILTER_NAME_CANNOT_BE_EMPTY";
+    exports[3221] = "ER_AUDIT_LOG_JSON_USER_NAME_CANNOT_BE_EMPTY";
+    exports[3222] = "ER_AUDIT_LOG_JSON_FILTER_DOES_NOT_EXISTS";
+    exports[3223] = "ER_AUDIT_LOG_USER_FIRST_CHARACTER_MUST_BE_ALPHANUMERIC";
+    exports[3224] = "ER_AUDIT_LOG_USER_NAME_INVALID_CHARACTER";
+    exports[3225] = "ER_AUDIT_LOG_HOST_NAME_INVALID_CHARACTER";
+    exports[3226] = "WARN_DEPRECATED_MAXDB_SQL_MODE_FOR_TIMESTAMP";
+    exports[3227] = "ER_XA_REPLICATION_FILTERS";
+    exports[3228] = "ER_CANT_OPEN_ERROR_LOG";
+    exports[3229] = "ER_GROUPING_ON_TIMESTAMP_IN_DST";
+    exports[3230] = "ER_CANT_START_SERVER_NAMED_PIPE";
+    exports[3231] = "ER_WRITE_SET_EXCEEDS_LIMIT";
+    exports[3232] = "ER_DEPRECATED_TLS_VERSION_SESSION_57";
+    exports[3233] = "ER_WARN_DEPRECATED_TLS_VERSION_57";
+    exports[3234] = "ER_WARN_WRONG_NATIVE_TABLE_STRUCTURE";
+    exports[3235] = "ER_AES_INVALID_KDF_NAME";
+    exports[3236] = "ER_AES_INVALID_KDF_ITERATIONS";
+    exports[3237] = "WARN_AES_KEY_SIZE";
+    exports[3238] = "ER_AES_INVALID_KDF_OPTION_SIZE";
+    exports[3500] = "ER_UNSUPPORT_COMPRESSED_TEMPORARY_TABLE";
+    exports[3501] = "ER_ACL_OPERATION_FAILED";
+    exports[3502] = "ER_UNSUPPORTED_INDEX_ALGORITHM";
+    exports[3503] = "ER_NO_SUCH_DB";
+    exports[3504] = "ER_TOO_BIG_ENUM";
+    exports[3505] = "ER_TOO_LONG_SET_ENUM_VALUE";
+    exports[3506] = "ER_INVALID_DD_OBJECT";
+    exports[3507] = "ER_UPDATING_DD_TABLE";
+    exports[3508] = "ER_INVALID_DD_OBJECT_ID";
+    exports[3509] = "ER_INVALID_DD_OBJECT_NAME";
+    exports[3510] = "ER_TABLESPACE_MISSING_WITH_NAME";
+    exports[3511] = "ER_TOO_LONG_ROUTINE_COMMENT";
+    exports[3512] = "ER_SP_LOAD_FAILED";
+    exports[3513] = "ER_INVALID_BITWISE_OPERANDS_SIZE";
+    exports[3514] = "ER_INVALID_BITWISE_AGGREGATE_OPERANDS_SIZE";
+    exports[3515] = "ER_WARN_UNSUPPORTED_HINT";
+    exports[3516] = "ER_UNEXPECTED_GEOMETRY_TYPE";
+    exports[3517] = "ER_SRS_PARSE_ERROR";
+    exports[3518] = "ER_SRS_PROJ_PARAMETER_MISSING";
+    exports[3519] = "ER_WARN_SRS_NOT_FOUND";
+    exports[3520] = "ER_SRS_NOT_CARTESIAN";
+    exports[3521] = "ER_SRS_NOT_CARTESIAN_UNDEFINED";
+    exports[3522] = "ER_PK_INDEX_CANT_BE_INVISIBLE";
+    exports[3523] = "ER_UNKNOWN_AUTHID";
+    exports[3524] = "ER_FAILED_ROLE_GRANT";
+    exports[3525] = "ER_OPEN_ROLE_TABLES";
+    exports[3526] = "ER_FAILED_DEFAULT_ROLES";
+    exports[3527] = "ER_COMPONENTS_NO_SCHEME";
+    exports[3528] = "ER_COMPONENTS_NO_SCHEME_SERVICE";
+    exports[3529] = "ER_COMPONENTS_CANT_LOAD";
+    exports[3530] = "ER_ROLE_NOT_GRANTED";
+    exports[3531] = "ER_FAILED_REVOKE_ROLE";
+    exports[3532] = "ER_RENAME_ROLE";
+    exports[3533] = "ER_COMPONENTS_CANT_ACQUIRE_SERVICE_IMPLEMENTATION";
+    exports[3534] = "ER_COMPONENTS_CANT_SATISFY_DEPENDENCY";
+    exports[3535] = "ER_COMPONENTS_LOAD_CANT_REGISTER_SERVICE_IMPLEMENTATION";
+    exports[3536] = "ER_COMPONENTS_LOAD_CANT_INITIALIZE";
+    exports[3537] = "ER_COMPONENTS_UNLOAD_NOT_LOADED";
+    exports[3538] = "ER_COMPONENTS_UNLOAD_CANT_DEINITIALIZE";
+    exports[3539] = "ER_COMPONENTS_CANT_RELEASE_SERVICE";
+    exports[3540] = "ER_COMPONENTS_UNLOAD_CANT_UNREGISTER_SERVICE";
+    exports[3541] = "ER_COMPONENTS_CANT_UNLOAD";
+    exports[3542] = "ER_WARN_UNLOAD_THE_NOT_PERSISTED";
+    exports[3543] = "ER_COMPONENT_TABLE_INCORRECT";
+    exports[3544] = "ER_COMPONENT_MANIPULATE_ROW_FAILED";
+    exports[3545] = "ER_COMPONENTS_UNLOAD_DUPLICATE_IN_GROUP";
+    exports[3546] = "ER_CANT_SET_GTID_PURGED_DUE_SETS_CONSTRAINTS";
+    exports[3547] = "ER_CANNOT_LOCK_USER_MANAGEMENT_CACHES";
+    exports[3548] = "ER_SRS_NOT_FOUND";
+    exports[3549] = "ER_VARIABLE_NOT_PERSISTED";
+    exports[3550] = "ER_IS_QUERY_INVALID_CLAUSE";
+    exports[3551] = "ER_UNABLE_TO_STORE_STATISTICS";
+    exports[3552] = "ER_NO_SYSTEM_SCHEMA_ACCESS";
+    exports[3553] = "ER_NO_SYSTEM_TABLESPACE_ACCESS";
+    exports[3554] = "ER_NO_SYSTEM_TABLE_ACCESS";
+    exports[3555] = "ER_NO_SYSTEM_TABLE_ACCESS_FOR_DICTIONARY_TABLE";
+    exports[3556] = "ER_NO_SYSTEM_TABLE_ACCESS_FOR_SYSTEM_TABLE";
+    exports[3557] = "ER_NO_SYSTEM_TABLE_ACCESS_FOR_TABLE";
+    exports[3558] = "ER_INVALID_OPTION_KEY";
+    exports[3559] = "ER_INVALID_OPTION_VALUE";
+    exports[3560] = "ER_INVALID_OPTION_KEY_VALUE_PAIR";
+    exports[3561] = "ER_INVALID_OPTION_START_CHARACTER";
+    exports[3562] = "ER_INVALID_OPTION_END_CHARACTER";
+    exports[3563] = "ER_INVALID_OPTION_CHARACTERS";
+    exports[3564] = "ER_DUPLICATE_OPTION_KEY";
+    exports[3565] = "ER_WARN_SRS_NOT_FOUND_AXIS_ORDER";
+    exports[3566] = "ER_NO_ACCESS_TO_NATIVE_FCT";
+    exports[3567] = "ER_RESET_SOURCE_TO_VALUE_OUT_OF_RANGE";
+    exports[3568] = "ER_UNRESOLVED_TABLE_LOCK";
+    exports[3569] = "ER_DUPLICATE_TABLE_LOCK";
+    exports[3570] = "ER_BINLOG_UNSAFE_SKIP_LOCKED";
+    exports[3571] = "ER_BINLOG_UNSAFE_NOWAIT";
+    exports[3572] = "ER_LOCK_NOWAIT";
+    exports[3573] = "ER_CTE_RECURSIVE_REQUIRES_UNION";
+    exports[3574] = "ER_CTE_RECURSIVE_REQUIRES_NONRECURSIVE_FIRST";
+    exports[3575] = "ER_CTE_RECURSIVE_FORBIDS_AGGREGATION";
+    exports[3576] = "ER_CTE_RECURSIVE_FORBIDDEN_JOIN_ORDER";
+    exports[3577] = "ER_CTE_RECURSIVE_REQUIRES_SINGLE_REFERENCE";
+    exports[3578] = "ER_SWITCH_TMP_ENGINE";
+    exports[3579] = "ER_WINDOW_NO_SUCH_WINDOW";
+    exports[3580] = "ER_WINDOW_CIRCULARITY_IN_WINDOW_GRAPH";
+    exports[3581] = "ER_WINDOW_NO_CHILD_PARTITIONING";
+    exports[3582] = "ER_WINDOW_NO_INHERIT_FRAME";
+    exports[3583] = "ER_WINDOW_NO_REDEFINE_ORDER_BY";
+    exports[3584] = "ER_WINDOW_FRAME_START_ILLEGAL";
+    exports[3585] = "ER_WINDOW_FRAME_END_ILLEGAL";
+    exports[3586] = "ER_WINDOW_FRAME_ILLEGAL";
+    exports[3587] = "ER_WINDOW_RANGE_FRAME_ORDER_TYPE";
+    exports[3588] = "ER_WINDOW_RANGE_FRAME_TEMPORAL_TYPE";
+    exports[3589] = "ER_WINDOW_RANGE_FRAME_NUMERIC_TYPE";
+    exports[3590] = "ER_WINDOW_RANGE_BOUND_NOT_CONSTANT";
+    exports[3591] = "ER_WINDOW_DUPLICATE_NAME";
+    exports[3592] = "ER_WINDOW_ILLEGAL_ORDER_BY";
+    exports[3593] = "ER_WINDOW_INVALID_WINDOW_FUNC_USE";
+    exports[3594] = "ER_WINDOW_INVALID_WINDOW_FUNC_ALIAS_USE";
+    exports[3595] = "ER_WINDOW_NESTED_WINDOW_FUNC_USE_IN_WINDOW_SPEC";
+    exports[3596] = "ER_WINDOW_ROWS_INTERVAL_USE";
+    exports[3597] = "ER_WINDOW_NO_GROUP_ORDER";
+    exports[3598] = "ER_WINDOW_EXPLAIN_JSON";
+    exports[3599] = "ER_WINDOW_FUNCTION_IGNORES_FRAME";
+    exports[3600] = "ER_WL9236_NOW";
+    exports[3601] = "ER_INVALID_NO_OF_ARGS";
+    exports[3602] = "ER_FIELD_IN_GROUPING_NOT_GROUP_BY";
+    exports[3603] = "ER_TOO_LONG_TABLESPACE_COMMENT";
+    exports[3604] = "ER_ENGINE_CANT_DROP_TABLE";
+    exports[3605] = "ER_ENGINE_CANT_DROP_MISSING_TABLE";
+    exports[3606] = "ER_TABLESPACE_DUP_FILENAME";
+    exports[3607] = "ER_DB_DROP_RMDIR2";
+    exports[3608] = "ER_IMP_NO_FILES_MATCHED";
+    exports[3609] = "ER_IMP_SCHEMA_DOES_NOT_EXIST";
+    exports[3610] = "ER_IMP_TABLE_ALREADY_EXISTS";
+    exports[3611] = "ER_IMP_INCOMPATIBLE_MYSQLD_VERSION";
+    exports[3612] = "ER_IMP_INCOMPATIBLE_DD_VERSION";
+    exports[3613] = "ER_IMP_INCOMPATIBLE_SDI_VERSION";
+    exports[3614] = "ER_WARN_INVALID_HINT";
+    exports[3615] = "ER_VAR_DOES_NOT_EXIST";
+    exports[3616] = "ER_LONGITUDE_OUT_OF_RANGE";
+    exports[3617] = "ER_LATITUDE_OUT_OF_RANGE";
+    exports[3618] = "ER_NOT_IMPLEMENTED_FOR_GEOGRAPHIC_SRS";
+    exports[3619] = "ER_ILLEGAL_PRIVILEGE_LEVEL";
+    exports[3620] = "ER_NO_SYSTEM_VIEW_ACCESS";
+    exports[3621] = "ER_COMPONENT_FILTER_FLABBERGASTED";
+    exports[3622] = "ER_PART_EXPR_TOO_LONG";
+    exports[3623] = "ER_UDF_DROP_DYNAMICALLY_REGISTERED";
+    exports[3624] = "ER_UNABLE_TO_STORE_COLUMN_STATISTICS";
+    exports[3625] = "ER_UNABLE_TO_UPDATE_COLUMN_STATISTICS";
+    exports[3626] = "ER_UNABLE_TO_DROP_COLUMN_STATISTICS";
+    exports[3627] = "ER_UNABLE_TO_BUILD_HISTOGRAM";
+    exports[3628] = "ER_MANDATORY_ROLE";
+    exports[3629] = "ER_MISSING_TABLESPACE_FILE";
+    exports[3630] = "ER_PERSIST_ONLY_ACCESS_DENIED_ERROR";
+    exports[3631] = "ER_CMD_NEED_SUPER";
+    exports[3632] = "ER_PATH_IN_DATADIR";
+    exports[3633] = "ER_CLONE_DDL_IN_PROGRESS";
+    exports[3634] = "ER_CLONE_TOO_MANY_CONCURRENT_CLONES";
+    exports[3635] = "ER_APPLIER_LOG_EVENT_VALIDATION_ERROR";
+    exports[3636] = "ER_CTE_MAX_RECURSION_DEPTH";
+    exports[3637] = "ER_NOT_HINT_UPDATABLE_VARIABLE";
+    exports[3638] = "ER_CREDENTIALS_CONTRADICT_TO_HISTORY";
+    exports[3639] = "ER_WARNING_PASSWORD_HISTORY_CLAUSES_VOID";
+    exports[3640] = "ER_CLIENT_DOES_NOT_SUPPORT";
+    exports[3641] = "ER_I_S_SKIPPED_TABLESPACE";
+    exports[3642] = "ER_TABLESPACE_ENGINE_MISMATCH";
+    exports[3643] = "ER_WRONG_SRID_FOR_COLUMN";
+    exports[3644] = "ER_CANNOT_ALTER_SRID_DUE_TO_INDEX";
+    exports[3645] = "ER_WARN_BINLOG_PARTIAL_UPDATES_DISABLED";
+    exports[3646] = "ER_WARN_BINLOG_V1_ROW_EVENTS_DISABLED";
+    exports[3647] = "ER_WARN_BINLOG_PARTIAL_UPDATES_SUGGESTS_PARTIAL_IMAGES";
+    exports[3648] = "ER_COULD_NOT_APPLY_JSON_DIFF";
+    exports[3649] = "ER_CORRUPTED_JSON_DIFF";
+    exports[3650] = "ER_RESOURCE_GROUP_EXISTS";
+    exports[3651] = "ER_RESOURCE_GROUP_NOT_EXISTS";
+    exports[3652] = "ER_INVALID_VCPU_ID";
+    exports[3653] = "ER_INVALID_VCPU_RANGE";
+    exports[3654] = "ER_INVALID_THREAD_PRIORITY";
+    exports[3655] = "ER_DISALLOWED_OPERATION";
+    exports[3656] = "ER_RESOURCE_GROUP_BUSY";
+    exports[3657] = "ER_RESOURCE_GROUP_DISABLED";
+    exports[3658] = "ER_FEATURE_UNSUPPORTED";
+    exports[3659] = "ER_ATTRIBUTE_IGNORED";
+    exports[3660] = "ER_INVALID_THREAD_ID";
+    exports[3661] = "ER_RESOURCE_GROUP_BIND_FAILED";
+    exports[3662] = "ER_INVALID_USE_OF_FORCE_OPTION";
+    exports[3663] = "ER_GROUP_REPLICATION_COMMAND_FAILURE";
+    exports[3664] = "ER_SDI_OPERATION_FAILED";
+    exports[3665] = "ER_MISSING_JSON_TABLE_VALUE";
+    exports[3666] = "ER_WRONG_JSON_TABLE_VALUE";
+    exports[3667] = "ER_TF_MUST_HAVE_ALIAS";
+    exports[3668] = "ER_TF_FORBIDDEN_JOIN_TYPE";
+    exports[3669] = "ER_JT_VALUE_OUT_OF_RANGE";
+    exports[3670] = "ER_JT_MAX_NESTED_PATH";
+    exports[3671] = "ER_PASSWORD_EXPIRATION_NOT_SUPPORTED_BY_AUTH_METHOD";
+    exports[3672] = "ER_INVALID_GEOJSON_CRS_NOT_TOP_LEVEL";
+    exports[3673] = "ER_BAD_NULL_ERROR_NOT_IGNORED";
+    exports[3674] = "WARN_USELESS_SPATIAL_INDEX";
+    exports[3675] = "ER_DISK_FULL_NOWAIT";
+    exports[3676] = "ER_PARSE_ERROR_IN_DIGEST_FN";
+    exports[3677] = "ER_UNDISCLOSED_PARSE_ERROR_IN_DIGEST_FN";
+    exports[3678] = "ER_SCHEMA_DIR_EXISTS";
+    exports[3679] = "ER_SCHEMA_DIR_MISSING";
+    exports[3680] = "ER_SCHEMA_DIR_CREATE_FAILED";
+    exports[3681] = "ER_SCHEMA_DIR_UNKNOWN";
+    exports[3682] = "ER_ONLY_IMPLEMENTED_FOR_SRID_0_AND_4326";
+    exports[3683] = "ER_BINLOG_EXPIRE_LOG_DAYS_AND_SECS_USED_TOGETHER";
+    exports[3684] = "ER_REGEXP_BUFFER_OVERFLOW";
+    exports[3685] = "ER_REGEXP_ILLEGAL_ARGUMENT";
+    exports[3686] = "ER_REGEXP_INDEX_OUTOFBOUNDS_ERROR";
+    exports[3687] = "ER_REGEXP_INTERNAL_ERROR";
+    exports[3688] = "ER_REGEXP_RULE_SYNTAX";
+    exports[3689] = "ER_REGEXP_BAD_ESCAPE_SEQUENCE";
+    exports[3690] = "ER_REGEXP_UNIMPLEMENTED";
+    exports[3691] = "ER_REGEXP_MISMATCHED_PAREN";
+    exports[3692] = "ER_REGEXP_BAD_INTERVAL";
+    exports[3693] = "ER_REGEXP_MAX_LT_MIN";
+    exports[3694] = "ER_REGEXP_INVALID_BACK_REF";
+    exports[3695] = "ER_REGEXP_LOOK_BEHIND_LIMIT";
+    exports[3696] = "ER_REGEXP_MISSING_CLOSE_BRACKET";
+    exports[3697] = "ER_REGEXP_INVALID_RANGE";
+    exports[3698] = "ER_REGEXP_STACK_OVERFLOW";
+    exports[3699] = "ER_REGEXP_TIME_OUT";
+    exports[3700] = "ER_REGEXP_PATTERN_TOO_BIG";
+    exports[3701] = "ER_CANT_SET_ERROR_LOG_SERVICE";
+    exports[3702] = "ER_EMPTY_PIPELINE_FOR_ERROR_LOG_SERVICE";
+    exports[3703] = "ER_COMPONENT_FILTER_DIAGNOSTICS";
+    exports[3704] = "ER_NOT_IMPLEMENTED_FOR_CARTESIAN_SRS";
+    exports[3705] = "ER_NOT_IMPLEMENTED_FOR_PROJECTED_SRS";
+    exports[3706] = "ER_NONPOSITIVE_RADIUS";
+    exports[3707] = "ER_RESTART_SERVER_FAILED";
+    exports[3708] = "ER_SRS_MISSING_MANDATORY_ATTRIBUTE";
+    exports[3709] = "ER_SRS_MULTIPLE_ATTRIBUTE_DEFINITIONS";
+    exports[3710] = "ER_SRS_NAME_CANT_BE_EMPTY_OR_WHITESPACE";
+    exports[3711] = "ER_SRS_ORGANIZATION_CANT_BE_EMPTY_OR_WHITESPACE";
+    exports[3712] = "ER_SRS_ID_ALREADY_EXISTS";
+    exports[3713] = "ER_WARN_SRS_ID_ALREADY_EXISTS";
+    exports[3714] = "ER_CANT_MODIFY_SRID_0";
+    exports[3715] = "ER_WARN_RESERVED_SRID_RANGE";
+    exports[3716] = "ER_CANT_MODIFY_SRS_USED_BY_COLUMN";
+    exports[3717] = "ER_SRS_INVALID_CHARACTER_IN_ATTRIBUTE";
+    exports[3718] = "ER_SRS_ATTRIBUTE_STRING_TOO_LONG";
+    exports[3719] = "ER_DEPRECATED_UTF8_ALIAS";
+    exports[3720] = "ER_DEPRECATED_NATIONAL";
+    exports[3721] = "ER_INVALID_DEFAULT_UTF8MB4_COLLATION";
+    exports[3722] = "ER_UNABLE_TO_COLLECT_LOG_STATUS";
+    exports[3723] = "ER_RESERVED_TABLESPACE_NAME";
+    exports[3724] = "ER_UNABLE_TO_SET_OPTION";
+    exports[3725] = "ER_REPLICA_POSSIBLY_DIVERGED_AFTER_DDL";
+    exports[3726] = "ER_SRS_NOT_GEOGRAPHIC";
+    exports[3727] = "ER_POLYGON_TOO_LARGE";
+    exports[3728] = "ER_SPATIAL_UNIQUE_INDEX";
+    exports[3729] = "ER_INDEX_TYPE_NOT_SUPPORTED_FOR_SPATIAL_INDEX";
+    exports[3730] = "ER_FK_CANNOT_DROP_PARENT";
+    exports[3731] = "ER_GEOMETRY_PARAM_LONGITUDE_OUT_OF_RANGE";
+    exports[3732] = "ER_GEOMETRY_PARAM_LATITUDE_OUT_OF_RANGE";
+    exports[3733] = "ER_FK_CANNOT_USE_VIRTUAL_COLUMN";
+    exports[3734] = "ER_FK_NO_COLUMN_PARENT";
+    exports[3735] = "ER_CANT_SET_ERROR_SUPPRESSION_LIST";
+    exports[3736] = "ER_SRS_GEOGCS_INVALID_AXES";
+    exports[3737] = "ER_SRS_INVALID_SEMI_MAJOR_AXIS";
+    exports[3738] = "ER_SRS_INVALID_INVERSE_FLATTENING";
+    exports[3739] = "ER_SRS_INVALID_ANGULAR_UNIT";
+    exports[3740] = "ER_SRS_INVALID_PRIME_MERIDIAN";
+    exports[3741] = "ER_TRANSFORM_SOURCE_SRS_NOT_SUPPORTED";
+    exports[3742] = "ER_TRANSFORM_TARGET_SRS_NOT_SUPPORTED";
+    exports[3743] = "ER_TRANSFORM_SOURCE_SRS_MISSING_TOWGS84";
+    exports[3744] = "ER_TRANSFORM_TARGET_SRS_MISSING_TOWGS84";
+    exports[3745] = "ER_TEMP_TABLE_PREVENTS_SWITCH_SESSION_BINLOG_FORMAT";
+    exports[3746] = "ER_TEMP_TABLE_PREVENTS_SWITCH_GLOBAL_BINLOG_FORMAT";
+    exports[3747] = "ER_RUNNING_APPLIER_PREVENTS_SWITCH_GLOBAL_BINLOG_FORMAT";
+    exports[3748] = "ER_CLIENT_GTID_UNSAFE_CREATE_DROP_TEMP_TABLE_IN_TRX_IN_SBR";
+    exports[3749] = "ER_XA_CANT_CREATE_MDL_BACKUP";
+    exports[3750] = "ER_TABLE_WITHOUT_PK";
+    exports[3751] = "ER_WARN_DATA_TRUNCATED_FUNCTIONAL_INDEX";
+    exports[3752] = "ER_WARN_DATA_OUT_OF_RANGE_FUNCTIONAL_INDEX";
+    exports[3753] = "ER_FUNCTIONAL_INDEX_ON_JSON_OR_GEOMETRY_FUNCTION";
+    exports[3754] = "ER_FUNCTIONAL_INDEX_REF_AUTO_INCREMENT";
+    exports[3755] = "ER_CANNOT_DROP_COLUMN_FUNCTIONAL_INDEX";
+    exports[3756] = "ER_FUNCTIONAL_INDEX_PRIMARY_KEY";
+    exports[3757] = "ER_FUNCTIONAL_INDEX_ON_LOB";
+    exports[3758] = "ER_FUNCTIONAL_INDEX_FUNCTION_IS_NOT_ALLOWED";
+    exports[3759] = "ER_FULLTEXT_FUNCTIONAL_INDEX";
+    exports[3760] = "ER_SPATIAL_FUNCTIONAL_INDEX";
+    exports[3761] = "ER_WRONG_KEY_COLUMN_FUNCTIONAL_INDEX";
+    exports[3762] = "ER_FUNCTIONAL_INDEX_ON_FIELD";
+    exports[3763] = "ER_GENERATED_COLUMN_NAMED_FUNCTION_IS_NOT_ALLOWED";
+    exports[3764] = "ER_GENERATED_COLUMN_ROW_VALUE";
+    exports[3765] = "ER_GENERATED_COLUMN_VARIABLES";
+    exports[3766] = "ER_DEPENDENT_BY_DEFAULT_GENERATED_VALUE";
+    exports[3767] = "ER_DEFAULT_VAL_GENERATED_NON_PRIOR";
+    exports[3768] = "ER_DEFAULT_VAL_GENERATED_REF_AUTO_INC";
+    exports[3769] = "ER_DEFAULT_VAL_GENERATED_FUNCTION_IS_NOT_ALLOWED";
+    exports[3770] = "ER_DEFAULT_VAL_GENERATED_NAMED_FUNCTION_IS_NOT_ALLOWED";
+    exports[3771] = "ER_DEFAULT_VAL_GENERATED_ROW_VALUE";
+    exports[3772] = "ER_DEFAULT_VAL_GENERATED_VARIABLES";
+    exports[3773] = "ER_DEFAULT_AS_VAL_GENERATED";
+    exports[3774] = "ER_UNSUPPORTED_ACTION_ON_DEFAULT_VAL_GENERATED";
+    exports[3775] = "ER_GTID_UNSAFE_ALTER_ADD_COL_WITH_DEFAULT_EXPRESSION";
+    exports[3776] = "ER_FK_CANNOT_CHANGE_ENGINE";
+    exports[3777] = "ER_WARN_DEPRECATED_USER_SET_EXPR";
+    exports[3778] = "ER_WARN_DEPRECATED_UTF8MB3_COLLATION";
+    exports[3779] = "ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX";
+    exports[3780] = "ER_FK_INCOMPATIBLE_COLUMNS";
+    exports[3781] = "ER_GR_HOLD_WAIT_TIMEOUT";
+    exports[3782] = "ER_GR_HOLD_KILLED";
+    exports[3783] = "ER_GR_HOLD_MEMBER_STATUS_ERROR";
+    exports[3784] = "ER_RPL_ENCRYPTION_FAILED_TO_FETCH_KEY";
+    exports[3785] = "ER_RPL_ENCRYPTION_KEY_NOT_FOUND";
+    exports[3786] = "ER_RPL_ENCRYPTION_KEYRING_INVALID_KEY";
+    exports[3787] = "ER_RPL_ENCRYPTION_HEADER_ERROR";
+    exports[3788] = "ER_RPL_ENCRYPTION_FAILED_TO_ROTATE_LOGS";
+    exports[3789] = "ER_RPL_ENCRYPTION_KEY_EXISTS_UNEXPECTED";
+    exports[3790] = "ER_RPL_ENCRYPTION_FAILED_TO_GENERATE_KEY";
+    exports[3791] = "ER_RPL_ENCRYPTION_FAILED_TO_STORE_KEY";
+    exports[3792] = "ER_RPL_ENCRYPTION_FAILED_TO_REMOVE_KEY";
+    exports[3793] = "ER_RPL_ENCRYPTION_UNABLE_TO_CHANGE_OPTION";
+    exports[3794] = "ER_RPL_ENCRYPTION_MASTER_KEY_RECOVERY_FAILED";
+    exports[3795] = "ER_SLOW_LOG_MODE_IGNORED_WHEN_NOT_LOGGING_TO_FILE";
+    exports[3796] = "ER_GRP_TRX_CONSISTENCY_NOT_ALLOWED";
+    exports[3797] = "ER_GRP_TRX_CONSISTENCY_BEFORE";
+    exports[3798] = "ER_GRP_TRX_CONSISTENCY_AFTER_ON_TRX_BEGIN";
+    exports[3799] = "ER_GRP_TRX_CONSISTENCY_BEGIN_NOT_ALLOWED";
+    exports[3800] = "ER_FUNCTIONAL_INDEX_ROW_VALUE_IS_NOT_ALLOWED";
+    exports[3801] = "ER_RPL_ENCRYPTION_FAILED_TO_ENCRYPT";
+    exports[3802] = "ER_PAGE_TRACKING_NOT_STARTED";
+    exports[3803] = "ER_PAGE_TRACKING_RANGE_NOT_TRACKED";
+    exports[3804] = "ER_PAGE_TRACKING_CANNOT_PURGE";
+    exports[3805] = "ER_RPL_ENCRYPTION_CANNOT_ROTATE_BINLOG_MASTER_KEY";
+    exports[3806] = "ER_BINLOG_MASTER_KEY_RECOVERY_OUT_OF_COMBINATION";
+    exports[3807] = "ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_OPERATE_KEY";
+    exports[3808] = "ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_ROTATE_LOGS";
+    exports[3809] = "ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_REENCRYPT_LOG";
+    exports[3810] = "ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_CLEANUP_UNUSED_KEYS";
+    exports[3811] = "ER_BINLOG_MASTER_KEY_ROTATION_FAIL_TO_CLEANUP_AUX_KEY";
+    exports[3812] = "ER_NON_BOOLEAN_EXPR_FOR_CHECK_CONSTRAINT";
+    exports[3813] = "ER_COLUMN_CHECK_CONSTRAINT_REFERENCES_OTHER_COLUMN";
+    exports[3814] = "ER_CHECK_CONSTRAINT_NAMED_FUNCTION_IS_NOT_ALLOWED";
+    exports[3815] = "ER_CHECK_CONSTRAINT_FUNCTION_IS_NOT_ALLOWED";
+    exports[3816] = "ER_CHECK_CONSTRAINT_VARIABLES";
+    exports[3817] = "ER_CHECK_CONSTRAINT_ROW_VALUE";
+    exports[3818] = "ER_CHECK_CONSTRAINT_REFERS_AUTO_INCREMENT_COLUMN";
+    exports[3819] = "ER_CHECK_CONSTRAINT_VIOLATED";
+    exports[3820] = "ER_CHECK_CONSTRAINT_REFERS_UNKNOWN_COLUMN";
+    exports[3821] = "ER_CHECK_CONSTRAINT_NOT_FOUND";
+    exports[3822] = "ER_CHECK_CONSTRAINT_DUP_NAME";
+    exports[3823] = "ER_CHECK_CONSTRAINT_CLAUSE_USING_FK_REFER_ACTION_COLUMN";
+    exports[3824] = "WARN_UNENCRYPTED_TABLE_IN_ENCRYPTED_DB";
+    exports[3825] = "ER_INVALID_ENCRYPTION_REQUEST";
+    exports[3826] = "ER_CANNOT_SET_TABLE_ENCRYPTION";
+    exports[3827] = "ER_CANNOT_SET_DATABASE_ENCRYPTION";
+    exports[3828] = "ER_CANNOT_SET_TABLESPACE_ENCRYPTION";
+    exports[3829] = "ER_TABLESPACE_CANNOT_BE_ENCRYPTED";
+    exports[3830] = "ER_TABLESPACE_CANNOT_BE_DECRYPTED";
+    exports[3831] = "ER_TABLESPACE_TYPE_UNKNOWN";
+    exports[3832] = "ER_TARGET_TABLESPACE_UNENCRYPTED";
+    exports[3833] = "ER_CANNOT_USE_ENCRYPTION_CLAUSE";
+    exports[3834] = "ER_INVALID_MULTIPLE_CLAUSES";
+    exports[3835] = "ER_UNSUPPORTED_USE_OF_GRANT_AS";
+    exports[3836] = "ER_UKNOWN_AUTH_ID_OR_ACCESS_DENIED_FOR_GRANT_AS";
+    exports[3837] = "ER_DEPENDENT_BY_FUNCTIONAL_INDEX";
+    exports[3838] = "ER_PLUGIN_NOT_EARLY";
+    exports[3839] = "ER_INNODB_REDO_LOG_ARCHIVE_START_SUBDIR_PATH";
+    exports[3840] = "ER_INNODB_REDO_LOG_ARCHIVE_START_TIMEOUT";
+    exports[3841] = "ER_INNODB_REDO_LOG_ARCHIVE_DIRS_INVALID";
+    exports[3842] = "ER_INNODB_REDO_LOG_ARCHIVE_LABEL_NOT_FOUND";
+    exports[3843] = "ER_INNODB_REDO_LOG_ARCHIVE_DIR_EMPTY";
+    exports[3844] = "ER_INNODB_REDO_LOG_ARCHIVE_NO_SUCH_DIR";
+    exports[3845] = "ER_INNODB_REDO_LOG_ARCHIVE_DIR_CLASH";
+    exports[3846] = "ER_INNODB_REDO_LOG_ARCHIVE_DIR_PERMISSIONS";
+    exports[3847] = "ER_INNODB_REDO_LOG_ARCHIVE_FILE_CREATE";
+    exports[3848] = "ER_INNODB_REDO_LOG_ARCHIVE_ACTIVE";
+    exports[3849] = "ER_INNODB_REDO_LOG_ARCHIVE_INACTIVE";
+    exports[3850] = "ER_INNODB_REDO_LOG_ARCHIVE_FAILED";
+    exports[3851] = "ER_INNODB_REDO_LOG_ARCHIVE_SESSION";
+    exports[3852] = "ER_STD_REGEX_ERROR";
+    exports[3853] = "ER_INVALID_JSON_TYPE";
+    exports[3854] = "ER_CANNOT_CONVERT_STRING";
+    exports[3855] = "ER_DEPENDENT_BY_PARTITION_FUNC";
+    exports[3856] = "ER_WARN_DEPRECATED_FLOAT_AUTO_INCREMENT";
+    exports[3857] = "ER_RPL_CANT_STOP_REPLICA_WHILE_LOCKED_BACKUP";
+    exports[3858] = "ER_WARN_DEPRECATED_FLOAT_DIGITS";
+    exports[3859] = "ER_WARN_DEPRECATED_FLOAT_UNSIGNED";
+    exports[3860] = "ER_WARN_DEPRECATED_INTEGER_DISPLAY_WIDTH";
+    exports[3861] = "ER_WARN_DEPRECATED_ZEROFILL";
+    exports[3862] = "ER_CLONE_DONOR";
+    exports[3863] = "ER_CLONE_PROTOCOL";
+    exports[3864] = "ER_CLONE_DONOR_VERSION";
+    exports[3865] = "ER_CLONE_OS";
+    exports[3866] = "ER_CLONE_PLATFORM";
+    exports[3867] = "ER_CLONE_CHARSET";
+    exports[3868] = "ER_CLONE_CONFIG";
+    exports[3869] = "ER_CLONE_SYS_CONFIG";
+    exports[3870] = "ER_CLONE_PLUGIN_MATCH";
+    exports[3871] = "ER_CLONE_LOOPBACK";
+    exports[3872] = "ER_CLONE_ENCRYPTION";
+    exports[3873] = "ER_CLONE_DISK_SPACE";
+    exports[3874] = "ER_CLONE_IN_PROGRESS";
+    exports[3875] = "ER_CLONE_DISALLOWED";
+    exports[3876] = "ER_CANNOT_GRANT_ROLES_TO_ANONYMOUS_USER";
+    exports[3877] = "ER_SECONDARY_ENGINE_PLUGIN";
+    exports[3878] = "ER_SECOND_PASSWORD_CANNOT_BE_EMPTY";
+    exports[3879] = "ER_DB_ACCESS_DENIED";
+    exports[3880] = "ER_DA_AUTH_ID_WITH_SYSTEM_USER_PRIV_IN_MANDATORY_ROLES";
+    exports[3881] = "ER_DA_RPL_GTID_TABLE_CANNOT_OPEN";
+    exports[3882] = "ER_GEOMETRY_IN_UNKNOWN_LENGTH_UNIT";
+    exports[3883] = "ER_DA_PLUGIN_INSTALL_ERROR";
+    exports[3884] = "ER_NO_SESSION_TEMP";
+    exports[3885] = "ER_DA_UNKNOWN_ERROR_NUMBER";
+    exports[3886] = "ER_COLUMN_CHANGE_SIZE";
+    exports[3887] = "ER_REGEXP_INVALID_CAPTURE_GROUP_NAME";
+    exports[3888] = "ER_DA_SSL_LIBRARY_ERROR";
+    exports[3889] = "ER_SECONDARY_ENGINE";
+    exports[3890] = "ER_SECONDARY_ENGINE_DDL";
+    exports[3891] = "ER_INCORRECT_CURRENT_PASSWORD";
+    exports[3892] = "ER_MISSING_CURRENT_PASSWORD";
+    exports[3893] = "ER_CURRENT_PASSWORD_NOT_REQUIRED";
+    exports[3894] = "ER_PASSWORD_CANNOT_BE_RETAINED_ON_PLUGIN_CHANGE";
+    exports[3895] = "ER_CURRENT_PASSWORD_CANNOT_BE_RETAINED";
+    exports[3896] = "ER_PARTIAL_REVOKES_EXIST";
+    exports[3897] = "ER_CANNOT_GRANT_SYSTEM_PRIV_TO_MANDATORY_ROLE";
+    exports[3898] = "ER_XA_REPLICATION_FILTERS";
+    exports[3899] = "ER_UNSUPPORTED_SQL_MODE";
+    exports[3900] = "ER_REGEXP_INVALID_FLAG";
+    exports[3901] = "ER_PARTIAL_REVOKE_AND_DB_GRANT_BOTH_EXISTS";
+    exports[3902] = "ER_UNIT_NOT_FOUND";
+    exports[3903] = "ER_INVALID_JSON_VALUE_FOR_FUNC_INDEX";
+    exports[3904] = "ER_JSON_VALUE_OUT_OF_RANGE_FOR_FUNC_INDEX";
+    exports[3905] = "ER_EXCEEDED_MV_KEYS_NUM";
+    exports[3906] = "ER_EXCEEDED_MV_KEYS_SPACE";
+    exports[3907] = "ER_FUNCTIONAL_INDEX_DATA_IS_TOO_LONG";
+    exports[3908] = "ER_WRONG_MVI_VALUE";
+    exports[3909] = "ER_WARN_FUNC_INDEX_NOT_APPLICABLE";
+    exports[3910] = "ER_GRP_RPL_UDF_ERROR";
+    exports[3911] = "ER_UPDATE_GTID_PURGED_WITH_GR";
+    exports[3912] = "ER_GROUPING_ON_TIMESTAMP_IN_DST";
+    exports[3913] = "ER_TABLE_NAME_CAUSES_TOO_LONG_PATH";
+    exports[3914] = "ER_AUDIT_LOG_INSUFFICIENT_PRIVILEGE";
+    exports[3915] = "ER_AUDIT_LOG_PASSWORD_HAS_BEEN_COPIED";
+    exports[3916] = "ER_DA_GRP_RPL_STARTED_AUTO_REJOIN";
+    exports[3917] = "ER_SYSVAR_CHANGE_DURING_QUERY";
+    exports[3918] = "ER_GLOBSTAT_CHANGE_DURING_QUERY";
+    exports[3919] = "ER_GRP_RPL_MESSAGE_SERVICE_INIT_FAILURE";
+    exports[3920] = "ER_CHANGE_SOURCE_WRONG_COMPRESSION_ALGORITHM_CLIENT";
+    exports[3921] = "ER_CHANGE_SOURCE_WRONG_COMPRESSION_LEVEL_CLIENT";
+    exports[3922] = "ER_WRONG_COMPRESSION_ALGORITHM_CLIENT";
+    exports[3923] = "ER_WRONG_COMPRESSION_LEVEL_CLIENT";
+    exports[3924] = "ER_CHANGE_SOURCE_WRONG_COMPRESSION_ALGORITHM_LIST_CLIENT";
+    exports[3925] = "ER_CLIENT_PRIVILEGE_CHECKS_USER_CANNOT_BE_ANONYMOUS";
+    exports[3926] = "ER_CLIENT_PRIVILEGE_CHECKS_USER_DOES_NOT_EXIST";
+    exports[3927] = "ER_CLIENT_PRIVILEGE_CHECKS_USER_CORRUPT";
+    exports[3928] = "ER_CLIENT_PRIVILEGE_CHECKS_USER_NEEDS_RPL_APPLIER_PRIV";
+    exports[3929] = "ER_WARN_DA_PRIVILEGE_NOT_REGISTERED";
+    exports[3930] = "ER_CLIENT_KEYRING_UDF_KEY_INVALID";
+    exports[3931] = "ER_CLIENT_KEYRING_UDF_KEY_TYPE_INVALID";
+    exports[3932] = "ER_CLIENT_KEYRING_UDF_KEY_TOO_LONG";
+    exports[3933] = "ER_CLIENT_KEYRING_UDF_KEY_TYPE_TOO_LONG";
+    exports[3934] = "ER_JSON_SCHEMA_VALIDATION_ERROR_WITH_DETAILED_REPORT";
+    exports[3935] = "ER_DA_UDF_INVALID_CHARSET_SPECIFIED";
+    exports[3936] = "ER_DA_UDF_INVALID_CHARSET";
+    exports[3937] = "ER_DA_UDF_INVALID_COLLATION";
+    exports[3938] = "ER_DA_UDF_INVALID_EXTENSION_ARGUMENT_TYPE";
+    exports[3939] = "ER_MULTIPLE_CONSTRAINTS_WITH_SAME_NAME";
+    exports[3940] = "ER_CONSTRAINT_NOT_FOUND";
+    exports[3941] = "ER_ALTER_CONSTRAINT_ENFORCEMENT_NOT_SUPPORTED";
+    exports[3942] = "ER_TABLE_VALUE_CONSTRUCTOR_MUST_HAVE_COLUMNS";
+    exports[3943] = "ER_TABLE_VALUE_CONSTRUCTOR_CANNOT_HAVE_DEFAULT";
+    exports[3944] = "ER_CLIENT_QUERY_FAILURE_INVALID_NON_ROW_FORMAT";
+    exports[3945] = "ER_REQUIRE_ROW_FORMAT_INVALID_VALUE";
+    exports[3946] = "ER_FAILED_TO_DETERMINE_IF_ROLE_IS_MANDATORY";
+    exports[3947] = "ER_FAILED_TO_FETCH_MANDATORY_ROLE_LIST";
+    exports[3948] = "ER_CLIENT_LOCAL_FILES_DISABLED";
+    exports[3949] = "ER_IMP_INCOMPATIBLE_CFG_VERSION";
+    exports[3950] = "ER_DA_OOM";
+    exports[3951] = "ER_DA_UDF_INVALID_ARGUMENT_TO_SET_CHARSET";
+    exports[3952] = "ER_DA_UDF_INVALID_RETURN_TYPE_TO_SET_CHARSET";
+    exports[3953] = "ER_MULTIPLE_INTO_CLAUSES";
+    exports[3954] = "ER_MISPLACED_INTO";
+    exports[3955] = "ER_USER_ACCESS_DENIED_FOR_USER_ACCOUNT_BLOCKED_BY_PASSWORD_LOCK";
+    exports[3956] = "ER_WARN_DEPRECATED_YEAR_UNSIGNED";
+    exports[3957] = "ER_CLONE_NETWORK_PACKET";
+    exports[3958] = "ER_SDI_OPERATION_FAILED_MISSING_RECORD";
+    exports[3959] = "ER_DEPENDENT_BY_CHECK_CONSTRAINT";
+    exports[3960] = "ER_GRP_OPERATION_NOT_ALLOWED_GR_MUST_STOP";
+    exports[3961] = "ER_WARN_DEPRECATED_JSON_TABLE_ON_ERROR_ON_EMPTY";
+    exports[3962] = "ER_WARN_DEPRECATED_INNER_INTO";
+    exports[3963] = "ER_WARN_DEPRECATED_VALUES_FUNCTION_ALWAYS_NULL";
+    exports[3964] = "ER_WARN_DEPRECATED_SQL_CALC_FOUND_ROWS";
+    exports[3965] = "ER_WARN_DEPRECATED_FOUND_ROWS";
+    exports[3966] = "ER_MISSING_JSON_VALUE";
+    exports[3967] = "ER_MULTIPLE_JSON_VALUES";
+    exports[3968] = "ER_HOSTNAME_TOO_LONG";
+    exports[3969] = "ER_WARN_CLIENT_DEPRECATED_PARTITION_PREFIX_KEY";
+    exports[3970] = "ER_GROUP_REPLICATION_USER_EMPTY_MSG";
+    exports[3971] = "ER_GROUP_REPLICATION_USER_MANDATORY_MSG";
+    exports[3972] = "ER_GROUP_REPLICATION_PASSWORD_LENGTH";
+    exports[3973] = "ER_SUBQUERY_TRANSFORM_REJECTED";
+    exports[3974] = "ER_DA_GRP_RPL_RECOVERY_ENDPOINT_FORMAT";
+    exports[3975] = "ER_DA_GRP_RPL_RECOVERY_ENDPOINT_INVALID";
+    exports[3976] = "ER_WRONG_VALUE_FOR_VAR_PLUS_ACTIONABLE_PART";
+    exports[3977] = "ER_STATEMENT_NOT_ALLOWED_AFTER_START_TRANSACTION";
+    exports[3978] = "ER_FOREIGN_KEY_WITH_ATOMIC_CREATE_SELECT";
+    exports[3979] = "ER_NOT_ALLOWED_WITH_START_TRANSACTION";
+    exports[3980] = "ER_INVALID_JSON_ATTRIBUTE";
+    exports[3981] = "ER_ENGINE_ATTRIBUTE_NOT_SUPPORTED";
+    exports[3982] = "ER_INVALID_USER_ATTRIBUTE_JSON";
+    exports[3983] = "ER_INNODB_REDO_DISABLED";
+    exports[3984] = "ER_INNODB_REDO_ARCHIVING_ENABLED";
+    exports[3985] = "ER_MDL_OUT_OF_RESOURCES";
+    exports[3986] = "ER_IMPLICIT_COMPARISON_FOR_JSON";
+    exports[3987] = "ER_FUNCTION_DOES_NOT_SUPPORT_CHARACTER_SET";
+    exports[3988] = "ER_IMPOSSIBLE_STRING_CONVERSION";
+    exports[3989] = "ER_SCHEMA_READ_ONLY";
+    exports[3990] = "ER_RPL_ASYNC_RECONNECT_GTID_MODE_OFF";
+    exports[3991] = "ER_RPL_ASYNC_RECONNECT_AUTO_POSITION_OFF";
+    exports[3992] = "ER_DISABLE_GTID_MODE_REQUIRES_ASYNC_RECONNECT_OFF";
+    exports[3993] = "ER_DISABLE_AUTO_POSITION_REQUIRES_ASYNC_RECONNECT_OFF";
+    exports[3994] = "ER_INVALID_PARAMETER_USE";
+    exports[3995] = "ER_CHARACTER_SET_MISMATCH";
+    exports[3996] = "ER_WARN_VAR_VALUE_CHANGE_NOT_SUPPORTED";
+    exports[3997] = "ER_INVALID_TIME_ZONE_INTERVAL";
+    exports[3998] = "ER_INVALID_CAST";
+    exports[3999] = "ER_HYPERGRAPH_NOT_SUPPORTED_YET";
+    exports[4e3] = "ER_WARN_HYPERGRAPH_EXPERIMENTAL";
+    exports[4001] = "ER_DA_NO_ERROR_LOG_PARSER_CONFIGURED";
+    exports[4002] = "ER_DA_ERROR_LOG_TABLE_DISABLED";
+    exports[4003] = "ER_DA_ERROR_LOG_MULTIPLE_FILTERS";
+    exports[4004] = "ER_DA_CANT_OPEN_ERROR_LOG";
+    exports[4005] = "ER_USER_REFERENCED_AS_DEFINER";
+    exports[4006] = "ER_CANNOT_USER_REFERENCED_AS_DEFINER";
+    exports[4007] = "ER_REGEX_NUMBER_TOO_BIG";
+    exports[4008] = "ER_SPVAR_NONINTEGER_TYPE";
+    exports[4009] = "WARN_UNSUPPORTED_ACL_TABLES_READ";
+    exports[4010] = "ER_BINLOG_UNSAFE_ACL_TABLE_READ_IN_DML_DDL";
+    exports[4011] = "ER_STOP_REPLICA_MONITOR_IO_THREAD_TIMEOUT";
+    exports[4012] = "ER_STARTING_REPLICA_MONITOR_IO_THREAD";
+    exports[4013] = "ER_CANT_USE_ANONYMOUS_TO_GTID_WITH_GTID_MODE_NOT_ON";
+    exports[4014] = "ER_CANT_COMBINE_ANONYMOUS_TO_GTID_AND_AUTOPOSITION";
+    exports[4015] = "ER_ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS_REQUIRES_GTID_MODE_ON";
+    exports[4016] = "ER_SQL_REPLICA_SKIP_COUNTER_USED_WITH_GTID_MODE_ON";
+    exports[4017] = "ER_USING_ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS_AS_LOCAL_OR_UUID";
+    exports[4018] = "ER_CANT_SET_ANONYMOUS_TO_GTID_AND_WAIT_UNTIL_SQL_THD_AFTER_GTIDS";
+    exports[4019] = "ER_CANT_SET_SQL_AFTER_OR_BEFORE_GTIDS_WITH_ANONYMOUS_TO_GTID";
+    exports[4020] = "ER_ANONYMOUS_TO_GTID_UUID_SAME_AS_GROUP_NAME";
+    exports[4021] = "ER_CANT_USE_SAME_UUID_AS_GROUP_NAME";
+    exports[4022] = "ER_GRP_RPL_RECOVERY_CHANNEL_STILL_RUNNING";
+    exports[4023] = "ER_INNODB_INVALID_AUTOEXTEND_SIZE_VALUE";
+    exports[4024] = "ER_INNODB_INCOMPATIBLE_WITH_TABLESPACE";
+    exports[4025] = "ER_INNODB_AUTOEXTEND_SIZE_OUT_OF_RANGE";
+    exports[4026] = "ER_CANNOT_USE_AUTOEXTEND_SIZE_CLAUSE";
+    exports[4027] = "ER_ROLE_GRANTED_TO_ITSELF";
+    exports[4028] = "ER_TABLE_MUST_HAVE_A_VISIBLE_COLUMN";
+    exports[4029] = "ER_INNODB_COMPRESSION_FAILURE";
+    exports[4030] = "ER_WARN_ASYNC_CONN_FAILOVER_NETWORK_NAMESPACE";
     exports[4031] = "ER_CLIENT_INTERACTION_TIMEOUT";
+    exports[4032] = "ER_INVALID_CAST_TO_GEOMETRY";
+    exports[4033] = "ER_INVALID_CAST_POLYGON_RING_DIRECTION";
+    exports[4034] = "ER_GIS_DIFFERENT_SRIDS_AGGREGATION";
+    exports[4035] = "ER_RELOAD_KEYRING_FAILURE";
+    exports[4036] = "ER_SDI_GET_KEYS_INVALID_TABLESPACE";
+    exports[4037] = "ER_CHANGE_RPL_SRC_WRONG_COMPRESSION_ALGORITHM_SIZE";
+    exports[4038] = "ER_WARN_DEPRECATED_TLS_VERSION_FOR_CHANNEL_CLI";
+    exports[4039] = "ER_CANT_USE_SAME_UUID_AS_VIEW_CHANGE_UUID";
+    exports[4040] = "ER_ANONYMOUS_TO_GTID_UUID_SAME_AS_VIEW_CHANGE_UUID";
+    exports[4041] = "ER_GRP_RPL_VIEW_CHANGE_UUID_FAIL_GET_VARIABLE";
+    exports[4042] = "ER_WARN_ADUIT_LOG_MAX_SIZE_AND_PRUNE_SECONDS";
+    exports[4043] = "ER_WARN_ADUIT_LOG_MAX_SIZE_CLOSE_TO_ROTATE_ON_SIZE";
+    exports[4044] = "ER_KERBEROS_CREATE_USER";
+    exports[4045] = "ER_INSTALL_PLUGIN_CONFLICT_CLIENT";
+    exports[4046] = "ER_DA_ERROR_LOG_COMPONENT_FLUSH_FAILED";
+    exports[4047] = "ER_WARN_SQL_AFTER_MTS_GAPS_GAP_NOT_CALCULATED";
+    exports[4048] = "ER_INVALID_ASSIGNMENT_TARGET";
+    exports[4049] = "ER_OPERATION_NOT_ALLOWED_ON_GR_SECONDARY";
+    exports[4050] = "ER_GRP_RPL_FAILOVER_CHANNEL_STATUS_PROPAGATION";
+    exports[4051] = "ER_WARN_AUDIT_LOG_FORMAT_UNIX_TIMESTAMP_ONLY_WHEN_JSON";
+    exports[4052] = "ER_INVALID_MFA_PLUGIN_SPECIFIED";
+    exports[4053] = "ER_IDENTIFIED_BY_UNSUPPORTED";
+    exports[4054] = "ER_INVALID_PLUGIN_FOR_REGISTRATION";
+    exports[4055] = "ER_PLUGIN_REQUIRES_REGISTRATION";
+    exports[4056] = "ER_MFA_METHOD_EXISTS";
+    exports[4057] = "ER_MFA_METHOD_NOT_EXISTS";
+    exports[4058] = "ER_AUTHENTICATION_POLICY_MISMATCH";
+    exports[4059] = "ER_PLUGIN_REGISTRATION_DONE";
+    exports[4060] = "ER_INVALID_USER_FOR_REGISTRATION";
+    exports[4061] = "ER_USER_REGISTRATION_FAILED";
+    exports[4062] = "ER_MFA_METHODS_INVALID_ORDER";
+    exports[4063] = "ER_MFA_METHODS_IDENTICAL";
+    exports[4064] = "ER_INVALID_MFA_OPERATIONS_FOR_PASSWORDLESS_USER";
+    exports[4065] = "ER_CHANGE_REPLICATION_SOURCE_NO_OPTIONS_FOR_GTID_ONLY";
+    exports[4066] = "ER_CHANGE_REP_SOURCE_CANT_DISABLE_REQ_ROW_FORMAT_WITH_GTID_ONLY";
+    exports[4067] = "ER_CHANGE_REP_SOURCE_CANT_DISABLE_AUTO_POSITION_WITH_GTID_ONLY";
+    exports[4068] = "ER_CHANGE_REP_SOURCE_CANT_DISABLE_GTID_ONLY_WITHOUT_POSITIONS";
+    exports[4069] = "ER_CHANGE_REP_SOURCE_CANT_DISABLE_AUTO_POS_WITHOUT_POSITIONS";
+    exports[4070] = "ER_CHANGE_REP_SOURCE_GR_CHANNEL_WITH_GTID_MODE_NOT_ON";
+    exports[4071] = "ER_CANT_USE_GTID_ONLY_WITH_GTID_MODE_NOT_ON";
+    exports[4072] = "ER_WARN_C_DISABLE_GTID_ONLY_WITH_SOURCE_AUTO_POS_INVALID_POS";
+    exports[4073] = "ER_DA_SSL_FIPS_MODE_ERROR";
+    exports[4074] = "ER_VALUE_OUT_OF_RANGE";
+    exports[4075] = "ER_FULLTEXT_WITH_ROLLUP";
+    exports[4076] = "ER_REGEXP_MISSING_RESOURCE";
+    exports[4077] = "ER_WARN_REGEXP_USING_DEFAULT";
+    exports[4078] = "ER_REGEXP_MISSING_FILE";
+    exports[4079] = "ER_WARN_DEPRECATED_COLLATION";
+    exports[4080] = "ER_CONCURRENT_PROCEDURE_USAGE";
+    exports[4081] = "ER_DA_GLOBAL_CONN_LIMIT";
+    exports[4082] = "ER_DA_CONN_LIMIT";
+    exports[4083] = "ER_ALTER_OPERATION_NOT_SUPPORTED_REASON_COLUMN_TYPE_INSTANT";
+    exports[4084] = "ER_WARN_SF_UDF_NAME_COLLISION";
+    exports[4085] = "ER_CANNOT_PURGE_BINLOG_WITH_BACKUP_LOCK";
+    exports[4086] = "ER_TOO_MANY_WINDOWS";
+    exports[4087] = "ER_MYSQLBACKUP_CLIENT_MSG";
+    exports[4088] = "ER_COMMENT_CONTAINS_INVALID_STRING";
+    exports[4089] = "ER_DEFINITION_CONTAINS_INVALID_STRING";
+    exports[4090] = "ER_CANT_EXECUTE_COMMAND_WITH_ASSIGNED_GTID_NEXT";
+    exports[4091] = "ER_XA_TEMP_TABLE";
+    exports[4092] = "ER_INNODB_MAX_ROW_VERSION";
+    exports[4093] = "ER_INNODB_INSTANT_ADD_NOT_SUPPORTED_MAX_SIZE";
+    exports[4094] = "ER_OPERATION_NOT_ALLOWED_WHILE_PRIMARY_CHANGE_IS_RUNNING";
+    exports[4095] = "ER_WARN_DEPRECATED_DATETIME_DELIMITER";
+    exports[4096] = "ER_WARN_DEPRECATED_SUPERFLUOUS_DELIMITER";
+    exports[4097] = "ER_CANNOT_PERSIST_SENSITIVE_VARIABLES";
+    exports[4098] = "ER_WARN_CANNOT_SECURELY_PERSIST_SENSITIVE_VARIABLES";
+    exports[4099] = "ER_WARN_TRG_ALREADY_EXISTS";
+    exports[4100] = "ER_IF_NOT_EXISTS_UNSUPPORTED_TRG_EXISTS_ON_DIFFERENT_TABLE";
+    exports[4101] = "ER_IF_NOT_EXISTS_UNSUPPORTED_UDF_NATIVE_FCT_NAME_COLLISION";
+    exports[4102] = "ER_SET_PASSWORD_AUTH_PLUGIN_ERROR";
+    exports[4103] = "ER_REDUCED_DBLWR_FILE_CORRUPTED";
+    exports[4104] = "ER_REDUCED_DBLWR_PAGE_FOUND";
+    exports[4105] = "ER_SRS_INVALID_LATITUDE_OF_ORIGIN";
+    exports[4106] = "ER_SRS_INVALID_LONGITUDE_OF_ORIGIN";
+    exports[4107] = "ER_SRS_UNUSED_PROJ_PARAMETER_PRESENT";
+    exports[4108] = "ER_GIPK_COLUMN_EXISTS";
+    exports[4109] = "ER_GIPK_FAILED_AUTOINC_COLUMN_EXISTS";
+    exports[4110] = "ER_GIPK_COLUMN_ALTER_NOT_ALLOWED";
+    exports[4111] = "ER_DROP_PK_COLUMN_TO_DROP_GIPK";
+    exports[4112] = "ER_CREATE_SELECT_WITH_GIPK_DISALLOWED_IN_SBR";
+    exports[4113] = "ER_DA_EXPIRE_LOGS_DAYS_IGNORED";
+    exports[4114] = "ER_CTE_RECURSIVE_NOT_UNION";
+    exports[4115] = "ER_COMMAND_BACKEND_FAILED_TO_FETCH_SECURITY_CTX";
+    exports[4116] = "ER_COMMAND_SERVICE_BACKEND_FAILED";
+    exports[4117] = "ER_CLIENT_FILE_PRIVILEGE_FOR_REPLICATION_CHECKS";
+    exports[4118] = "ER_GROUP_REPLICATION_FORCE_MEMBERS_COMMAND_FAILURE";
+    exports[4119] = "ER_WARN_DEPRECATED_IDENT";
+    exports[4120] = "ER_INTERSECT_ALL_MAX_DUPLICATES_EXCEEDED";
+    exports[4121] = "ER_TP_QUERY_THRS_PER_GRP_EXCEEDS_TXN_THR_LIMIT";
+    exports[4122] = "ER_BAD_TIMESTAMP_FORMAT";
+    exports[4123] = "ER_SHAPE_PRIDICTION_UDF";
+    exports[4124] = "ER_SRS_INVALID_HEIGHT";
+    exports[4125] = "ER_SRS_INVALID_SCALING";
+    exports[4126] = "ER_SRS_INVALID_ZONE_WIDTH";
+    exports[4127] = "ER_SRS_INVALID_LATITUDE_POLAR_STERE_VAR_A";
+    exports[4128] = "ER_WARN_DEPRECATED_CLIENT_NO_SCHEMA_OPTION";
+    exports[4129] = "ER_TABLE_NOT_EMPTY";
+    exports[4130] = "ER_TABLE_NO_PRIMARY_KEY";
+    exports[4131] = "ER_TABLE_IN_SHARED_TABLESPACE";
+    exports[4132] = "ER_INDEX_OTHER_THAN_PK";
+    exports[4133] = "ER_LOAD_BULK_DATA_UNSORTED";
+    exports[4134] = "ER_BULK_EXECUTOR_ERROR";
+    exports[4135] = "ER_BULK_READER_LIBCURL_INIT_FAILED";
+    exports[4136] = "ER_BULK_READER_LIBCURL_ERROR";
+    exports[4137] = "ER_BULK_READER_SERVER_ERROR";
+    exports[4138] = "ER_BULK_READER_COMMUNICATION_ERROR";
+    exports[4139] = "ER_BULK_LOAD_DATA_FAILED";
+    exports[4140] = "ER_BULK_LOADER_COLUMN_TOO_BIG_FOR_LEFTOVER_BUFFER";
+    exports[4141] = "ER_BULK_LOADER_COMPONENT_ERROR";
+    exports[4142] = "ER_BULK_LOADER_FILE_CONTAINS_LESS_LINES_THAN_IGNORE_CLAUSE";
+    exports[4143] = "ER_BULK_PARSER_MISSING_ENCLOSED_BY";
+    exports[4144] = "ER_BULK_PARSER_ROW_BUFFER_MAX_TOTAL_COLS_EXCEEDED";
+    exports[4145] = "ER_BULK_PARSER_COPY_BUFFER_SIZE_EXCEEDED";
+    exports[4146] = "ER_BULK_PARSER_UNEXPECTED_END_OF_INPUT";
+    exports[4147] = "ER_BULK_PARSER_UNEXPECTED_ROW_TERMINATOR";
+    exports[4148] = "ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_ENDING_ENCLOSED_BY";
+    exports[4149] = "ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_NULL_ESCAPE";
+    exports[4150] = "ER_BULK_PARSER_UNEXPECTED_CHAR_AFTER_COLUMN_TERMINATOR";
+    exports[4151] = "ER_BULK_PARSER_INCOMPLETE_ESCAPE_SEQUENCE";
+    exports[4152] = "ER_LOAD_BULK_DATA_FAILED";
+    exports[4153] = "ER_LOAD_BULK_DATA_WRONG_VALUE_FOR_FIELD";
+    exports[4154] = "ER_LOAD_BULK_DATA_WARN_NULL_TO_NOTNULL";
+    exports[4155] = "ER_REQUIRE_TABLE_PRIMARY_KEY_CHECK_GENERATE_WITH_GR";
+    exports[4156] = "ER_CANT_CHANGE_SYS_VAR_IN_READ_ONLY_MODE";
+    exports[4157] = "ER_INNODB_INSTANT_ADD_DROP_NOT_SUPPORTED_MAX_SIZE";
+    exports[4158] = "ER_INNODB_INSTANT_ADD_NOT_SUPPORTED_MAX_FIELDS";
+    exports[4159] = "ER_CANT_SET_PERSISTED";
+    exports[4160] = "ER_INSTALL_COMPONENT_SET_NULL_VALUE";
+    exports[4161] = "ER_INSTALL_COMPONENT_SET_UNUSED_VALUE";
+    exports[4162] = "ER_WARN_DEPRECATED_USER_DEFINED_COLLATIONS";
   }
 });
 
-// node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js
-var require_long = __commonJS({
-  "node_modules/.pnpm/long@4.0.0/node_modules/long/src/long.js"(exports, module2) {
-    module2.exports = Long;
-    var wasm = null;
-    try {
-      wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
-        0,
-        97,
-        115,
-        109,
-        1,
-        0,
-        0,
-        0,
-        1,
-        13,
-        2,
-        96,
-        0,
-        1,
-        127,
-        96,
-        4,
-        127,
-        127,
-        127,
-        127,
-        1,
-        127,
-        3,
-        7,
-        6,
-        0,
-        1,
-        1,
-        1,
-        1,
-        1,
-        6,
-        6,
-        1,
-        127,
-        1,
-        65,
-        0,
-        11,
-        7,
-        50,
-        6,
-        3,
-        109,
-        117,
-        108,
-        0,
-        1,
-        5,
-        100,
-        105,
-        118,
-        95,
-        115,
-        0,
-        2,
-        5,
-        100,
-        105,
-        118,
-        95,
-        117,
-        0,
-        3,
-        5,
-        114,
-        101,
-        109,
-        95,
-        115,
-        0,
-        4,
-        5,
-        114,
-        101,
-        109,
-        95,
-        117,
-        0,
-        5,
-        8,
-        103,
-        101,
-        116,
-        95,
-        104,
-        105,
-        103,
-        104,
-        0,
-        0,
-        10,
-        191,
-        1,
-        6,
-        4,
-        0,
-        35,
-        0,
-        11,
-        36,
-        1,
-        1,
-        126,
-        32,
-        0,
-        173,
-        32,
-        1,
-        173,
-        66,
-        32,
-        134,
-        132,
-        32,
-        2,
-        173,
-        32,
-        3,
-        173,
-        66,
-        32,
-        134,
-        132,
-        126,
-        34,
-        4,
-        66,
-        32,
-        135,
-        167,
-        36,
-        0,
-        32,
-        4,
-        167,
-        11,
-        36,
-        1,
-        1,
-        126,
-        32,
-        0,
-        173,
-        32,
-        1,
-        173,
-        66,
-        32,
-        134,
-        132,
-        32,
-        2,
-        173,
-        32,
-        3,
-        173,
-        66,
-        32,
-        134,
-        132,
-        127,
-        34,
-        4,
-        66,
-        32,
-        135,
-        167,
-        36,
-        0,
-        32,
-        4,
-        167,
-        11,
-        36,
-        1,
-        1,
-        126,
-        32,
-        0,
-        173,
-        32,
-        1,
-        173,
-        66,
-        32,
-        134,
-        132,
-        32,
-        2,
-        173,
-        32,
-        3,
-        173,
-        66,
-        32,
-        134,
-        132,
-        128,
-        34,
-        4,
-        66,
-        32,
-        135,
-        167,
-        36,
-        0,
-        32,
-        4,
-        167,
-        11,
-        36,
-        1,
-        1,
-        126,
-        32,
-        0,
-        173,
-        32,
-        1,
-        173,
-        66,
-        32,
-        134,
-        132,
-        32,
-        2,
-        173,
-        32,
-        3,
-        173,
-        66,
-        32,
-        134,
-        132,
-        129,
-        34,
-        4,
-        66,
-        32,
-        135,
-        167,
-        36,
-        0,
-        32,
-        4,
-        167,
-        11,
-        36,
-        1,
-        1,
-        126,
-        32,
-        0,
-        173,
-        32,
-        1,
-        173,
-        66,
-        32,
-        134,
-        132,
-        32,
-        2,
-        173,
-        32,
-        3,
-        173,
-        66,
-        32,
-        134,
-        132,
-        130,
-        34,
-        4,
-        66,
-        32,
-        135,
-        167,
-        36,
-        0,
-        32,
-        4,
-        167,
-        11
-      ])), {}).exports;
-    } catch (e2) {
-    }
-    function Long(low, high, unsigned) {
-      this.low = low | 0;
-      this.high = high | 0;
-      this.unsigned = !!unsigned;
-    }
-    Long.prototype.__isLong__;
-    Object.defineProperty(Long.prototype, "__isLong__", { value: true });
-    function isLong(obj) {
-      return (obj && obj["__isLong__"]) === true;
-    }
-    Long.isLong = isLong;
-    var INT_CACHE = {};
-    var UINT_CACHE = {};
-    function fromInt(value, unsigned) {
-      var obj, cachedObj, cache;
-      if (unsigned) {
-        value >>>= 0;
-        if (cache = 0 <= value && value < 256) {
-          cachedObj = UINT_CACHE[value];
-          if (cachedObj)
-            return cachedObj;
-        }
-        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
-        if (cache)
-          UINT_CACHE[value] = obj;
-        return obj;
-      } else {
-        value |= 0;
-        if (cache = -128 <= value && value < 128) {
-          cachedObj = INT_CACHE[value];
-          if (cachedObj)
-            return cachedObj;
-        }
-        obj = fromBits(value, value < 0 ? -1 : 0, false);
-        if (cache)
-          INT_CACHE[value] = obj;
-        return obj;
+// node_modules/.pnpm/long@5.2.3/node_modules/long/umd/index.js
+var require_umd = __commonJS({
+  "node_modules/.pnpm/long@5.2.3/node_modules/long/umd/index.js"(exports, module2) {
+    var Long = function(exports2) {
+      "use strict";
+      Object.defineProperty(exports2, "__esModule", {
+        value: true
+      });
+      exports2.default = void 0;
+      var wasm = null;
+      try {
+        wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11])), {}).exports;
+      } catch (e2) {
       }
-    }
-    Long.fromInt = fromInt;
-    function fromNumber(value, unsigned) {
-      if (isNaN(value))
-        return unsigned ? UZERO : ZERO;
-      if (unsigned) {
-        if (value < 0)
-          return UZERO;
-        if (value >= TWO_PWR_64_DBL)
-          return MAX_UNSIGNED_VALUE;
-      } else {
-        if (value <= -TWO_PWR_63_DBL)
-          return MIN_VALUE;
-        if (value + 1 >= TWO_PWR_63_DBL)
-          return MAX_VALUE;
+      function Long2(low, high, unsigned) {
+        this.low = low | 0;
+        this.high = high | 0;
+        this.unsigned = !!unsigned;
       }
-      if (value < 0)
-        return fromNumber(-value, unsigned).neg();
-      return fromBits(value % TWO_PWR_32_DBL | 0, value / TWO_PWR_32_DBL | 0, unsigned);
-    }
-    Long.fromNumber = fromNumber;
-    function fromBits(lowBits, highBits, unsigned) {
-      return new Long(lowBits, highBits, unsigned);
-    }
-    Long.fromBits = fromBits;
-    var pow_dbl = Math.pow;
-    function fromString(str, unsigned, radix) {
-      if (str.length === 0)
-        throw Error("empty string");
-      if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
-        return ZERO;
-      if (typeof unsigned === "number") {
-        radix = unsigned, unsigned = false;
-      } else {
-        unsigned = !!unsigned;
+      Long2.prototype.__isLong__;
+      Object.defineProperty(Long2.prototype, "__isLong__", {
+        value: true
+      });
+      function isLong(obj) {
+        return (obj && obj["__isLong__"]) === true;
       }
-      radix = radix || 10;
-      if (radix < 2 || 36 < radix)
-        throw RangeError("radix");
-      var p;
-      if ((p = str.indexOf("-")) > 0)
-        throw Error("interior hyphen");
-      else if (p === 0) {
-        return fromString(str.substring(1), unsigned, radix).neg();
+      function ctz32(value) {
+        var c = Math.clz32(value & -value);
+        return value ? 31 - c : c;
       }
-      var radixToPower = fromNumber(pow_dbl(radix, 8));
-      var result = ZERO;
-      for (var i2 = 0; i2 < str.length; i2 += 8) {
-        var size = Math.min(8, str.length - i2), value = parseInt(str.substring(i2, i2 + size), radix);
-        if (size < 8) {
-          var power = fromNumber(pow_dbl(radix, size));
-          result = result.mul(power).add(fromNumber(value));
-        } else {
-          result = result.mul(radixToPower);
-          result = result.add(fromNumber(value));
-        }
-      }
-      result.unsigned = unsigned;
-      return result;
-    }
-    Long.fromString = fromString;
-    function fromValue(val, unsigned) {
-      if (typeof val === "number")
-        return fromNumber(val, unsigned);
-      if (typeof val === "string")
-        return fromString(val, unsigned);
-      return fromBits(val.low, val.high, typeof unsigned === "boolean" ? unsigned : val.unsigned);
-    }
-    Long.fromValue = fromValue;
-    var TWO_PWR_16_DBL = 1 << 16;
-    var TWO_PWR_24_DBL = 1 << 24;
-    var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
-    var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
-    var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
-    var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
-    var ZERO = fromInt(0);
-    Long.ZERO = ZERO;
-    var UZERO = fromInt(0, true);
-    Long.UZERO = UZERO;
-    var ONE = fromInt(1);
-    Long.ONE = ONE;
-    var UONE = fromInt(1, true);
-    Long.UONE = UONE;
-    var NEG_ONE = fromInt(-1);
-    Long.NEG_ONE = NEG_ONE;
-    var MAX_VALUE = fromBits(4294967295 | 0, 2147483647 | 0, false);
-    Long.MAX_VALUE = MAX_VALUE;
-    var MAX_UNSIGNED_VALUE = fromBits(4294967295 | 0, 4294967295 | 0, true);
-    Long.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
-    var MIN_VALUE = fromBits(0, 2147483648 | 0, false);
-    Long.MIN_VALUE = MIN_VALUE;
-    var LongPrototype = Long.prototype;
-    LongPrototype.toInt = function toInt() {
-      return this.unsigned ? this.low >>> 0 : this.low;
-    };
-    LongPrototype.toNumber = function toNumber() {
-      if (this.unsigned)
-        return (this.high >>> 0) * TWO_PWR_32_DBL + (this.low >>> 0);
-      return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
-    };
-    LongPrototype.toString = function toString(radix) {
-      radix = radix || 10;
-      if (radix < 2 || 36 < radix)
-        throw RangeError("radix");
-      if (this.isZero())
-        return "0";
-      if (this.isNegative()) {
-        if (this.eq(MIN_VALUE)) {
-          var radixLong = fromNumber(radix), div = this.div(radixLong), rem1 = div.mul(radixLong).sub(this);
-          return div.toString(radix) + rem1.toInt().toString(radix);
-        } else
-          return "-" + this.neg().toString(radix);
-      }
-      var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned), rem = this;
-      var result = "";
-      while (true) {
-        var remDiv = rem.div(radixToPower), intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0, digits = intval.toString(radix);
-        rem = remDiv;
-        if (rem.isZero())
-          return digits + result;
-        else {
-          while (digits.length < 6)
-            digits = "0" + digits;
-          result = "" + digits + result;
-        }
-      }
-    };
-    LongPrototype.getHighBits = function getHighBits() {
-      return this.high;
-    };
-    LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
-      return this.high >>> 0;
-    };
-    LongPrototype.getLowBits = function getLowBits() {
-      return this.low;
-    };
-    LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
-      return this.low >>> 0;
-    };
-    LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
-      if (this.isNegative())
-        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
-      var val = this.high != 0 ? this.high : this.low;
-      for (var bit = 31; bit > 0; bit--)
-        if ((val & 1 << bit) != 0)
-          break;
-      return this.high != 0 ? bit + 33 : bit + 1;
-    };
-    LongPrototype.isZero = function isZero() {
-      return this.high === 0 && this.low === 0;
-    };
-    LongPrototype.eqz = LongPrototype.isZero;
-    LongPrototype.isNegative = function isNegative() {
-      return !this.unsigned && this.high < 0;
-    };
-    LongPrototype.isPositive = function isPositive() {
-      return this.unsigned || this.high >= 0;
-    };
-    LongPrototype.isOdd = function isOdd() {
-      return (this.low & 1) === 1;
-    };
-    LongPrototype.isEven = function isEven() {
-      return (this.low & 1) === 0;
-    };
-    LongPrototype.equals = function equals(other) {
-      if (!isLong(other))
-        other = fromValue(other);
-      if (this.unsigned !== other.unsigned && this.high >>> 31 === 1 && other.high >>> 31 === 1)
-        return false;
-      return this.high === other.high && this.low === other.low;
-    };
-    LongPrototype.eq = LongPrototype.equals;
-    LongPrototype.notEquals = function notEquals(other) {
-      return !this.eq(other);
-    };
-    LongPrototype.neq = LongPrototype.notEquals;
-    LongPrototype.ne = LongPrototype.notEquals;
-    LongPrototype.lessThan = function lessThan(other) {
-      return this.comp(other) < 0;
-    };
-    LongPrototype.lt = LongPrototype.lessThan;
-    LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-      return this.comp(other) <= 0;
-    };
-    LongPrototype.lte = LongPrototype.lessThanOrEqual;
-    LongPrototype.le = LongPrototype.lessThanOrEqual;
-    LongPrototype.greaterThan = function greaterThan(other) {
-      return this.comp(other) > 0;
-    };
-    LongPrototype.gt = LongPrototype.greaterThan;
-    LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-      return this.comp(other) >= 0;
-    };
-    LongPrototype.gte = LongPrototype.greaterThanOrEqual;
-    LongPrototype.ge = LongPrototype.greaterThanOrEqual;
-    LongPrototype.compare = function compare(other) {
-      if (!isLong(other))
-        other = fromValue(other);
-      if (this.eq(other))
-        return 0;
-      var thisNeg = this.isNegative(), otherNeg = other.isNegative();
-      if (thisNeg && !otherNeg)
-        return -1;
-      if (!thisNeg && otherNeg)
-        return 1;
-      if (!this.unsigned)
-        return this.sub(other).isNegative() ? -1 : 1;
-      return other.high >>> 0 > this.high >>> 0 || other.high === this.high && other.low >>> 0 > this.low >>> 0 ? -1 : 1;
-    };
-    LongPrototype.comp = LongPrototype.compare;
-    LongPrototype.negate = function negate() {
-      if (!this.unsigned && this.eq(MIN_VALUE))
-        return MIN_VALUE;
-      return this.not().add(ONE);
-    };
-    LongPrototype.neg = LongPrototype.negate;
-    LongPrototype.add = function add(addend) {
-      if (!isLong(addend))
-        addend = fromValue(addend);
-      var a48 = this.high >>> 16;
-      var a32 = this.high & 65535;
-      var a16 = this.low >>> 16;
-      var a00 = this.low & 65535;
-      var b48 = addend.high >>> 16;
-      var b32 = addend.high & 65535;
-      var b16 = addend.low >>> 16;
-      var b00 = addend.low & 65535;
-      var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-      c00 += a00 + b00;
-      c16 += c00 >>> 16;
-      c00 &= 65535;
-      c16 += a16 + b16;
-      c32 += c16 >>> 16;
-      c16 &= 65535;
-      c32 += a32 + b32;
-      c48 += c32 >>> 16;
-      c32 &= 65535;
-      c48 += a48 + b48;
-      c48 &= 65535;
-      return fromBits(c16 << 16 | c00, c48 << 16 | c32, this.unsigned);
-    };
-    LongPrototype.subtract = function subtract(subtrahend) {
-      if (!isLong(subtrahend))
-        subtrahend = fromValue(subtrahend);
-      return this.add(subtrahend.neg());
-    };
-    LongPrototype.sub = LongPrototype.subtract;
-    LongPrototype.multiply = function multiply(multiplier) {
-      if (this.isZero())
-        return ZERO;
-      if (!isLong(multiplier))
-        multiplier = fromValue(multiplier);
-      if (wasm) {
-        var low = wasm.mul(this.low, this.high, multiplier.low, multiplier.high);
-        return fromBits(low, wasm.get_high(), this.unsigned);
-      }
-      if (multiplier.isZero())
-        return ZERO;
-      if (this.eq(MIN_VALUE))
-        return multiplier.isOdd() ? MIN_VALUE : ZERO;
-      if (multiplier.eq(MIN_VALUE))
-        return this.isOdd() ? MIN_VALUE : ZERO;
-      if (this.isNegative()) {
-        if (multiplier.isNegative())
-          return this.neg().mul(multiplier.neg());
-        else
-          return this.neg().mul(multiplier).neg();
-      } else if (multiplier.isNegative())
-        return this.mul(multiplier.neg()).neg();
-      if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
-        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
-      var a48 = this.high >>> 16;
-      var a32 = this.high & 65535;
-      var a16 = this.low >>> 16;
-      var a00 = this.low & 65535;
-      var b48 = multiplier.high >>> 16;
-      var b32 = multiplier.high & 65535;
-      var b16 = multiplier.low >>> 16;
-      var b00 = multiplier.low & 65535;
-      var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-      c00 += a00 * b00;
-      c16 += c00 >>> 16;
-      c00 &= 65535;
-      c16 += a16 * b00;
-      c32 += c16 >>> 16;
-      c16 &= 65535;
-      c16 += a00 * b16;
-      c32 += c16 >>> 16;
-      c16 &= 65535;
-      c32 += a32 * b00;
-      c48 += c32 >>> 16;
-      c32 &= 65535;
-      c32 += a16 * b16;
-      c48 += c32 >>> 16;
-      c32 &= 65535;
-      c32 += a00 * b32;
-      c48 += c32 >>> 16;
-      c32 &= 65535;
-      c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
-      c48 &= 65535;
-      return fromBits(c16 << 16 | c00, c48 << 16 | c32, this.unsigned);
-    };
-    LongPrototype.mul = LongPrototype.multiply;
-    LongPrototype.divide = function divide(divisor) {
-      if (!isLong(divisor))
-        divisor = fromValue(divisor);
-      if (divisor.isZero())
-        throw Error("division by zero");
-      if (wasm) {
-        if (!this.unsigned && this.high === -2147483648 && divisor.low === -1 && divisor.high === -1) {
-          return this;
-        }
-        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(this.low, this.high, divisor.low, divisor.high);
-        return fromBits(low, wasm.get_high(), this.unsigned);
-      }
-      if (this.isZero())
-        return this.unsigned ? UZERO : ZERO;
-      var approx, rem, res;
-      if (!this.unsigned) {
-        if (this.eq(MIN_VALUE)) {
-          if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
-            return MIN_VALUE;
-          else if (divisor.eq(MIN_VALUE))
-            return ONE;
-          else {
-            var halfThis = this.shr(1);
-            approx = halfThis.div(divisor).shl(1);
-            if (approx.eq(ZERO)) {
-              return divisor.isNegative() ? ONE : NEG_ONE;
-            } else {
-              rem = this.sub(divisor.mul(approx));
-              res = approx.add(rem.div(divisor));
-              return res;
-            }
+      Long2.isLong = isLong;
+      var INT_CACHE = {};
+      var UINT_CACHE = {};
+      function fromInt(value, unsigned) {
+        var obj, cachedObj, cache;
+        if (unsigned) {
+          value >>>= 0;
+          if (cache = 0 <= value && value < 256) {
+            cachedObj = UINT_CACHE[value];
+            if (cachedObj)
+              return cachedObj;
           }
-        } else if (divisor.eq(MIN_VALUE))
-          return this.unsigned ? UZERO : ZERO;
-        if (this.isNegative()) {
-          if (divisor.isNegative())
-            return this.neg().div(divisor.neg());
-          return this.neg().div(divisor).neg();
-        } else if (divisor.isNegative())
-          return this.div(divisor.neg()).neg();
-        res = ZERO;
-      } else {
-        if (!divisor.unsigned)
-          divisor = divisor.toUnsigned();
-        if (divisor.gt(this))
-          return UZERO;
-        if (divisor.gt(this.shru(1)))
-          return UONE;
-        res = UZERO;
-      }
-      rem = this;
-      while (rem.gte(divisor)) {
-        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
-        var log2 = Math.ceil(Math.log(approx) / Math.LN2), delta = log2 <= 48 ? 1 : pow_dbl(2, log2 - 48), approxRes = fromNumber(approx), approxRem = approxRes.mul(divisor);
-        while (approxRem.isNegative() || approxRem.gt(rem)) {
-          approx -= delta;
-          approxRes = fromNumber(approx, this.unsigned);
-          approxRem = approxRes.mul(divisor);
+          obj = fromBits(value, 0, true);
+          if (cache)
+            UINT_CACHE[value] = obj;
+          return obj;
+        } else {
+          value |= 0;
+          if (cache = -128 <= value && value < 128) {
+            cachedObj = INT_CACHE[value];
+            if (cachedObj)
+              return cachedObj;
+          }
+          obj = fromBits(value, value < 0 ? -1 : 0, false);
+          if (cache)
+            INT_CACHE[value] = obj;
+          return obj;
         }
-        if (approxRes.isZero())
-          approxRes = ONE;
-        res = res.add(approxRes);
-        rem = rem.sub(approxRem);
       }
-      return res;
-    };
-    LongPrototype.div = LongPrototype.divide;
-    LongPrototype.modulo = function modulo(divisor) {
-      if (!isLong(divisor))
-        divisor = fromValue(divisor);
-      if (wasm) {
-        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(this.low, this.high, divisor.low, divisor.high);
-        return fromBits(low, wasm.get_high(), this.unsigned);
+      Long2.fromInt = fromInt;
+      function fromNumber(value, unsigned) {
+        if (isNaN(value))
+          return unsigned ? UZERO : ZERO;
+        if (unsigned) {
+          if (value < 0)
+            return UZERO;
+          if (value >= TWO_PWR_64_DBL)
+            return MAX_UNSIGNED_VALUE;
+        } else {
+          if (value <= -TWO_PWR_63_DBL)
+            return MIN_VALUE;
+          if (value + 1 >= TWO_PWR_63_DBL)
+            return MAX_VALUE;
+        }
+        if (value < 0)
+          return fromNumber(-value, unsigned).neg();
+        return fromBits(value % TWO_PWR_32_DBL | 0, value / TWO_PWR_32_DBL | 0, unsigned);
       }
-      return this.sub(this.div(divisor).mul(divisor));
-    };
-    LongPrototype.mod = LongPrototype.modulo;
-    LongPrototype.rem = LongPrototype.modulo;
-    LongPrototype.not = function not() {
-      return fromBits(~this.low, ~this.high, this.unsigned);
-    };
-    LongPrototype.and = function and(other) {
-      if (!isLong(other))
-        other = fromValue(other);
-      return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
-    };
-    LongPrototype.or = function or(other) {
-      if (!isLong(other))
-        other = fromValue(other);
-      return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
-    };
-    LongPrototype.xor = function xor(other) {
-      if (!isLong(other))
-        other = fromValue(other);
-      return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
-    };
-    LongPrototype.shiftLeft = function shiftLeft(numBits) {
-      if (isLong(numBits))
-        numBits = numBits.toInt();
-      if ((numBits &= 63) === 0)
-        return this;
-      else if (numBits < 32)
-        return fromBits(this.low << numBits, this.high << numBits | this.low >>> 32 - numBits, this.unsigned);
-      else
-        return fromBits(0, this.low << numBits - 32, this.unsigned);
-    };
-    LongPrototype.shl = LongPrototype.shiftLeft;
-    LongPrototype.shiftRight = function shiftRight(numBits) {
-      if (isLong(numBits))
-        numBits = numBits.toInt();
-      if ((numBits &= 63) === 0)
-        return this;
-      else if (numBits < 32)
-        return fromBits(this.low >>> numBits | this.high << 32 - numBits, this.high >> numBits, this.unsigned);
-      else
-        return fromBits(this.high >> numBits - 32, this.high >= 0 ? 0 : -1, this.unsigned);
-    };
-    LongPrototype.shr = LongPrototype.shiftRight;
-    LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
-      if (isLong(numBits))
-        numBits = numBits.toInt();
-      numBits &= 63;
-      if (numBits === 0)
-        return this;
-      else {
-        var high = this.high;
-        if (numBits < 32) {
-          var low = this.low;
-          return fromBits(low >>> numBits | high << 32 - numBits, high >>> numBits, this.unsigned);
-        } else if (numBits === 32)
-          return fromBits(high, 0, this.unsigned);
+      Long2.fromNumber = fromNumber;
+      function fromBits(lowBits, highBits, unsigned) {
+        return new Long2(lowBits, highBits, unsigned);
+      }
+      Long2.fromBits = fromBits;
+      var pow_dbl = Math.pow;
+      function fromString(str, unsigned, radix) {
+        if (str.length === 0)
+          throw Error("empty string");
+        if (typeof unsigned === "number") {
+          radix = unsigned;
+          unsigned = false;
+        } else {
+          unsigned = !!unsigned;
+        }
+        if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
+          return unsigned ? UZERO : ZERO;
+        radix = radix || 10;
+        if (radix < 2 || 36 < radix)
+          throw RangeError("radix");
+        var p;
+        if ((p = str.indexOf("-")) > 0)
+          throw Error("interior hyphen");
+        else if (p === 0) {
+          return fromString(str.substring(1), unsigned, radix).neg();
+        }
+        var radixToPower = fromNumber(pow_dbl(radix, 8));
+        var result = ZERO;
+        for (var i2 = 0; i2 < str.length; i2 += 8) {
+          var size = Math.min(8, str.length - i2), value = parseInt(str.substring(i2, i2 + size), radix);
+          if (size < 8) {
+            var power = fromNumber(pow_dbl(radix, size));
+            result = result.mul(power).add(fromNumber(value));
+          } else {
+            result = result.mul(radixToPower);
+            result = result.add(fromNumber(value));
+          }
+        }
+        result.unsigned = unsigned;
+        return result;
+      }
+      Long2.fromString = fromString;
+      function fromValue(val, unsigned) {
+        if (typeof val === "number")
+          return fromNumber(val, unsigned);
+        if (typeof val === "string")
+          return fromString(val, unsigned);
+        return fromBits(val.low, val.high, typeof unsigned === "boolean" ? unsigned : val.unsigned);
+      }
+      Long2.fromValue = fromValue;
+      var TWO_PWR_16_DBL = 1 << 16;
+      var TWO_PWR_24_DBL = 1 << 24;
+      var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+      var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
+      var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
+      var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
+      var ZERO = fromInt(0);
+      Long2.ZERO = ZERO;
+      var UZERO = fromInt(0, true);
+      Long2.UZERO = UZERO;
+      var ONE = fromInt(1);
+      Long2.ONE = ONE;
+      var UONE = fromInt(1, true);
+      Long2.UONE = UONE;
+      var NEG_ONE = fromInt(-1);
+      Long2.NEG_ONE = NEG_ONE;
+      var MAX_VALUE = fromBits(4294967295 | 0, 2147483647 | 0, false);
+      Long2.MAX_VALUE = MAX_VALUE;
+      var MAX_UNSIGNED_VALUE = fromBits(4294967295 | 0, 4294967295 | 0, true);
+      Long2.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
+      var MIN_VALUE = fromBits(0, 2147483648 | 0, false);
+      Long2.MIN_VALUE = MIN_VALUE;
+      var LongPrototype = Long2.prototype;
+      LongPrototype.toInt = function toInt() {
+        return this.unsigned ? this.low >>> 0 : this.low;
+      };
+      LongPrototype.toNumber = function toNumber() {
+        if (this.unsigned)
+          return (this.high >>> 0) * TWO_PWR_32_DBL + (this.low >>> 0);
+        return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
+      };
+      LongPrototype.toString = function toString(radix) {
+        radix = radix || 10;
+        if (radix < 2 || 36 < radix)
+          throw RangeError("radix");
+        if (this.isZero())
+          return "0";
+        if (this.isNegative()) {
+          if (this.eq(MIN_VALUE)) {
+            var radixLong = fromNumber(radix), div = this.div(radixLong), rem1 = div.mul(radixLong).sub(this);
+            return div.toString(radix) + rem1.toInt().toString(radix);
+          } else
+            return "-" + this.neg().toString(radix);
+        }
+        var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned), rem = this;
+        var result = "";
+        while (true) {
+          var remDiv = rem.div(radixToPower), intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0, digits = intval.toString(radix);
+          rem = remDiv;
+          if (rem.isZero())
+            return digits + result;
+          else {
+            while (digits.length < 6)
+              digits = "0" + digits;
+            result = "" + digits + result;
+          }
+        }
+      };
+      LongPrototype.getHighBits = function getHighBits() {
+        return this.high;
+      };
+      LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
+        return this.high >>> 0;
+      };
+      LongPrototype.getLowBits = function getLowBits() {
+        return this.low;
+      };
+      LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
+        return this.low >>> 0;
+      };
+      LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
+        if (this.isNegative())
+          return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
+        var val = this.high != 0 ? this.high : this.low;
+        for (var bit = 31; bit > 0; bit--)
+          if ((val & 1 << bit) != 0)
+            break;
+        return this.high != 0 ? bit + 33 : bit + 1;
+      };
+      LongPrototype.isZero = function isZero() {
+        return this.high === 0 && this.low === 0;
+      };
+      LongPrototype.eqz = LongPrototype.isZero;
+      LongPrototype.isNegative = function isNegative() {
+        return !this.unsigned && this.high < 0;
+      };
+      LongPrototype.isPositive = function isPositive() {
+        return this.unsigned || this.high >= 0;
+      };
+      LongPrototype.isOdd = function isOdd() {
+        return (this.low & 1) === 1;
+      };
+      LongPrototype.isEven = function isEven() {
+        return (this.low & 1) === 0;
+      };
+      LongPrototype.equals = function equals(other) {
+        if (!isLong(other))
+          other = fromValue(other);
+        if (this.unsigned !== other.unsigned && this.high >>> 31 === 1 && other.high >>> 31 === 1)
+          return false;
+        return this.high === other.high && this.low === other.low;
+      };
+      LongPrototype.eq = LongPrototype.equals;
+      LongPrototype.notEquals = function notEquals(other) {
+        return !this.eq(
+          other
+        );
+      };
+      LongPrototype.neq = LongPrototype.notEquals;
+      LongPrototype.ne = LongPrototype.notEquals;
+      LongPrototype.lessThan = function lessThan(other) {
+        return this.comp(
+          other
+        ) < 0;
+      };
+      LongPrototype.lt = LongPrototype.lessThan;
+      LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
+        return this.comp(
+          other
+        ) <= 0;
+      };
+      LongPrototype.lte = LongPrototype.lessThanOrEqual;
+      LongPrototype.le = LongPrototype.lessThanOrEqual;
+      LongPrototype.greaterThan = function greaterThan(other) {
+        return this.comp(
+          other
+        ) > 0;
+      };
+      LongPrototype.gt = LongPrototype.greaterThan;
+      LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+        return this.comp(
+          other
+        ) >= 0;
+      };
+      LongPrototype.gte = LongPrototype.greaterThanOrEqual;
+      LongPrototype.ge = LongPrototype.greaterThanOrEqual;
+      LongPrototype.compare = function compare(other) {
+        if (!isLong(other))
+          other = fromValue(other);
+        if (this.eq(other))
+          return 0;
+        var thisNeg = this.isNegative(), otherNeg = other.isNegative();
+        if (thisNeg && !otherNeg)
+          return -1;
+        if (!thisNeg && otherNeg)
+          return 1;
+        if (!this.unsigned)
+          return this.sub(other).isNegative() ? -1 : 1;
+        return other.high >>> 0 > this.high >>> 0 || other.high === this.high && other.low >>> 0 > this.low >>> 0 ? -1 : 1;
+      };
+      LongPrototype.comp = LongPrototype.compare;
+      LongPrototype.negate = function negate() {
+        if (!this.unsigned && this.eq(MIN_VALUE))
+          return MIN_VALUE;
+        return this.not().add(ONE);
+      };
+      LongPrototype.neg = LongPrototype.negate;
+      LongPrototype.add = function add(addend) {
+        if (!isLong(addend))
+          addend = fromValue(addend);
+        var a48 = this.high >>> 16;
+        var a32 = this.high & 65535;
+        var a16 = this.low >>> 16;
+        var a00 = this.low & 65535;
+        var b48 = addend.high >>> 16;
+        var b32 = addend.high & 65535;
+        var b16 = addend.low >>> 16;
+        var b00 = addend.low & 65535;
+        var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+        c00 += a00 + b00;
+        c16 += c00 >>> 16;
+        c00 &= 65535;
+        c16 += a16 + b16;
+        c32 += c16 >>> 16;
+        c16 &= 65535;
+        c32 += a32 + b32;
+        c48 += c32 >>> 16;
+        c32 &= 65535;
+        c48 += a48 + b48;
+        c48 &= 65535;
+        return fromBits(c16 << 16 | c00, c48 << 16 | c32, this.unsigned);
+      };
+      LongPrototype.subtract = function subtract(subtrahend) {
+        if (!isLong(subtrahend))
+          subtrahend = fromValue(subtrahend);
+        return this.add(subtrahend.neg());
+      };
+      LongPrototype.sub = LongPrototype.subtract;
+      LongPrototype.multiply = function multiply(multiplier) {
+        if (this.isZero())
+          return this;
+        if (!isLong(multiplier))
+          multiplier = fromValue(multiplier);
+        if (wasm) {
+          var low = wasm["mul"](this.low, this.high, multiplier.low, multiplier.high);
+          return fromBits(low, wasm["get_high"](), this.unsigned);
+        }
+        if (multiplier.isZero())
+          return this.unsigned ? UZERO : ZERO;
+        if (this.eq(MIN_VALUE))
+          return multiplier.isOdd() ? MIN_VALUE : ZERO;
+        if (multiplier.eq(MIN_VALUE))
+          return this.isOdd() ? MIN_VALUE : ZERO;
+        if (this.isNegative()) {
+          if (multiplier.isNegative())
+            return this.neg().mul(multiplier.neg());
+          else
+            return this.neg().mul(multiplier).neg();
+        } else if (multiplier.isNegative())
+          return this.mul(multiplier.neg()).neg();
+        if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
+          return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
+        var a48 = this.high >>> 16;
+        var a32 = this.high & 65535;
+        var a16 = this.low >>> 16;
+        var a00 = this.low & 65535;
+        var b48 = multiplier.high >>> 16;
+        var b32 = multiplier.high & 65535;
+        var b16 = multiplier.low >>> 16;
+        var b00 = multiplier.low & 65535;
+        var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+        c00 += a00 * b00;
+        c16 += c00 >>> 16;
+        c00 &= 65535;
+        c16 += a16 * b00;
+        c32 += c16 >>> 16;
+        c16 &= 65535;
+        c16 += a00 * b16;
+        c32 += c16 >>> 16;
+        c16 &= 65535;
+        c32 += a32 * b00;
+        c48 += c32 >>> 16;
+        c32 &= 65535;
+        c32 += a16 * b16;
+        c48 += c32 >>> 16;
+        c32 &= 65535;
+        c32 += a00 * b32;
+        c48 += c32 >>> 16;
+        c32 &= 65535;
+        c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+        c48 &= 65535;
+        return fromBits(c16 << 16 | c00, c48 << 16 | c32, this.unsigned);
+      };
+      LongPrototype.mul = LongPrototype.multiply;
+      LongPrototype.divide = function divide(divisor) {
+        if (!isLong(divisor))
+          divisor = fromValue(divisor);
+        if (divisor.isZero())
+          throw Error("division by zero");
+        if (wasm) {
+          if (!this.unsigned && this.high === -2147483648 && divisor.low === -1 && divisor.high === -1) {
+            return this;
+          }
+          var low = (this.unsigned ? wasm["div_u"] : wasm["div_s"])(this.low, this.high, divisor.low, divisor.high);
+          return fromBits(low, wasm["get_high"](), this.unsigned);
+        }
+        if (this.isZero())
+          return this.unsigned ? UZERO : ZERO;
+        var approx, rem, res;
+        if (!this.unsigned) {
+          if (this.eq(MIN_VALUE)) {
+            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
+              return MIN_VALUE;
+            else if (divisor.eq(MIN_VALUE))
+              return ONE;
+            else {
+              var halfThis = this.shr(1);
+              approx = halfThis.div(divisor).shl(1);
+              if (approx.eq(ZERO)) {
+                return divisor.isNegative() ? ONE : NEG_ONE;
+              } else {
+                rem = this.sub(divisor.mul(approx));
+                res = approx.add(rem.div(divisor));
+                return res;
+              }
+            }
+          } else if (divisor.eq(MIN_VALUE))
+            return this.unsigned ? UZERO : ZERO;
+          if (this.isNegative()) {
+            if (divisor.isNegative())
+              return this.neg().div(divisor.neg());
+            return this.neg().div(divisor).neg();
+          } else if (divisor.isNegative())
+            return this.div(divisor.neg()).neg();
+          res = ZERO;
+        } else {
+          if (!divisor.unsigned)
+            divisor = divisor.toUnsigned();
+          if (divisor.gt(this))
+            return UZERO;
+          if (divisor.gt(this.shru(1)))
+            return UONE;
+          res = UZERO;
+        }
+        rem = this;
+        while (rem.gte(divisor)) {
+          approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
+          var log2 = Math.ceil(Math.log(approx) / Math.LN2), delta = log2 <= 48 ? 1 : pow_dbl(2, log2 - 48), approxRes = fromNumber(approx), approxRem = approxRes.mul(divisor);
+          while (approxRem.isNegative() || approxRem.gt(rem)) {
+            approx -= delta;
+            approxRes = fromNumber(approx, this.unsigned);
+            approxRem = approxRes.mul(divisor);
+          }
+          if (approxRes.isZero())
+            approxRes = ONE;
+          res = res.add(approxRes);
+          rem = rem.sub(approxRem);
+        }
+        return res;
+      };
+      LongPrototype.div = LongPrototype.divide;
+      LongPrototype.modulo = function modulo(divisor) {
+        if (!isLong(divisor))
+          divisor = fromValue(divisor);
+        if (wasm) {
+          var low = (this.unsigned ? wasm["rem_u"] : wasm["rem_s"])(this.low, this.high, divisor.low, divisor.high);
+          return fromBits(low, wasm["get_high"](), this.unsigned);
+        }
+        return this.sub(this.div(divisor).mul(divisor));
+      };
+      LongPrototype.mod = LongPrototype.modulo;
+      LongPrototype.rem = LongPrototype.modulo;
+      LongPrototype.not = function not() {
+        return fromBits(~this.low, ~this.high, this.unsigned);
+      };
+      LongPrototype.countLeadingZeros = function countLeadingZeros() {
+        return this.high ? Math.clz32(this.high) : Math.clz32(this.low) + 32;
+      };
+      LongPrototype.clz = LongPrototype.countLeadingZeros;
+      LongPrototype.countTrailingZeros = function countTrailingZeros() {
+        return this.low ? ctz32(this.low) : ctz32(this.high) + 32;
+      };
+      LongPrototype.ctz = LongPrototype.countTrailingZeros;
+      LongPrototype.and = function and(other) {
+        if (!isLong(other))
+          other = fromValue(other);
+        return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
+      };
+      LongPrototype.or = function or(other) {
+        if (!isLong(other))
+          other = fromValue(other);
+        return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
+      };
+      LongPrototype.xor = function xor(other) {
+        if (!isLong(other))
+          other = fromValue(other);
+        return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
+      };
+      LongPrototype.shiftLeft = function shiftLeft(numBits) {
+        if (isLong(numBits))
+          numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+          return this;
+        else if (numBits < 32)
+          return fromBits(this.low << numBits, this.high << numBits | this.low >>> 32 - numBits, this.unsigned);
         else
-          return fromBits(high >>> numBits - 32, 0, this.unsigned);
-      }
-    };
-    LongPrototype.shru = LongPrototype.shiftRightUnsigned;
-    LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
-    LongPrototype.toSigned = function toSigned() {
-      if (!this.unsigned)
-        return this;
-      return fromBits(this.low, this.high, false);
-    };
-    LongPrototype.toUnsigned = function toUnsigned() {
-      if (this.unsigned)
-        return this;
-      return fromBits(this.low, this.high, true);
-    };
-    LongPrototype.toBytes = function toBytes(le) {
-      return le ? this.toBytesLE() : this.toBytesBE();
-    };
-    LongPrototype.toBytesLE = function toBytesLE() {
-      var hi = this.high, lo = this.low;
-      return [
-        lo & 255,
-        lo >>> 8 & 255,
-        lo >>> 16 & 255,
-        lo >>> 24,
-        hi & 255,
-        hi >>> 8 & 255,
-        hi >>> 16 & 255,
-        hi >>> 24
-      ];
-    };
-    LongPrototype.toBytesBE = function toBytesBE() {
-      var hi = this.high, lo = this.low;
-      return [
-        hi >>> 24,
-        hi >>> 16 & 255,
-        hi >>> 8 & 255,
-        hi & 255,
-        lo >>> 24,
-        lo >>> 16 & 255,
-        lo >>> 8 & 255,
-        lo & 255
-      ];
-    };
-    Long.fromBytes = function fromBytes(bytes, unsigned, le) {
-      return le ? Long.fromBytesLE(bytes, unsigned) : Long.fromBytesBE(bytes, unsigned);
-    };
-    Long.fromBytesLE = function fromBytesLE(bytes, unsigned) {
-      return new Long(bytes[0] | bytes[1] << 8 | bytes[2] << 16 | bytes[3] << 24, bytes[4] | bytes[5] << 8 | bytes[6] << 16 | bytes[7] << 24, unsigned);
-    };
-    Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
-      return new Long(bytes[4] << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7], bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3], unsigned);
-    };
+          return fromBits(0, this.low << numBits - 32, this.unsigned);
+      };
+      LongPrototype.shl = LongPrototype.shiftLeft;
+      LongPrototype.shiftRight = function shiftRight(numBits) {
+        if (isLong(numBits))
+          numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+          return this;
+        else if (numBits < 32)
+          return fromBits(this.low >>> numBits | this.high << 32 - numBits, this.high >> numBits, this.unsigned);
+        else
+          return fromBits(this.high >> numBits - 32, this.high >= 0 ? 0 : -1, this.unsigned);
+      };
+      LongPrototype.shr = LongPrototype.shiftRight;
+      LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
+        if (isLong(numBits))
+          numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+          return this;
+        if (numBits < 32)
+          return fromBits(this.low >>> numBits | this.high << 32 - numBits, this.high >>> numBits, this.unsigned);
+        if (numBits === 32)
+          return fromBits(this.high, 0, this.unsigned);
+        return fromBits(this.high >>> numBits - 32, 0, this.unsigned);
+      };
+      LongPrototype.shru = LongPrototype.shiftRightUnsigned;
+      LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
+      LongPrototype.rotateLeft = function rotateLeft(numBits) {
+        var b;
+        if (isLong(numBits))
+          numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+          return this;
+        if (numBits === 32)
+          return fromBits(this.high, this.low, this.unsigned);
+        if (numBits < 32) {
+          b = 32 - numBits;
+          return fromBits(this.low << numBits | this.high >>> b, this.high << numBits | this.low >>> b, this.unsigned);
+        }
+        numBits -= 32;
+        b = 32 - numBits;
+        return fromBits(this.high << numBits | this.low >>> b, this.low << numBits | this.high >>> b, this.unsigned);
+      };
+      LongPrototype.rotl = LongPrototype.rotateLeft;
+      LongPrototype.rotateRight = function rotateRight(numBits) {
+        var b;
+        if (isLong(numBits))
+          numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+          return this;
+        if (numBits === 32)
+          return fromBits(this.high, this.low, this.unsigned);
+        if (numBits < 32) {
+          b = 32 - numBits;
+          return fromBits(this.high << b | this.low >>> numBits, this.low << b | this.high >>> numBits, this.unsigned);
+        }
+        numBits -= 32;
+        b = 32 - numBits;
+        return fromBits(this.low << b | this.high >>> numBits, this.high << b | this.low >>> numBits, this.unsigned);
+      };
+      LongPrototype.rotr = LongPrototype.rotateRight;
+      LongPrototype.toSigned = function toSigned() {
+        if (!this.unsigned)
+          return this;
+        return fromBits(this.low, this.high, false);
+      };
+      LongPrototype.toUnsigned = function toUnsigned() {
+        if (this.unsigned)
+          return this;
+        return fromBits(this.low, this.high, true);
+      };
+      LongPrototype.toBytes = function toBytes(le) {
+        return le ? this.toBytesLE() : this.toBytesBE();
+      };
+      LongPrototype.toBytesLE = function toBytesLE() {
+        var hi = this.high, lo = this.low;
+        return [lo & 255, lo >>> 8 & 255, lo >>> 16 & 255, lo >>> 24, hi & 255, hi >>> 8 & 255, hi >>> 16 & 255, hi >>> 24];
+      };
+      LongPrototype.toBytesBE = function toBytesBE() {
+        var hi = this.high, lo = this.low;
+        return [hi >>> 24, hi >>> 16 & 255, hi >>> 8 & 255, hi & 255, lo >>> 24, lo >>> 16 & 255, lo >>> 8 & 255, lo & 255];
+      };
+      Long2.fromBytes = function fromBytes(bytes, unsigned, le) {
+        return le ? Long2.fromBytesLE(bytes, unsigned) : Long2.fromBytesBE(bytes, unsigned);
+      };
+      Long2.fromBytesLE = function fromBytesLE(bytes, unsigned) {
+        return new Long2(bytes[0] | bytes[1] << 8 | bytes[2] << 16 | bytes[3] << 24, bytes[4] | bytes[5] << 8 | bytes[6] << 16 | bytes[7] << 24, unsigned);
+      };
+      Long2.fromBytesBE = function fromBytesBE(bytes, unsigned) {
+        return new Long2(bytes[4] << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7], bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3], unsigned);
+      };
+      var _default = Long2;
+      exports2.default = _default;
+      return "default" in exports2 ? exports2.default : exports2;
+    }({});
+    if (typeof define === "function" && define.amd)
+      define([], function() {
+        return Long;
+      });
+    else if (typeof module2 === "object" && typeof exports === "object")
+      module2.exports = Long;
   }
 });
 
@@ -7696,9 +9729,9 @@ var require_lib = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/string.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/string.js
 var require_string = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/string.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/string.js"(exports) {
     "use strict";
     var Iconv = require_lib();
     exports.decode = function(buffer, encoding, start, end, options) {
@@ -7722,13 +9755,13 @@ var require_string = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/packet.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/packet.js
 var require_packet = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/packet.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/packet.js"(exports, module2) {
     "use strict";
     var ErrorCodeToName = require_errors();
     var NativeBuffer = require("buffer").Buffer;
-    var Long = require_long();
+    var Long = require_umd();
     var StringParser = require_string();
     var INVALID_DATE = new Date(NaN);
     var pad = "000000000000";
@@ -7763,7 +9796,12 @@ var require_packet = __commonJS({
         return this.buffer.slice(this.start, this.end);
       }
       dump() {
-        console.log([this.buffer.asciiSlice(this.start, this.end)], this.buffer.slice(this.start, this.end), this.length(), this.sequenceId);
+        console.log(
+          [this.buffer.asciiSlice(this.start, this.end)],
+          this.buffer.slice(this.start, this.end),
+          this.length(),
+          this.sequenceId
+        );
       }
       haveMoreData() {
         return this.end > this.offset;
@@ -8022,7 +10060,12 @@ var require_packet = __commonJS({
           return null;
         }
         this.offset += len;
-        return StringParser.decode(this.buffer, encoding, this.offset - len, this.offset);
+        return StringParser.decode(
+          this.buffer,
+          encoding,
+          this.offset - len,
+          this.offset
+        );
       }
       readLengthCodedBuffer() {
         const len = this.readLengthCodedNumber();
@@ -8049,7 +10092,12 @@ var require_packet = __commonJS({
           len = this.end - this.offset;
         }
         this.offset += len;
-        return StringParser.decode(this.buffer, encoding, this.offset - len, this.offset);
+        return StringParser.decode(
+          this.buffer,
+          encoding,
+          this.offset - len,
+          this.offset
+        );
       }
       parseInt(len, supportBigNumbers) {
         if (len === null) {
@@ -8215,7 +10263,9 @@ var require_packet = __commonJS({
         if (timezone === "Z") {
           return new Date(Date.UTC(y, m2 - 1, d));
         }
-        return new Date(`${leftPad(4, y)}-${leftPad(2, m2)}-${leftPad(2, d)}T00:00:00${timezone}`);
+        return new Date(
+          `${leftPad(4, y)}-${leftPad(2, m2)}-${leftPad(2, d)}T00:00:00${timezone}`
+        );
       }
       parseDateTime(timezone) {
         const str = this.readLengthCodedString("binary");
@@ -8465,9 +10515,9 @@ var require_packet = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packet_parser.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packet_parser.js
 var require_packet_parser = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packet_parser.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packet_parser.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var MAX_PACKET_LENGTH = 16777215;
@@ -8522,12 +10572,24 @@ var require_packet_parser = __commonJS({
           if (end - start >= this.length + this.packetHeaderLength) {
             const sequenceId = chunk[start + 3];
             if (this.length < MAX_PACKET_LENGTH && this.largePacketParts.length === 0) {
-              this.onPacket(new Packet(sequenceId, chunk, start, start + this.packetHeaderLength + this.length));
+              this.onPacket(
+                new Packet(
+                  sequenceId,
+                  chunk,
+                  start,
+                  start + this.packetHeaderLength + this.length
+                )
+              );
             } else {
               if (this.largePacketParts.length === 0) {
                 this.firstPacketSequenceId = sequenceId;
               }
-              this.largePacketParts.push(chunk.slice(start + this.packetHeaderLength, start + this.packetHeaderLength + this.length));
+              this.largePacketParts.push(
+                chunk.slice(
+                  start + this.packetHeaderLength,
+                  start + this.packetHeaderLength + this.length
+                )
+              );
               if (this.length < MAX_PACKET_LENGTH) {
                 this._flushLargePacket();
               }
@@ -8565,12 +10627,24 @@ var require_packet_parser = __commonJS({
           chunk.copy(payload, offset, start, start + remainingPayload);
           const sequenceId = payload[3];
           if (this.length < MAX_PACKET_LENGTH && this.largePacketParts.length === 0) {
-            this.onPacket(new Packet(sequenceId, payload, 0, this.length + this.packetHeaderLength));
+            this.onPacket(
+              new Packet(
+                sequenceId,
+                payload,
+                0,
+                this.length + this.packetHeaderLength
+              )
+            );
           } else {
             if (this.largePacketParts.length === 0) {
               this.firstPacketSequenceId = sequenceId;
             }
-            this.largePacketParts.push(payload.slice(this.packetHeaderLength, this.packetHeaderLength + this.length));
+            this.largePacketParts.push(
+              payload.slice(
+                this.packetHeaderLength,
+                this.packetHeaderLength + this.length
+              )
+            );
             if (this.length < MAX_PACKET_LENGTH) {
               this._flushLargePacket();
             }
@@ -8608,9 +10682,43 @@ var require_packet_parser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_request.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_next_factor.js
+var require_auth_next_factor = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_next_factor.js"(exports, module2) {
+    "use strict";
+    var Packet = require_packet();
+    var AuthNextFactor = class {
+      constructor(opts) {
+        this.pluginName = opts.pluginName;
+        this.pluginData = opts.pluginData;
+      }
+      toPacket(encoding) {
+        const length = 6 + this.pluginName.length + this.pluginData.length;
+        const buffer = Buffer.allocUnsafe(length);
+        const packet = new Packet(0, buffer, 0, length);
+        packet.offset = 4;
+        packet.writeInt8(2);
+        packet.writeNullTerminatedString(this.pluginName, encoding);
+        packet.writeBuffer(this.pluginData);
+        return packet;
+      }
+      static fromPacket(packet, encoding) {
+        packet.readInt8();
+        const name = packet.readNullTerminatedString(encoding);
+        const data = packet.readBuffer();
+        return new AuthNextFactor({
+          pluginName: name,
+          pluginData: data
+        });
+      }
+    };
+    module2.exports = AuthNextFactor;
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_request.js
 var require_auth_switch_request = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_request.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_request.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var AuthSwitchRequest = class {
@@ -8642,9 +10750,9 @@ var require_auth_switch_request = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_request_more_data.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_request_more_data.js
 var require_auth_switch_request_more_data = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_request_more_data.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_request_more_data.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var AuthSwitchRequestMoreData = class {
@@ -8673,9 +10781,9 @@ var require_auth_switch_request_more_data = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_response.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_response.js
 var require_auth_switch_response = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/auth_switch_response.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/auth_switch_response.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var AuthSwitchResponse = class {
@@ -8702,44 +10810,74 @@ var require_auth_switch_response = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/types.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/types.js
 var require_types = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/types.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/types.js"(exports, module2) {
     "use strict";
-    exports.DECIMAL = 0;
-    exports.TINY = 1;
-    exports.SHORT = 2;
-    exports.LONG = 3;
-    exports.FLOAT = 4;
-    exports.DOUBLE = 5;
-    exports.NULL = 6;
-    exports.TIMESTAMP = 7;
-    exports.LONGLONG = 8;
-    exports.INT24 = 9;
-    exports.DATE = 10;
-    exports.TIME = 11;
-    exports.DATETIME = 12;
-    exports.YEAR = 13;
-    exports.NEWDATE = 14;
-    exports.VARCHAR = 15;
-    exports.BIT = 16;
-    exports.JSON = 245;
-    exports.NEWDECIMAL = 246;
-    exports.ENUM = 247;
-    exports.SET = 248;
-    exports.TINY_BLOB = 249;
-    exports.MEDIUM_BLOB = 250;
-    exports.LONG_BLOB = 251;
-    exports.BLOB = 252;
-    exports.VAR_STRING = 253;
-    exports.STRING = 254;
-    exports.GEOMETRY = 255;
+    module2.exports = {
+      0: "DECIMAL",
+      1: "TINY",
+      2: "SHORT",
+      3: "LONG",
+      4: "FLOAT",
+      5: "DOUBLE",
+      6: "NULL",
+      7: "TIMESTAMP",
+      8: "LONGLONG",
+      9: "INT24",
+      10: "DATE",
+      11: "TIME",
+      12: "DATETIME",
+      13: "YEAR",
+      14: "NEWDATE",
+      15: "VARCHAR",
+      16: "BIT",
+      245: "JSON",
+      246: "NEWDECIMAL",
+      247: "ENUM",
+      248: "SET",
+      249: "TINY_BLOB",
+      250: "MEDIUM_BLOB",
+      251: "LONG_BLOB",
+      252: "BLOB",
+      253: "VAR_STRING",
+      254: "STRING",
+      255: "GEOMETRY"
+    };
+    module2.exports.DECIMAL = 0;
+    module2.exports.TINY = 1;
+    module2.exports.SHORT = 2;
+    module2.exports.LONG = 3;
+    module2.exports.FLOAT = 4;
+    module2.exports.DOUBLE = 5;
+    module2.exports.NULL = 6;
+    module2.exports.TIMESTAMP = 7;
+    module2.exports.LONGLONG = 8;
+    module2.exports.INT24 = 9;
+    module2.exports.DATE = 10;
+    module2.exports.TIME = 11;
+    module2.exports.DATETIME = 12;
+    module2.exports.YEAR = 13;
+    module2.exports.NEWDATE = 14;
+    module2.exports.VARCHAR = 15;
+    module2.exports.BIT = 16;
+    module2.exports.JSON = 245;
+    module2.exports.NEWDECIMAL = 246;
+    module2.exports.ENUM = 247;
+    module2.exports.SET = 248;
+    module2.exports.TINY_BLOB = 249;
+    module2.exports.MEDIUM_BLOB = 250;
+    module2.exports.LONG_BLOB = 251;
+    module2.exports.BLOB = 252;
+    module2.exports.VAR_STRING = 253;
+    module2.exports.STRING = 254;
+    module2.exports.GEOMETRY = 255;
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binary_row.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binary_row.js
 var require_binary_row = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binary_row.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binary_row.js"(exports, module2) {
     "use strict";
     var Types = require_types();
     var Packet = require_packet();
@@ -8748,8 +10886,49 @@ var require_binary_row = __commonJS({
       constructor(columns) {
         this.columns = columns || [];
       }
-      toPacket() {
-        throw new Error("Not implemented");
+      static toPacket(columns, encoding) {
+        const sequenceId = 0;
+        let length = 0;
+        columns.forEach((val) => {
+          if (val === null || typeof val === "undefined") {
+            ++length;
+            return;
+          }
+          length += Packet.lengthCodedStringLength(val.toString(10), encoding);
+        });
+        length = length + 2;
+        const buffer = Buffer.allocUnsafe(length + 4);
+        const packet = new Packet(sequenceId, buffer, 0, length + 4);
+        packet.offset = 4;
+        packet.writeInt8(0);
+        let bitmap = 0;
+        let bitValue = 1;
+        columns.forEach((parameter) => {
+          if (parameter.type === Types.NULL) {
+            bitmap += bitValue;
+          }
+          bitValue *= 2;
+          if (bitValue === 256) {
+            packet.writeInt8(bitmap);
+            bitmap = 0;
+            bitValue = 1;
+          }
+        });
+        if (bitValue !== 1) {
+          packet.writeInt8(bitmap);
+        }
+        columns.forEach((val) => {
+          if (val === null) {
+            packet.writeNull();
+            return;
+          }
+          if (typeof val === "undefined") {
+            packet.writeInt8(0);
+            return;
+          }
+          packet.writeLengthCodedString(val.toString(10), encoding);
+        });
+        return packet;
       }
       static fromPacket(fields, packet) {
         const columns = new Array(fields.length);
@@ -8781,9 +10960,9 @@ var require_binary_row = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/commands.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/commands.js
 var require_commands = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/commands.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/commands.js"(exports, module2) {
     "use strict";
     module2.exports = {
       SLEEP: 0,
@@ -8822,9 +11001,9 @@ var require_commands = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binlog_dump.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binlog_dump.js
 var require_binlog_dump = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binlog_dump.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binlog_dump.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var CommandCodes = require_commands();
@@ -8852,9 +11031,9 @@ var require_binlog_dump = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/client.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/client.js
 var require_client = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/client.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/client.js"(exports) {
     "use strict";
     exports.LONG_PASSWORD = 1;
     exports.FOUND_ROWS = 2;
@@ -8883,12 +11062,13 @@ var require_client = __commonJS({
     exports.DEPRECATE_EOF = 16777216;
     exports.SSL_VERIFY_SERVER_CERT = 1073741824;
     exports.REMEMBER_OPTIONS = 2147483648;
+    exports.MULTI_FACTOR_AUTHENTICATION = 268435456;
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_41.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_41.js
 var require_auth_41 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_41.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_41.js"(exports) {
     "use strict";
     var crypto = require("crypto");
     function sha1(msg, msg1, msg2) {
@@ -8903,12 +11083,6 @@ var require_auth_41 = __commonJS({
       return hash.digest();
     }
     function xor(a, b) {
-      if (!Buffer.isBuffer(a)) {
-        a = Buffer.from(a, "binary");
-      }
-      if (!Buffer.isBuffer(b)) {
-        b = Buffer.from(b, "binary");
-      }
       const result = Buffer.allocUnsafe(a.length);
       for (let i2 = 0; i2 < a.length; i2++) {
         result[i2] = a[i2] ^ b[i2];
@@ -8940,12 +11114,6 @@ var require_auth_41 = __commonJS({
       return sha1(sha1(password));
     };
     function xorRotating(a, seed) {
-      if (!Buffer.isBuffer(a)) {
-        a = Buffer.from(a, "binary");
-      }
-      if (!Buffer.isBuffer(seed)) {
-        seed = Buffer.from(seed, "binary");
-      }
       const result = Buffer.allocUnsafe(a.length);
       const seedLen = seed.length;
       for (let i2 = 0; i2 < a.length; i2++) {
@@ -8957,9 +11125,9 @@ var require_auth_41 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/charset_encodings.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/charset_encodings.js
 var require_charset_encodings = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/charset_encodings.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/charset_encodings.js"(exports, module2) {
     "use strict";
     module2.exports = [
       "utf8",
@@ -9062,7 +11230,7 @@ var require_charset_encodings = __commonJS({
       "eucjpms",
       "eucjpms",
       "cp1250",
-      "utf8",
+      "utf16",
       "utf16",
       "utf16",
       "utf16",
@@ -9213,6 +11381,9 @@ var require_charset_encodings = __commonJS({
       "gb18030",
       "gb18030",
       "gb18030",
+      "utf8",
+      "utf8",
+      "utf8",
       "utf8",
       "utf8",
       "utf8",
@@ -9272,9 +11443,9 @@ var require_charset_encodings = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/change_user.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/change_user.js
 var require_change_user = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/change_user.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/change_user.js"(exports, module2) {
     "use strict";
     var CommandCode = require_commands();
     var ClientConstants = require_client();
@@ -9293,9 +11464,17 @@ var require_change_user = __commonJS({
         this.connectAttributes = opts.connectAttrinutes || {};
         let authToken;
         if (this.passwordSha1) {
-          authToken = auth41.calculateTokenFromPasswordSha(this.passwordSha1, this.authPluginData1, this.authPluginData2);
+          authToken = auth41.calculateTokenFromPasswordSha(
+            this.passwordSha1,
+            this.authPluginData1,
+            this.authPluginData2
+          );
         } else {
-          authToken = auth41.calculateToken(this.password, this.authPluginData1, this.authPluginData2);
+          authToken = auth41.calculateToken(
+            this.password,
+            this.authPluginData1,
+            this.authPluginData2
+          );
         }
         this.authToken = authToken;
         this.charsetNumber = opts.charsetNumber;
@@ -9325,12 +11504,18 @@ var require_change_user = __commonJS({
           let keysLength = 0;
           for (let k = 0; k < attrNames.length; ++k) {
             keysLength += Packet.lengthCodedStringLength(attrNames[k], encoding);
-            keysLength += Packet.lengthCodedStringLength(connectAttributes[attrNames[k]], encoding);
+            keysLength += Packet.lengthCodedStringLength(
+              connectAttributes[attrNames[k]],
+              encoding
+            );
           }
           packet.writeLengthCodedNumber(keysLength);
           for (let k = 0; k < attrNames.length; ++k) {
             packet.writeLengthCodedString(attrNames[k], encoding);
-            packet.writeLengthCodedString(connectAttributes[attrNames[k]], encoding);
+            packet.writeLengthCodedString(
+              connectAttributes[attrNames[k]],
+              encoding
+            );
           }
         }
         return packet;
@@ -9350,9 +11535,9 @@ var require_change_user = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/close_statement.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/close_statement.js
 var require_close_statement = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/close_statement.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/close_statement.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var CommandCodes = require_commands();
@@ -9372,9 +11557,31 @@ var require_close_statement = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/column_definition.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/field_flags.js
+var require_field_flags = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/field_flags.js"(exports) {
+    "use strict";
+    exports.NOT_NULL = 1;
+    exports.PRI_KEY = 2;
+    exports.UNIQUE_KEY = 4;
+    exports.MULTIPLE_KEY = 8;
+    exports.BLOB = 16;
+    exports.UNSIGNED = 32;
+    exports.ZEROFILL = 64;
+    exports.BINARY = 128;
+    exports.ENUM = 256;
+    exports.AUTO_INCREMENT = 512;
+    exports.TIMESTAMP = 1024;
+    exports.SET = 2048;
+    exports.NO_DEFAULT_VALUE = 4096;
+    exports.ON_UPDATE_NOW = 8192;
+    exports.NUM = 32768;
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/column_definition.js
 var require_column_definition = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/column_definition.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/column_definition.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var StringParser = require_string();
@@ -9405,9 +11612,15 @@ var require_column_definition = __commonJS({
         packet.skip(1);
         this.characterSet = packet.readInt16();
         this.encoding = CharsetToEncoding[this.characterSet];
-        this.name = StringParser.decode(this._buf, this.encoding === "binary" ? this._clientEncoding : this.encoding, _nameStart, _nameStart + _nameLength);
+        this.name = StringParser.decode(
+          this._buf,
+          this.encoding === "binary" ? this._clientEncoding : this.encoding,
+          _nameStart,
+          _nameStart + _nameLength
+        );
         this.columnLength = packet.readInt32();
         this.columnType = packet.readInt8();
+        this.type = this.columnType;
         this.flags = packet.readInt16();
         this.decimals = packet.readInt8();
       }
@@ -9420,21 +11633,147 @@ var require_column_definition = __commonJS({
           table: this.table,
           orgTable: this.orgTable,
           characterSet: this.characterSet,
+          encoding: this.encoding,
           columnLength: this.columnLength,
-          columnType: this.columnType,
+          type: this.columnType,
           flags: this.flags,
           decimals: this.decimals
         };
       }
+      [Symbol.for("nodejs.util.inspect.custom")](depth, inspectOptions, inspect) {
+        const Types = require_types();
+        const typeNames = [];
+        for (const t2 in Types) {
+          typeNames[Types[t2]] = t2;
+        }
+        const fiedFlags = require_field_flags();
+        const flagNames = [];
+        const inspectFlags = this.flags;
+        for (const f3 in fiedFlags) {
+          if (inspectFlags & fiedFlags[f3]) {
+            if (f3 === "PRI_KEY") {
+              flagNames.push("PRIMARY KEY");
+            } else if (f3 === "NOT_NULL") {
+              flagNames.push("NOT NULL");
+            } else if (f3 === "BINARY") {
+            } else if (f3 === "MULTIPLE_KEY") {
+            } else if (f3 === "NO_DEFAULT_VALUE") {
+            } else if (f3 === "BLOB") {
+            } else if (f3 === "UNSIGNED") {
+            } else if (f3 === "TIMESTAMP") {
+            } else if (f3 === "ON_UPDATE_NOW") {
+              flagNames.push("ON UPDATE CURRENT_TIMESTAMP");
+            } else {
+              flagNames.push(f3);
+            }
+          }
+        }
+        if (depth > 1) {
+          return inspect({
+            ...this.inspect(),
+            typeName: typeNames[this.columnType],
+            flags: flagNames
+          });
+        }
+        const isUnsigned = this.flags & fiedFlags.UNSIGNED;
+        let typeName = typeNames[this.columnType];
+        if (typeName === "BLOB") {
+          if (this.columnLength === 4294967295) {
+            typeName = "LONGTEXT";
+          } else if (this.columnLength === 67108860) {
+            typeName = "MEDIUMTEXT";
+          } else if (this.columnLength === 262140) {
+            typeName = "TEXT";
+          } else if (this.columnLength === 1020) {
+            typeName = "TINYTEXT";
+          } else {
+            typeName = `BLOB(${this.columnLength})`;
+          }
+        } else if (typeName === "VAR_STRING") {
+          typeName = `VARCHAR(${Math.ceil(this.columnLength / 4)})`;
+        } else if (typeName === "TINY") {
+          if (this.columnLength === 3 && isUnsigned || this.columnLength === 4 && !isUnsigned) {
+            typeName = "TINYINT";
+          } else {
+            typeName = `TINYINT(${this.columnLength})`;
+          }
+        } else if (typeName === "LONGLONG") {
+          if (this.columnLength === 20) {
+            typeName = "BIGINT";
+          } else {
+            typeName = `BIGINT(${this.columnLength})`;
+          }
+        } else if (typeName === "SHORT") {
+          if (isUnsigned && this.columnLength === 5) {
+            typeName = "SMALLINT";
+          } else if (!isUnsigned && this.columnLength === 6) {
+            typeName = "SMALLINT";
+          } else {
+            typeName = `SMALLINT(${this.columnLength})`;
+          }
+        } else if (typeName === "LONG") {
+          if (isUnsigned && this.columnLength === 10) {
+            typeName = "INT";
+          } else if (!isUnsigned && this.columnLength === 11) {
+            typeName = "INT";
+          } else {
+            typeName = `INT(${this.columnLength})`;
+          }
+        } else if (typeName === "INT24") {
+          if (isUnsigned && this.columnLength === 8) {
+            typeName = "MEDIUMINT";
+          } else if (!isUnsigned && this.columnLength === 9) {
+            typeName = "MEDIUMINT";
+          } else {
+            typeName = `MEDIUMINT(${this.columnLength})`;
+          }
+        } else if (typeName === "DOUBLE") {
+          if (this.columnLength === 22 && this.decimals === 31) {
+            typeName = "DOUBLE";
+          } else {
+            typeName = `DOUBLE(${this.columnLength},${this.decimals})`;
+          }
+        } else if (typeName === "FLOAT") {
+          if (this.columnLength === 12 && this.decimals === 31) {
+            typeName = "FLOAT";
+          } else {
+            typeName = `FLOAT(${this.columnLength},${this.decimals})`;
+          }
+        } else if (typeName === "NEWDECIMAL") {
+          if (this.columnLength === 11 && this.decimals === 0) {
+            typeName = "DECIMAL";
+          } else if (this.decimals === 0) {
+            if (isUnsigned) {
+              typeName = `DECIMAL(${this.columnLength})`;
+            } else {
+              typeName = `DECIMAL(${this.columnLength - 1})`;
+            }
+          } else {
+            typeName = `DECIMAL(${this.columnLength - 2},${this.decimals})`;
+          }
+        } else {
+          typeName = `${typeNames[this.columnType]}(${this.columnLength})`;
+        }
+        if (isUnsigned) {
+          typeName += " UNSIGNED";
+        }
+        return `\`${this.name}\` ${[typeName, ...flagNames].join(" ")}`;
+      }
       static toPacket(column, sequenceId) {
         let length = 17;
         fields.forEach((field) => {
-          length += Packet.lengthCodedStringLength(column[field], CharsetToEncoding[column.characterSet]);
+          length += Packet.lengthCodedStringLength(
+            column[field],
+            CharsetToEncoding[column.characterSet]
+          );
         });
         const buffer = Buffer.allocUnsafe(length);
         const packet = new Packet(sequenceId, buffer, 0, length);
         function writeField(name) {
-          packet.writeLengthCodedString(column[name], CharsetToEncoding[column.characterSet]);
+          packet.writeLengthCodedString(
+            column[name],
+            CharsetToEncoding[column.characterSet]
+          );
         }
         packet.offset = 4;
         fields.forEach(writeField);
@@ -9456,7 +11795,12 @@ var require_column_definition = __commonJS({
         get: function() {
           const start = this[`_${name}Start`];
           const end = start + this[`_${name}Length`];
-          const val = StringParser.decode(this._buf, this.encoding === "binary" ? this._clientEncoding : this.encoding, start, end);
+          const val = StringParser.decode(
+            this._buf,
+            this.encoding === "binary" ? this._clientEncoding : this.encoding,
+            start,
+            end
+          );
           Object.defineProperty(this, name, {
             value: val,
             writable: false,
@@ -9476,9 +11820,9 @@ var require_column_definition = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/cursor.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/cursor.js
 var require_cursor = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/cursor.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/cursor.js"(exports, module2) {
     "use strict";
     module2.exports = {
       NO_CURSOR: 0,
@@ -9489,9 +11833,9 @@ var require_cursor = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/execute.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/execute.js
 var require_execute = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/execute.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/execute.js"(exports, module2) {
     "use strict";
     var CursorType = require_cursor();
     var CommandCodes = require_commands();
@@ -9558,6 +11902,46 @@ var require_execute = __commonJS({
         this.encoding = CharsetToEncoding[charsetNumber];
         this.timezone = timezone;
       }
+      static fromPacket(packet, encoding) {
+        const stmtId = packet.readInt32();
+        const flags = packet.readInt8();
+        const iterationCount = packet.readInt32();
+        let i2 = packet.offset;
+        while (i2 < packet.end - 1) {
+          if ((packet.buffer[i2 + 1] === Types.VAR_STRING || packet.buffer[i2 + 1] === Types.NULL || packet.buffer[i2 + 1] === Types.DOUBLE || packet.buffer[i2 + 1] === Types.TINY || packet.buffer[i2 + 1] === Types.DATETIME || packet.buffer[i2 + 1] === Types.JSON) && packet.buffer[i2] === 1 && packet.buffer[i2 + 2] === 0) {
+            break;
+          } else {
+            packet.readInt8();
+          }
+          i2++;
+        }
+        const types3 = [];
+        for (let i3 = packet.offset + 1; i3 < packet.end - 1; i3++) {
+          if ((packet.buffer[i3] === Types.VAR_STRING || packet.buffer[i3] === Types.NULL || packet.buffer[i3] === Types.DOUBLE || packet.buffer[i3] === Types.TINY || packet.buffer[i3] === Types.DATETIME || packet.buffer[i3] === Types.JSON) && packet.buffer[i3 + 1] === 0) {
+            types3.push(packet.buffer[i3]);
+            packet.skip(2);
+          }
+        }
+        packet.skip(1);
+        const values = [];
+        for (let i3 = 0; i3 < types3.length; i3++) {
+          if (types3[i3] === Types.VAR_STRING) {
+            values.push(packet.readLengthCodedString(encoding));
+          } else if (types3[i3] === Types.DOUBLE) {
+            values.push(packet.readDouble());
+          } else if (types3[i3] === Types.TINY) {
+            values.push(packet.readInt8());
+          } else if (types3[i3] === Types.DATETIME) {
+            values.push(packet.readDateTime());
+          } else if (types3[i3] === Types.JSON) {
+            values.push(JSON.parse(packet.readLengthCodedString(encoding)));
+          }
+          if (types3[i3] === Types.NULL) {
+            values.push(null);
+          }
+        }
+        return { stmtId, flags, iterationCount, values };
+      }
       toPacket() {
         let length = 14;
         let parameters;
@@ -9565,8 +11949,13 @@ var require_execute = __commonJS({
           length += Math.floor((this.parameters.length + 7) / 8);
           length += 1;
           length += 2 * this.parameters.length;
-          parameters = this.parameters.map((value) => toParameter(value, this.encoding, this.timezone));
-          length += parameters.reduce((accumulator, parameter) => accumulator + parameter.length, 0);
+          parameters = this.parameters.map(
+            (value) => toParameter(value, this.encoding, this.timezone)
+          );
+          length += parameters.reduce(
+            (accumulator, parameter) => accumulator + parameter.length,
+            0
+          );
         }
         const buffer = Buffer.allocUnsafe(length);
         const packet = new Packet(0, buffer, 0, length);
@@ -9610,9 +11999,9 @@ var require_execute = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/handshake.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/handshake.js
 var require_handshake = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/handshake.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/handshake.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var ClientConstants = require_client();
@@ -9712,9 +12101,9 @@ var require_handshake = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/handshake_response.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/handshake_response.js
 var require_handshake_response = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/handshake_response.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/handshake_response.js"(exports, module2) {
     "use strict";
     var ClientConstants = require_client();
     var CharsetToEncoding = require_charset_encodings();
@@ -9732,9 +12121,17 @@ var require_handshake_response = __commonJS({
         this.clientFlags = handshake.flags;
         let authToken;
         if (this.passwordSha1) {
-          authToken = auth41.calculateTokenFromPasswordSha(this.passwordSha1, this.authPluginData1, this.authPluginData2);
+          authToken = auth41.calculateTokenFromPasswordSha(
+            this.passwordSha1,
+            this.authPluginData1,
+            this.authPluginData2
+          );
         } else {
-          authToken = auth41.calculateToken(this.password, this.authPluginData1, this.authPluginData2);
+          authToken = auth41.calculateToken(
+            this.password,
+            this.authPluginData1,
+            this.authPluginData2
+          );
         }
         this.authToken = authToken;
         this.charsetNumber = handshake.charsetNumber;
@@ -9774,12 +12171,18 @@ var require_handshake_response = __commonJS({
           let keysLength = 0;
           for (k = 0; k < attrNames.length; ++k) {
             keysLength += Packet.lengthCodedStringLength(attrNames[k], encoding);
-            keysLength += Packet.lengthCodedStringLength(connectAttributes[attrNames[k]], encoding);
+            keysLength += Packet.lengthCodedStringLength(
+              connectAttributes[attrNames[k]],
+              encoding
+            );
           }
           packet.writeLengthCodedNumber(keysLength);
           for (k = 0; k < attrNames.length; ++k) {
             packet.writeLengthCodedString(attrNames[k], encoding);
-            packet.writeLengthCodedString(connectAttributes[attrNames[k]], encoding);
+            packet.writeLengthCodedString(
+              connectAttributes[attrNames[k]],
+              encoding
+            );
           }
         }
         return packet;
@@ -9838,9 +12241,9 @@ var require_handshake_response = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/prepare_statement.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/prepare_statement.js
 var require_prepare_statement = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/prepare_statement.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/prepare_statement.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var CommandCodes = require_commands();
@@ -9867,9 +12270,9 @@ var require_prepare_statement = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/prepared_statement_header.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/prepared_statement_header.js
 var require_prepared_statement_header = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/prepared_statement_header.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/prepared_statement_header.js"(exports, module2) {
     "use strict";
     var PreparedStatementHeader = class {
       constructor(packet) {
@@ -9885,9 +12288,9 @@ var require_prepared_statement_header = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/query.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/query.js
 var require_query = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/query.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/query.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var CommandCode = require_commands();
@@ -9914,9 +12317,9 @@ var require_query = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/register_slave.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/register_slave.js
 var require_register_slave = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/register_slave.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/register_slave.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var CommandCodes = require_commands();
@@ -9953,9 +12356,9 @@ var require_register_slave = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/server_status.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/server_status.js
 var require_server_status = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/server_status.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/server_status.js"(exports) {
     "use strict";
     exports.SERVER_STATUS_IN_TRANS = 1;
     exports.SERVER_STATUS_AUTOCOMMIT = 2;
@@ -9974,9 +12377,9 @@ var require_server_status = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/encoding_charset.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/encoding_charset.js
 var require_encoding_charset = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/encoding_charset.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/encoding_charset.js"(exports, module2) {
     "use strict";
     module2.exports = {
       big5: 1,
@@ -10025,9 +12428,9 @@ var require_encoding_charset = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/session_track.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/session_track.js
 var require_session_track = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/session_track.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/session_track.js"(exports) {
     "use strict";
     exports.SYSTEM_VARIABLES = 0;
     exports.SCHEMA = 1;
@@ -10040,9 +12443,9 @@ var require_session_track = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/resultset_header.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/resultset_header.js
 var require_resultset_header = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/resultset_header.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/resultset_header.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var ClientConstants = require_client();
@@ -10085,6 +12488,7 @@ var require_resultset_header = __commonJS({
               stateChanges = {
                 systemVariables: {},
                 schema: null,
+                gtids: [],
                 trackStateChange: null
               };
             }
@@ -10104,7 +12508,13 @@ var require_resultset_header = __commonJS({
                 key = packet.readLengthCodedString(encoding);
                 stateChanges.schema = key;
               } else if (type === sessionInfoTypes.STATE_CHANGE) {
-                stateChanges.trackStateChange = packet.readLengthCodedString(encoding);
+                stateChanges.trackStateChange = packet.readLengthCodedString(
+                  encoding
+                );
+              } else if (type === sessionInfoTypes.STATE_GTIDS) {
+                const _unknownString = packet.readLengthCodedString(encoding);
+                const gtid = packet.readLengthCodedString(encoding);
+                stateChanges.gtids = gtid.split(",");
               } else {
               }
               packet.offset = stateEnd;
@@ -10119,6 +12529,8 @@ var require_resultset_header = __commonJS({
         const m2 = this.info.match(/\schanged:\s*(\d+)/i);
         if (m2 !== null) {
           this.changedRows = parseInt(m2[1], 10);
+        } else {
+          this.changedRows = 0;
         }
       }
       static toPacket(fieldCount, insertId) {
@@ -10140,9 +12552,9 @@ var require_resultset_header = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/ssl_request.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/ssl_request.js
 var require_ssl_request = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/ssl_request.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/ssl_request.js"(exports, module2) {
     "use strict";
     var ClientConstants = require_client();
     var Packet = require_packet();
@@ -10167,9 +12579,9 @@ var require_ssl_request = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/text_row.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/text_row.js
 var require_text_row = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/text_row.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/text_row.js"(exports, module2) {
     "use strict";
     var Packet = require_packet();
     var TextRow = class {
@@ -10214,11 +12626,12 @@ var require_text_row = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/index.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/index.js
 var require_packets = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/index.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/index.js"(exports, module2) {
     "use strict";
     var process2 = require("process");
+    var AuthNextFactor = require_auth_next_factor();
     var AuthSwitchRequest = require_auth_switch_request();
     var AuthSwitchRequestMoreData = require_auth_switch_request_more_data();
     var AuthSwitchResponse = require_auth_switch_response();
@@ -10238,6 +12651,7 @@ var require_packets = __commonJS({
     var SSLRequest = require_ssl_request();
     var TextRow = require_text_row();
     var ctorMap = {
+      AuthNextFactor,
       AuthSwitchRequest,
       AuthSwitchRequestMoreData,
       AuthSwitchResponse,
@@ -10342,9 +12756,9 @@ var require_packets = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/command.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/command.js
 var require_command = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/command.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/command.js"(exports, module2) {
     "use strict";
     var EventEmitter = require("events").EventEmitter;
     var Timers = require("timers");
@@ -10395,19 +12809,22 @@ var require_command = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/sha256_password.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/sha256_password.js
 var require_sha256_password = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/sha256_password.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/sha256_password.js"(exports, module2) {
     "use strict";
     var PLUGIN_NAME = "sha256_password";
     var crypto = require("crypto");
-    var { xor } = require_auth_41();
+    var { xorRotating } = require_auth_41();
     var REQUEST_SERVER_KEY_PACKET = Buffer.from([1]);
     var STATE_INITIAL = 0;
     var STATE_WAIT_SERVER_KEY = 1;
     var STATE_FINAL = -1;
     function encrypt(password, scramble, key) {
-      const stage1 = xor(Buffer.from(`${password}\0`, "utf8").toString("binary"), scramble.toString("binary"));
+      const stage1 = xorRotating(
+        Buffer.from(`${password}\0`, "utf8"),
+        scramble
+      );
       return crypto.publicEncrypt(key, stage1);
     }
     module2.exports = (pluginOptions = {}) => ({ connection }) => {
@@ -10434,17 +12851,21 @@ var require_sha256_password = __commonJS({
             }
             return authWithKey(data);
           case STATE_FINAL:
-            throw new Error(`Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_FINAL state.`);
+            throw new Error(
+              `Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_FINAL state.`
+            );
         }
-        throw new Error(`Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in state ${state}`);
+        throw new Error(
+          `Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in state ${state}`
+        );
       };
     };
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/caching_sha2_password.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/caching_sha2_password.js
 var require_caching_sha2_password = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/caching_sha2_password.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/caching_sha2_password.js"(exports, module2) {
     "use strict";
     var PLUGIN_NAME = "caching_sha2_password";
     var crypto = require("crypto");
@@ -10458,20 +12879,23 @@ var require_caching_sha2_password = __commonJS({
     var STATE_FINAL = -1;
     function sha256(msg) {
       const hash = crypto.createHash("sha256");
-      hash.update(msg, "binary");
-      return hash.digest("binary");
+      hash.update(msg);
+      return hash.digest();
     }
     function calculateToken(password, scramble) {
       if (!password) {
         return Buffer.alloc(0);
       }
-      const stage1 = sha256(Buffer.from(password, "utf8").toString("binary"));
+      const stage1 = sha256(Buffer.from(password));
       const stage2 = sha256(stage1);
-      const stage3 = sha256(stage2 + scramble.toString("binary"));
+      const stage3 = sha256(Buffer.concat([stage2, scramble]));
       return xor(stage1, stage3);
     }
     function encrypt(password, scramble, key) {
-      const stage1 = xorRotating(Buffer.from(`${password}\0`, "utf8").toString("binary"), scramble.toString("binary"));
+      const stage1 = xorRotating(
+        Buffer.from(`${password}\0`, "utf8"),
+        scramble
+      );
       return crypto.publicEncrypt(key, stage1);
     }
     module2.exports = (pluginOptions = {}) => ({ connection }) => {
@@ -10506,24 +12930,30 @@ var require_caching_sha2_password = __commonJS({
               state = STATE_WAIT_SERVER_KEY;
               return REQUEST_SERVER_KEY_PACKET;
             }
-            throw new Error(`Invalid AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_TOKEN_SENT state.`);
+            throw new Error(
+              `Invalid AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_TOKEN_SENT state.`
+            );
           case STATE_WAIT_SERVER_KEY:
             if (pluginOptions.onServerPublicKey) {
               pluginOptions.onServerPublicKey(data);
             }
             return authWithKey(data);
           case STATE_FINAL:
-            throw new Error(`Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_FINAL state.`);
+            throw new Error(
+              `Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in STATE_FINAL state.`
+            );
         }
-        throw new Error(`Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in state ${state}`);
+        throw new Error(
+          `Unexpected data in AuthMoreData packet received by ${PLUGIN_NAME} plugin in state ${state}`
+        );
       };
     };
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/mysql_native_password.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/mysql_native_password.js
 var require_mysql_native_password = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/auth_plugins/mysql_native_password.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/mysql_native_password.js"(exports, module2) {
     "use strict";
     var auth41 = require_auth_41();
     module2.exports = (pluginOptions) => ({ connection, command }) => {
@@ -10534,9 +12964,17 @@ var require_mysql_native_password = __commonJS({
         const authPluginData2 = data.slice(8, 20);
         let authToken;
         if (passwordSha1) {
-          authToken = auth41.calculateTokenFromPasswordSha(passwordSha1, authPluginData1, authPluginData2);
+          authToken = auth41.calculateTokenFromPasswordSha(
+            passwordSha1,
+            authPluginData1,
+            authPluginData2
+          );
         } else {
-          authToken = auth41.calculateToken(password, authPluginData1, authPluginData2);
+          authToken = auth41.calculateToken(
+            password,
+            authPluginData1,
+            authPluginData2
+          );
         }
         return authToken;
       };
@@ -10544,21 +12982,42 @@ var require_mysql_native_password = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/auth_switch.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/mysql_clear_password.js
+var require_mysql_clear_password = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/mysql_clear_password.js"(exports, module2) {
+    "use strict";
+    function bufferFromStr(str) {
+      return Buffer.from(`${str}\0`);
+    }
+    var create_mysql_clear_password_plugin = (pluginOptions) => function mysql_clear_password_plugin({ connection, command }) {
+      const password = command.password || pluginOptions.password || connection.config.password;
+      return function() {
+        return bufferFromStr(password);
+      };
+    };
+    module2.exports = create_mysql_clear_password_plugin;
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/auth_switch.js
 var require_auth_switch = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/auth_switch.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/auth_switch.js"(exports, module2) {
     "use strict";
     var Packets = require_packets();
     var sha256_password = require_sha256_password();
     var caching_sha2_password = require_caching_sha2_password();
     var mysql_native_password = require_mysql_native_password();
+    var mysql_clear_password = require_mysql_clear_password();
     var standardAuthPlugins = {
       sha256_password: sha256_password({}),
       caching_sha2_password: caching_sha2_password({}),
-      mysql_native_password: mysql_native_password({})
+      mysql_native_password: mysql_native_password({}),
+      mysql_clear_password: mysql_clear_password({})
     };
     function warnLegacyAuthSwitch() {
-      console.warn("WARNING! authSwitchHandler api is deprecated, please use new authPlugins api");
+      console.warn(
+        "WARNING! authSwitchHandler api is deprecated, please use new authPlugins api"
+      );
     }
     function authSwitchPluginError(error, command) {
       error.code = "AUTH_SWITCH_PLUGIN_ERROR";
@@ -10566,7 +13025,9 @@ var require_auth_switch = __commonJS({
       command.emit("error", error);
     }
     function authSwitchRequest(packet, connection, command) {
-      const { pluginName, pluginData } = Packets.AuthSwitchRequest.fromPacket(packet);
+      const { pluginName, pluginData } = Packets.AuthSwitchRequest.fromPacket(
+        packet
+      );
       let authPlugin = connection.config.authPlugins && connection.config.authPlugins[pluginName];
       if (connection.config.authSwitchHandler && pluginName !== "mysql_native_password") {
         const legacySwitchHandler = connection.config.authSwitchHandler;
@@ -10583,7 +13044,9 @@ var require_auth_switch = __commonJS({
         authPlugin = standardAuthPlugins[pluginName];
       }
       if (!authPlugin) {
-        throw new Error(`Server requests authentication using unknown plugin ${pluginName}. See ${"TODO: add plugins doco here"} on how to configure or author authentication plugins.`);
+        throw new Error(
+          `Server requests authentication using unknown plugin ${pluginName}. See ${"TODO: add plugins doco here"} on how to configure or author authentication plugins.`
+        );
       }
       connection._authPlugin = authPlugin({ connection, command });
       Promise.resolve(connection._authPlugin(pluginData)).then((data) => {
@@ -10608,7 +13071,9 @@ var require_auth_switch = __commonJS({
         return;
       }
       if (!connection._authPlugin) {
-        throw new Error("AuthPluginMoreData received but no auth plugin instance found");
+        throw new Error(
+          "AuthPluginMoreData received but no auth plugin instance found"
+        );
       }
       Promise.resolve(connection._authPlugin(data)).then((data2) => {
         if (data2) {
@@ -10746,9 +13211,9 @@ var require_seq_queue2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/compressed_protocol.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/compressed_protocol.js
 var require_compressed_protocol = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/compressed_protocol.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/compressed_protocol.js"(exports, module2) {
     "use strict";
     var zlib2 = require("zlib");
     var PacketParser = require_packet_parser();
@@ -10781,7 +13246,10 @@ var require_compressed_protocol = __commonJS({
       let start;
       if (buffer.length > MAX_COMPRESSED_LENGTH) {
         for (start = 0; start < buffer.length; start += MAX_COMPRESSED_LENGTH) {
-          writeCompressed.call(this, buffer.slice(start, start + MAX_COMPRESSED_LENGTH));
+          writeCompressed.call(
+            this,
+            buffer.slice(start, start + MAX_COMPRESSED_LENGTH)
+          );
         }
         return;
       }
@@ -10844,9 +13312,9 @@ var require_compressed_protocol = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/client_handshake.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/client_handshake.js
 var require_client_handshake = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/client_handshake.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/client_handshake.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Packets = require_packets();
@@ -10867,20 +13335,31 @@ var require_client_handshake = __commonJS({
         super();
         this.handshake = null;
         this.clientFlags = clientFlags;
+        this.authenticationFactor = 0;
       }
       start() {
         return ClientHandshake.prototype.handshakeInit;
       }
       sendSSLRequest(connection) {
-        const sslRequest = new Packets.SSLRequest(this.clientFlags, connection.config.charsetNumber);
+        const sslRequest = new Packets.SSLRequest(
+          this.clientFlags,
+          connection.config.charsetNumber
+        );
         connection.writePacket(sslRequest.toPacket());
       }
       sendCredentials(connection) {
         if (connection.config.debug) {
-          console.log("Sending handshake packet: flags:%d=(%s)", this.clientFlags, flagNames(this.clientFlags).join(", "));
+          console.log(
+            "Sending handshake packet: flags:%d=(%s)",
+            this.clientFlags,
+            flagNames(this.clientFlags).join(", ")
+          );
         }
         this.user = connection.config.user;
         this.password = connection.config.password;
+        this.password1 = connection.config.password;
+        this.password2 = connection.config.password2;
+        this.password3 = connection.config.password3;
         this.passwordSha1 = connection.config.passwordSha1;
         this.database = connection.config.database;
         this.autPluginName = this.handshake.autPluginName;
@@ -10903,9 +13382,17 @@ var require_client_handshake = __commonJS({
         const authPluginData2 = authPluginData.slice(8, 20);
         let authToken;
         if (this.passwordSha1) {
-          authToken = auth41.calculateTokenFromPasswordSha(this.passwordSha1, authPluginData1, authPluginData2);
+          authToken = auth41.calculateTokenFromPasswordSha(
+            this.passwordSha1,
+            authPluginData1,
+            authPluginData2
+          );
         } else {
-          authToken = auth41.calculateToken(this.password, authPluginData1, authPluginData2);
+          authToken = auth41.calculateToken(
+            this.password,
+            authPluginData1,
+            authPluginData2
+          );
         }
         return authToken;
       }
@@ -10916,12 +13403,18 @@ var require_client_handshake = __commonJS({
         });
         this.handshake = Packets.Handshake.fromPacket(helloPacket);
         if (connection.config.debug) {
-          console.log("Server hello packet: capability flags:%d=(%s)", this.handshake.capabilityFlags, flagNames(this.handshake.capabilityFlags).join(", "));
+          console.log(
+            "Server hello packet: capability flags:%d=(%s)",
+            this.handshake.capabilityFlags,
+            flagNames(this.handshake.capabilityFlags).join(", ")
+          );
         }
         connection.serverCapabilityFlags = this.handshake.capabilityFlags;
         connection.serverEncoding = CharsetToEncoding[this.handshake.characterSet];
         connection.connectionId = this.handshake.connectionId;
         const serverSSLSupport = this.handshake.capabilityFlags & ClientConstants.SSL;
+        const multiFactorAuthentication = this.handshake.capabilityFlags & ClientConstants.MULTI_FACTOR_AUTHENTICATION;
+        this.clientFlags = this.clientFlags | multiFactorAuthentication;
         connection.config.compress = connection.config.compress && this.handshake.capabilityFlags & ClientConstants.COMPRESS;
         this.clientFlags = this.clientFlags | connection.config.compress;
         if (connection.config.ssl) {
@@ -10946,16 +13439,23 @@ var require_client_handshake = __commonJS({
         } else {
           this.sendCredentials(connection);
         }
+        if (multiFactorAuthentication) {
+          this.authenticationFactor = 1;
+        }
         return ClientHandshake.prototype.handshakeResult;
       }
       handshakeResult(packet, connection) {
         const marker = packet.peekByte();
-        if (marker === 254 || marker === 1) {
+        if (marker === 254 || marker === 1 || marker === 2) {
           const authSwitch = require_auth_switch();
           try {
             if (marker === 1) {
               authSwitch.authSwitchRequestMoreData(packet, connection, this);
             } else {
+              if (this.authenticationFactor !== 0) {
+                connection.config.password = this[`password${this.authenticationFactor}`];
+                this.authenticationFactor += 1;
+              }
               authSwitch.authSwitchRequest(packet, connection, this);
             }
             return ClientHandshake.prototype.handshakeResult;
@@ -10998,9 +13498,9 @@ var require_client_handshake = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/server_handshake.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/server_handshake.js
 var require_server_handshake = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/server_handshake.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/server_handshake.js"(exports, module2) {
     "use strict";
     var CommandCode = require_commands();
     var Errors = require_errors();
@@ -11027,34 +13527,63 @@ var require_server_handshake = __commonJS({
         const clientHelloReply = Packets.HandshakeResponse.fromPacket(packet);
         connection.clientHelloReply = clientHelloReply;
         if (this.args.authCallback) {
-          this.args.authCallback({
-            user: clientHelloReply.user,
-            database: clientHelloReply.database,
-            address: connection.stream.remoteAddress,
-            authPluginData1: this.serverHello.authPluginData1,
-            authPluginData2: this.serverHello.authPluginData2,
-            authToken: clientHelloReply.authToken
-          }, (err, mysqlError) => {
-            if (!mysqlError) {
-              connection.writeOk();
-            } else {
-              connection.writeError({
-                message: mysqlError.message || "",
-                code: mysqlError.code || 1045
-              });
-              connection.close();
+          this.args.authCallback(
+            {
+              user: clientHelloReply.user,
+              database: clientHelloReply.database,
+              address: connection.stream.remoteAddress,
+              authPluginData1: this.serverHello.authPluginData1,
+              authPluginData2: this.serverHello.authPluginData2,
+              authToken: clientHelloReply.authToken
+            },
+            (err, mysqlError) => {
+              if (!mysqlError) {
+                connection.writeOk();
+              } else {
+                connection.writeError({
+                  message: mysqlError.message || "",
+                  code: mysqlError.code || 1045
+                });
+                connection.close();
+              }
             }
-          });
+          );
         } else {
           connection.writeOk();
         }
         return ServerHandshake.prototype.dispatchCommands;
+      }
+      _isStatement(query, name) {
+        const firstWord = query.split(" ")[0].toUpperCase();
+        return firstWord === name;
       }
       dispatchCommands(packet, connection) {
         let knownCommand = true;
         const encoding = connection.clientHelloReply.encoding;
         const commandCode = packet.readInt8();
         switch (commandCode) {
+          case CommandCode.STMT_PREPARE:
+            if (connection.listeners("stmt_prepare").length) {
+              const query = packet.readString(void 0, encoding);
+              connection.emit("stmt_prepare", query);
+            } else {
+              connection.writeError({
+                code: Errors.HA_ERR_INTERNAL_ERROR,
+                message: "No query handler for prepared statements."
+              });
+            }
+            break;
+          case CommandCode.STMT_EXECUTE:
+            if (connection.listeners("stmt_execute").length) {
+              const { stmtId, flags, iterationCount, values } = Packets.Execute.fromPacket(packet, encoding);
+              connection.emit("stmt_execute", stmtId, flags, iterationCount, values);
+            } else {
+              connection.writeError({
+                code: Errors.HA_ERR_INTERNAL_ERROR,
+                message: "No query handler for execute statements."
+              });
+            }
+            break;
           case CommandCode.QUIT:
             if (connection.listeners("quit").length) {
               connection.emit("quit");
@@ -11073,7 +13602,12 @@ var require_server_handshake = __commonJS({
           case CommandCode.QUERY:
             if (connection.listeners("query").length) {
               const query = packet.readString(void 0, encoding);
-              connection.emit("query", query);
+              if (this._isStatement(query, "PREPARE") || this._isStatement(query, "SET")) {
+                connection.emit("stmt_prepare", query);
+              } else if (this._isStatement(query, "EXECUTE")) {
+                connection.emit("stmt_execute", null, null, null, null, query);
+              } else
+                connection.emit("query", query);
             } else {
               connection.writeError({
                 code: Errors.HA_ERR_INTERNAL_ERROR,
@@ -11083,7 +13617,7 @@ var require_server_handshake = __commonJS({
             break;
           case CommandCode.FIELD_LIST:
             if (connection.listeners("field_list").length) {
-              const table = packet.readNullTerminatedString();
+              const table = packet.readNullTerminatedString(encoding);
               const fields = packet.readString(void 0, encoding);
               connection.emit("field_list", table, fields);
             } else {
@@ -11115,9 +13649,9 @@ var require_server_handshake = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/charsets.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/charsets.js
 var require_charsets = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/charsets.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/charsets.js"(exports) {
     "use strict";
     exports.BIG5_CHINESE_CI = 1;
     exports.LATIN2_CZECH_CS = 2;
@@ -11344,26 +13878,54 @@ var require_charsets = __commonJS({
     exports.GB18030_UNICODE_520_CI = 250;
     exports.UTF8_GENERAL50_CI = 253;
     exports.UTF8MB4_0900_AI_CI = 255;
-    exports.UTF8MB4_CS_0900_AI_CI = 266;
-    exports.UTF8MB4_DA_0900_AI_CI = 267;
     exports.UTF8MB4_DE_PB_0900_AI_CI = 256;
-    exports.UTF8MB4_EO_0900_AI_CI = 273;
-    exports.UTF8MB4_ES_0900_AI_CI = 263;
-    exports.UTF8MB4_ES_TRAD_0900_AI_CI = 270;
-    exports.UTF8MB4_ET_0900_AI_CI = 262;
-    exports.UTF8MB4_HR_0900_AI_CI = 275;
-    exports.UTF8MB4_HU_0900_AI_CI = 274;
     exports.UTF8MB4_IS_0900_AI_CI = 257;
-    exports.UTF8MB4_LA_0900_AI_CI = 271;
-    exports.UTF8MB4_LT_0900_AI_CI = 268;
     exports.UTF8MB4_LV_0900_AI_CI = 258;
-    exports.UTF8MB4_PL_0900_AI_CI = 261;
     exports.UTF8MB4_RO_0900_AI_CI = 259;
-    exports.UTF8MB4_SK_0900_AI_CI = 269;
     exports.UTF8MB4_SL_0900_AI_CI = 260;
+    exports.UTF8MB4_PL_0900_AI_CI = 261;
+    exports.UTF8MB4_ET_0900_AI_CI = 262;
+    exports.UTF8MB4_ES_0900_AI_CI = 263;
     exports.UTF8MB4_SV_0900_AI_CI = 264;
     exports.UTF8MB4_TR_0900_AI_CI = 265;
+    exports.UTF8MB4_CS_0900_AI_CI = 266;
+    exports.UTF8MB4_DA_0900_AI_CI = 267;
+    exports.UTF8MB4_LT_0900_AI_CI = 268;
+    exports.UTF8MB4_SK_0900_AI_CI = 269;
+    exports.UTF8MB4_ES_TRAD_0900_AI_CI = 270;
+    exports.UTF8MB4_LA_0900_AI_CI = 271;
+    exports.UTF8MB4_EO_0900_AI_CI = 273;
+    exports.UTF8MB4_HU_0900_AI_CI = 274;
+    exports.UTF8MB4_HR_0900_AI_CI = 275;
     exports.UTF8MB4_VI_0900_AI_CI = 277;
+    exports.UTF8MB4_0900_AS_CS = 278;
+    exports.UTF8MB4_DE_PB_0900_AS_CS = 279;
+    exports.UTF8MB4_IS_0900_AS_CS = 280;
+    exports.UTF8MB4_LV_0900_AS_CS = 281;
+    exports.UTF8MB4_RO_0900_AS_CS = 282;
+    exports.UTF8MB4_SL_0900_AS_CS = 283;
+    exports.UTF8MB4_PL_0900_AS_CS = 284;
+    exports.UTF8MB4_ET_0900_AS_CS = 285;
+    exports.UTF8MB4_ES_0900_AS_CS = 286;
+    exports.UTF8MB4_SV_0900_AS_CS = 287;
+    exports.UTF8MB4_TR_0900_AS_CS = 288;
+    exports.UTF8MB4_CS_0900_AS_CS = 289;
+    exports.UTF8MB4_DA_0900_AS_CS = 290;
+    exports.UTF8MB4_LT_0900_AS_CS = 291;
+    exports.UTF8MB4_SK_0900_AS_CS = 292;
+    exports.UTF8MB4_ES_TRAD_0900_AS_CS = 293;
+    exports.UTF8MB4_LA_0900_AS_CS = 294;
+    exports.UTF8MB4_EO_0900_AS_CS = 296;
+    exports.UTF8MB4_HU_0900_AS_CS = 297;
+    exports.UTF8MB4_HR_0900_AS_CS = 298;
+    exports.UTF8MB4_VI_0900_AS_CS = 300;
+    exports.UTF8MB4_JA_0900_AS_CS = 303;
+    exports.UTF8MB4_JA_0900_AS_CS_KS = 304;
+    exports.UTF8MB4_0900_AS_CI = 305;
+    exports.UTF8MB4_RU_0900_AI_CI = 306;
+    exports.UTF8MB4_RU_0900_AS_CS = 307;
+    exports.UTF8MB4_ZH_0900_AS_CS = 308;
+    exports.UTF8MB4_0900_BIN = 309;
     exports.BIG5 = exports.BIG5_CHINESE_CI;
     exports.DEC8 = exports.DEC8_SWEDISH_CI;
     exports.CP850 = exports.CP850_GENERAL_CI;
@@ -11407,9 +13969,9 @@ var require_charsets = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/helpers.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/helpers.js
 var require_helpers = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/helpers.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/helpers.js"(exports) {
     "use strict";
     function srcEscape(str) {
       return JSON.stringify({
@@ -11420,7 +13982,8 @@ var require_helpers = __commonJS({
     var highlightFn;
     var cardinalRecommended = false;
     try {
-      highlightFn = require("cardinal").highlight;
+      const REQUIRE_TERMINATOR = "";
+      highlightFn = require(`cardinal${REQUIRE_TERMINATOR}`).highlight;
     } catch (err) {
       highlightFn = (text) => {
         if (!cardinalRecommended) {
@@ -11627,11 +14190,11 @@ var require_generate_function = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/parser_cache.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/parser_cache.js
 var require_parser_cache = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/parser_cache.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/parser_cache.js"(exports, module2) {
     "use strict";
-    var LRU = require_lru_cache();
+    var LRU = require_index_cjs().default;
     var parserCache = new LRU({
       max: 15e3
     });
@@ -11657,7 +14220,7 @@ var require_parser_cache = __commonJS({
       parserCache.max = max;
     }
     function clearCache() {
-      parserCache.reset();
+      parserCache.clear();
     }
     module2.exports = {
       getParser,
@@ -11667,9 +14230,9 @@ var require_parser_cache = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/text_parser.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/text_parser.js
 var require_text_parser = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/text_parser.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/text_parser.js"(exports, module2) {
     "use strict";
     var Types = require_types();
     var Charsets = require_charsets();
@@ -11744,8 +14307,11 @@ var require_text_parser = __commonJS({
           table: field.table,
           name: field.name,
           charset: field.characterSet,
-          string: function() {
-            return _this.packet.readLengthCodedString(field.encoding);
+          string: function(encoding = field.encoding) {
+            if (field.columnType === Types.JSON && encoding === field.encoding) {
+              console.warn(`typeCast: JSON column "${field.name}" is interpreted as BINARY by default, recommended to manually set utf8 encoding: \`field.string("utf8")\``);
+            }
+            return _this.packet.readLengthCodedString(encoding);
           },
           buffer: function() {
             return _this.packet.readLengthCodedBuffer();
@@ -11756,7 +14322,9 @@ var require_text_parser = __commonJS({
         };
       }
       const parserFn = genFunc();
-      parserFn("(function () {")("return class TextRow {");
+      parserFn("(function () {")(
+        "return class TextRow {"
+      );
       parserFn("constructor(fields) {");
       if (typeof options.typeCast === "function") {
         parserFn("const _this = this;");
@@ -11789,7 +14357,9 @@ var require_text_parser = __commonJS({
         fieldName = helpers.srcEscape(fields[i2].name);
         parserFn(`// ${fieldName}: ${typeNames[fields[i2].columnType]}`);
         if (typeof options.nestTables === "string") {
-          lvalue = `result[${helpers.srcEscape(fields[i2].table + options.nestTables + fields[i2].name)}]`;
+          lvalue = `result[${helpers.srcEscape(
+            fields[i2].table + options.nestTables + fields[i2].name
+          )}]`;
         } else if (options.nestTables === true) {
           lvalue = `result[${helpers.srcEscape(fields[i2].table)}][${fieldName}]`;
         } else if (options.rowsAsArray) {
@@ -11801,7 +14371,13 @@ var require_text_parser = __commonJS({
           parserFn(`${lvalue} = packet.readLengthCodedBuffer();`);
         } else {
           const encodingExpr = `fields[${i2}].encoding`;
-          const readCode = readCodeFor(fields[i2].columnType, fields[i2].characterSet, encodingExpr, config, options);
+          const readCode = readCodeFor(
+            fields[i2].columnType,
+            fields[i2].characterSet,
+            encodingExpr,
+            config,
+            options
+          );
           if (typeof options.typeCast === "function") {
             parserFn(`${lvalue} = options.typeCast(this.wrap${i2}, function() { return ${readCode} });`);
           } else {
@@ -11813,7 +14389,10 @@ var require_text_parser = __commonJS({
       parserFn("}");
       parserFn("};")("})()");
       if (config.debug) {
-        helpers.printDebugWithCode("Compiled text protocol row parser", parserFn.toString());
+        helpers.printDebugWithCode(
+          "Compiled text protocol row parser",
+          parserFn.toString()
+        );
       }
       if (typeof options.typeCast === "function") {
         return parserFn.toFunction({ wrap });
@@ -11827,10 +14406,11 @@ var require_text_parser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/query.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/query.js
 var require_query2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/query.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/query.js"(exports, module2) {
     "use strict";
+    var process2 = require("process");
     var Timers = require("timers");
     var Readable = require("stream").Readable;
     var Command = require_command();
@@ -11844,6 +14424,7 @@ var require_query2 = __commonJS({
         this.sql = options.sql;
         this.values = options.values;
         this._queryOptions = options;
+        this.namedPlaceholders = options.namedPlaceholders || false;
         this.onResult = callback;
         this.timeout = options.timeout;
         this.queryTimeout = null;
@@ -11860,7 +14441,7 @@ var require_query2 = __commonJS({
         this._connection = null;
       }
       then() {
-        const err = "You have tried to call .then(), .catch(), or invoked await on the result of query that is not a promise, which is a programming error. Try calling con.promise().query(), or require('mysql2/promise') instead of 'mysql2' for a promise-compatible version of the query interface. To learn how to use async/await or Promises check out documentation at https://www.npmjs.com/package/mysql2#using-promise-wrapper, or the mysql2 documentation at https://github.com/sidorares/node-mysql2/tree/master/documentation/Promise-Wrapper.md";
+        const err = "You have tried to call .then(), .catch(), or invoked await on the result of query that is not a promise, which is a programming error. Try calling con.promise().query(), or require('mysql2/promise') instead of 'mysql2' for a promise-compatible version of the query interface. To learn how to use async/await or Promises check out documentation at https://www.npmjs.com/package/mysql2#using-promise-wrapper, or the mysql2 documentation at https://github.com/sidorares/node-mysql2/tree/master/documentation/en/Promise-Wrapper.md";
         console.log(err);
         throw new Error(err);
       }
@@ -11871,8 +14452,10 @@ var require_query2 = __commonJS({
         this._connection = connection;
         this.options = Object.assign({}, connection.config, this._queryOptions);
         this._setTimeout();
-        this._time = process.hrtime();
-        const cmdPacket = new Packets.Query(this.sql, connection.config.charsetNumber);
+        const cmdPacket = new Packets.Query(
+          this.sql,
+          connection.config.charsetNumber
+        );
         connection.writePacket(cmdPacket.toPacket(1));
         return Query.prototype.resultsetHeader;
       }
@@ -11886,7 +14469,7 @@ var require_query2 = __commonJS({
           this.queryTimeout = null;
         }
         if (this.onResult) {
-          let rows, fields, time;
+          let rows, fields;
           if (this._resultIndex === 0) {
             rows = this._rows[0];
             fields = this._fields[0];
@@ -11894,15 +14477,13 @@ var require_query2 = __commonJS({
             rows = this._rows;
             fields = this._fields;
           }
-          if (this._time)
-            time = process.hrtime(this._time)[1] / 1e6;
           if (fields) {
-            process.nextTick(() => {
-              this.onResult(null, rows, fields, time);
+            process2.nextTick(() => {
+              this.onResult(null, rows, fields);
             });
           } else {
-            process.nextTick(() => {
-              this.onResult(null, rows, void 0, time);
+            process2.nextTick(() => {
+              this.onResult(null, rows);
             });
           }
         }
@@ -11931,7 +14512,9 @@ var require_query2 = __commonJS({
         const rs = new Packets.ResultSetHeader(packet, connection);
         this._fieldCount = rs.fieldCount;
         if (connection.config.debug) {
-          console.log(`        Resultset header received, expecting ${rs.fieldCount} column definition packets`);
+          console.log(
+            `        Resultset header received, expecting ${rs.fieldCount} column definition packets`
+          );
         }
         if (this._fieldCount === 0) {
           return this.doneInsert(rs);
@@ -11948,7 +14531,9 @@ var require_query2 = __commonJS({
         if (this._streamFactory) {
           this._localStream = this._streamFactory(path);
         } else {
-          this._localStreamError = new Error(`As a result of LOCAL INFILE command server wants to read ${path} file, but as of v2.0 you must provide streamFactory option returning ReadStream.`);
+          this._localStreamError = new Error(
+            `As a result of LOCAL INFILE command server wants to read ${path} file, but as of v2.0 you must provide streamFactory option returning ReadStream.`
+          );
           connection.writePacket(EmptyPacket);
           return this.infileOk;
         }
@@ -11964,7 +14549,9 @@ var require_query2 = __commonJS({
         const onData = function(data) {
           const dataWithHeader = Buffer.allocUnsafe(data.length + 4);
           data.copy(dataWithHeader, 4);
-          connection.writePacket(new Packets.Packet(0, dataWithHeader, 0, dataWithHeader.length));
+          connection.writePacket(
+            new Packets.Packet(0, dataWithHeader, 0, dataWithHeader.length)
+          );
         };
         const onEnd = () => {
           connection.removeListener("error", onConnectionError);
@@ -11993,7 +14580,10 @@ var require_query2 = __commonJS({
       readField(packet, connection) {
         this._receivedFieldsCount++;
         if (this._fields[this._resultIndex].length !== this._fieldCount) {
-          const field = new Packets.ColumnDefinition(packet, connection.clientEncoding);
+          const field = new Packets.ColumnDefinition(
+            packet,
+            connection.clientEncoding
+          );
           this._fields[this._resultIndex].push(field);
           if (connection.config.debug) {
             console.log("        Column definition:");
@@ -12028,7 +14618,11 @@ var require_query2 = __commonJS({
         }
         let row;
         try {
-          row = this._rowParser.next(packet, this._fields[this._resultIndex], this.options);
+          row = this._rowParser.next(
+            packet,
+            this._fields[this._resultIndex],
+            this.options
+          );
         } catch (err) {
           this._localStreamError = err;
           return this.doneInsert(null);
@@ -12072,7 +14666,10 @@ var require_query2 = __commonJS({
       _setTimeout() {
         if (this.timeout) {
           const timeoutHandler = this._handleTimeoutError.bind(this);
-          this.queryTimeout = Timers.setTimeout(timeoutHandler, this.timeout);
+          this.queryTimeout = Timers.setTimeout(
+            timeoutHandler,
+            this.timeout
+          );
         }
       }
       _handleTimeoutError() {
@@ -12096,9 +14693,9 @@ var require_query2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/close_statement.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/close_statement.js
 var require_close_statement2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/close_statement.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/close_statement.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Packets = require_packets();
@@ -12116,31 +14713,9 @@ var require_close_statement2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/field_flags.js
-var require_field_flags = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/field_flags.js"(exports) {
-    "use strict";
-    exports.NOT_NULL = 1;
-    exports.PRI_KEY = 2;
-    exports.UNIQUE_KEY = 4;
-    exports.MULTIPLE_KEY = 8;
-    exports.BLOB = 16;
-    exports.UNSIGNED = 32;
-    exports.ZEROFILL = 64;
-    exports.BINARY = 128;
-    exports.ENUM = 256;
-    exports.AUTO_INCREMENT = 512;
-    exports.TIMESTAMP = 1024;
-    exports.SET = 2048;
-    exports.NO_DEFAULT_VALUE = 4096;
-    exports.ON_UPDATE_NOW = 8192;
-    exports.NUM = 32768;
-  }
-});
-
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/binary_parser.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/binary_parser.js
 var require_binary_parser = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/parsers/binary_parser.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/parsers/binary_parser.js"(exports, module2) {
     "use strict";
     var FieldFlags = require_field_flags();
     var Charsets = require_charsets();
@@ -12248,7 +14823,9 @@ var require_binary_parser = __commonJS({
         parserFn(`// ${fieldName}: ${typeNames[fields[i2].columnType]}`);
         if (typeof options.nestTables === "string") {
           tableName = helpers.srcEscape(fields[i2].table);
-          lvalue = `result[${helpers.srcEscape(fields[i2].table + options.nestTables + fields[i2].name)}]`;
+          lvalue = `result[${helpers.srcEscape(
+            fields[i2].table + options.nestTables + fields[i2].name
+          )}]`;
         } else if (options.nestTables === true) {
           tableName = helpers.srcEscape(fields[i2].table);
           lvalue = `result[${tableName}][${fieldName}]`;
@@ -12271,7 +14848,10 @@ var require_binary_parser = __commonJS({
       parserFn("}");
       parserFn("};")("})()");
       if (config.debug) {
-        helpers.printDebugWithCode("Compiled binary protocol row parser", parserFn.toString());
+        helpers.printDebugWithCode(
+          "Compiled binary protocol row parser",
+          parserFn.toString()
+        );
       }
       return parserFn.toFunction();
     }
@@ -12282,9 +14862,9 @@ var require_binary_parser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/execute.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/execute.js
 var require_execute2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/execute.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/execute.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Query = require_query2();
@@ -12321,7 +14901,12 @@ var require_execute2 = __commonJS({
         this._connection = connection;
         this.options = Object.assign({}, connection.config, this._executeOptions);
         this._setTimeout();
-        const executePacket = new Packets.Execute(this.statement.id, this.parameters, connection.config.charsetNumber, connection.config.timezone);
+        const executePacket = new Packets.Execute(
+          this.statement.id,
+          this.parameters,
+          connection.config.charsetNumber,
+          connection.config.timezone
+        );
         try {
           connection.writePacket(executePacket.toPacket(1));
         } catch (error) {
@@ -12331,7 +14916,10 @@ var require_execute2 = __commonJS({
       }
       readField(packet, connection) {
         let fields;
-        const field = new Packets.ColumnDefinition(packet, connection.clientEncoding);
+        const field = new Packets.ColumnDefinition(
+          packet,
+          connection.clientEncoding
+        );
         this._receivedFieldsCount++;
         this._fields[this._resultIndex].push(field);
         if (this._receivedFieldsCount === this._fieldCount) {
@@ -12345,7 +14933,10 @@ var require_execute2 = __commonJS({
         if (!packet.isEOF()) {
           return connection.protocolError("Expected EOF packet");
         }
-        this._rowParser = new (this.buildParserFromFields(this._fields[this._resultIndex], connection))();
+        this._rowParser = new (this.buildParserFromFields(
+          this._fields[this._resultIndex],
+          connection
+        ))();
         return Execute.prototype.row;
       }
     };
@@ -12362,9 +14953,9 @@ var require_execute2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/prepare.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/prepare.js
 var require_prepare = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/prepare.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/prepare.js"(exports, module2) {
     "use strict";
     var Packets = require_packets();
     var Command = require_command();
@@ -12387,7 +14978,9 @@ var require_prepare = __commonJS({
           callback = parameters;
           parameters = [];
         }
-        return this._connection.addCommand(new Execute({ statement: this, values: parameters }, callback));
+        return this._connection.addCommand(
+          new Execute({ statement: this, values: parameters }, callback)
+        );
       }
     };
     var Prepare = class extends Command {
@@ -12412,7 +15005,11 @@ var require_prepare = __commonJS({
           }
           return null;
         }
-        const cmdPacket = new Packets.PrepareStatement(this.query, connection.config.charsetNumber);
+        const cmdPacket = new Packets.PrepareStatement(
+          this.query,
+          connection.config.charsetNumber,
+          this.options.values
+        );
         connection.writePacket(cmdPacket.toPacket(1));
         return Prepare.prototype.prepareHeader;
       }
@@ -12430,6 +15027,12 @@ var require_prepare = __commonJS({
         return this.prepareDone(connection);
       }
       readParameter(packet, connection) {
+        if (packet.isEOF()) {
+          if (this.fieldCount > 0) {
+            return Prepare.prototype.readField;
+          }
+          return this.prepareDone(connection);
+        }
         const def = new Packets.ColumnDefinition(packet, connection.clientEncoding);
         this.parameterDefinitions.push(def);
         if (this.parameterDefinitions.length === this.parameterCount) {
@@ -12438,6 +15041,9 @@ var require_prepare = __commonJS({
         return this.readParameter;
       }
       readField(packet, connection) {
+        if (packet.isEOF()) {
+          return this.prepareDone(connection);
+        }
         const def = new Packets.ColumnDefinition(packet, connection.clientEncoding);
         this.fields.push(def);
         if (this.fields.length === this.fieldCount) {
@@ -12461,7 +15067,13 @@ var require_prepare = __commonJS({
         return this.prepareDone(connection);
       }
       prepareDone(connection) {
-        const statement = new PreparedStatementInfo(this.query, this.id, this.fields, this.parameterDefinitions, connection);
+        const statement = new PreparedStatementInfo(
+          this.query,
+          this.id,
+          this.fields,
+          this.parameterDefinitions,
+          connection
+        );
         connection._statements.set(this.key, statement);
         if (this.onResult) {
           this.onResult(null, statement);
@@ -12473,9 +15085,9 @@ var require_prepare = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/ping.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/ping.js
 var require_ping = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/ping.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/ping.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var CommandCode = require_commands();
@@ -12486,7 +15098,12 @@ var require_ping = __commonJS({
         this.onResult = callback;
       }
       start(packet, connection) {
-        const ping = new Packet(0, Buffer.from([1, 0, 0, 0, CommandCode.PING]), 0, 5);
+        const ping = new Packet(
+          0,
+          Buffer.from([1, 0, 0, 0, CommandCode.PING]),
+          0,
+          5
+        );
         connection.writePacket(ping);
         return Ping.prototype.pingResponse;
       }
@@ -12501,9 +15118,9 @@ var require_ping = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/register_slave.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/register_slave.js
 var require_register_slave2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/register_slave.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/register_slave.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Packets = require_packets();
@@ -12529,9 +15146,9 @@ var require_register_slave2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binlog_query_statusvars.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binlog_query_statusvars.js
 var require_binlog_query_statusvars = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/packets/binlog_query_statusvars.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/packets/binlog_query_statusvars.js"(exports, module2) {
     "use strict";
     var keys = {
       FLAGS2: 0,
@@ -12604,10 +15221,18 @@ var require_binlog_query_statusvars = __commonJS({
             break;
           case keys.INVOKERS:
             length = buffer[offset++];
-            result.invokerUsername = buffer.toString("utf8", offset, offset + length);
+            result.invokerUsername = buffer.toString(
+              "utf8",
+              offset,
+              offset + length
+            );
             offset += length;
             length = buffer[offset++];
-            result.invokerHostname = buffer.toString("utf8", offset, offset + length);
+            result.invokerHostname = buffer.toString(
+              "utf8",
+              offset,
+              offset + length
+            );
             offset += length;
             break;
           case keys.UPDATED_DB_NAMES:
@@ -12617,7 +15242,9 @@ var require_binlog_query_statusvars = __commonJS({
               prevOffset = offset;
               while (buffer[offset++] && offset < buffer.length) {
               }
-              result.updatedDBs.push(buffer.toString("utf8", prevOffset, offset - 1));
+              result.updatedDBs.push(
+                buffer.toString("utf8", prevOffset, offset - 1)
+              );
             }
             break;
           case keys.MICROSECONDS:
@@ -12630,9 +15257,9 @@ var require_binlog_query_statusvars = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/binlog_dump.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/binlog_dump.js
 var require_binlog_dump2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/binlog_dump.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/binlog_dump.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Packets = require_packets();
@@ -12727,12 +15354,13 @@ var require_binlog_dump2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/change_user.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/change_user.js
 var require_change_user2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/change_user.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/change_user.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var Packets = require_packets();
+    var ClientConstants = require_client();
     var ClientHandshake = require_client_handshake();
     var CharsetToEncoding = require_charset_encodings();
     var ChangeUser = class extends Command {
@@ -12741,10 +15369,14 @@ var require_change_user2 = __commonJS({
         this.onResult = callback;
         this.user = options.user;
         this.password = options.password;
+        this.password1 = options.password;
+        this.password2 = options.password2;
+        this.password3 = options.password3;
         this.database = options.database;
         this.passwordSha1 = options.passwordSha1;
         this.charsetNumber = options.charsetNumber;
         this.currentConfig = options.currentConfig;
+        this.authenticationFactor = 0;
       }
       start(packet, connection) {
         const newPacket = new Packets.ChangeUser({
@@ -12762,8 +15394,12 @@ var require_change_user2 = __commonJS({
         this.currentConfig.database = this.database;
         this.currentConfig.charsetNumber = this.charsetNumber;
         connection.clientEncoding = CharsetToEncoding[this.charsetNumber];
-        connection._statements.reset();
+        connection._statements.clear();
         connection.writePacket(newPacket.toPacket());
+        const multiFactorAuthentication = connection.serverCapabilityFlags & ClientConstants.MULTI_FACTOR_AUTHENTICATION;
+        if (multiFactorAuthentication) {
+          this.authenticationFactor = 1;
+        }
         return ChangeUser.prototype.handshakeResult;
       }
     };
@@ -12773,9 +15409,9 @@ var require_change_user2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/quit.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/quit.js
 var require_quit = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/quit.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/quit.js"(exports, module2) {
     "use strict";
     var Command = require_command();
     var CommandCode = require_commands();
@@ -12783,13 +15419,18 @@ var require_quit = __commonJS({
     var Quit = class extends Command {
       constructor(callback) {
         super();
-        this.done = callback;
+        this.onResult = callback;
       }
       start(packet, connection) {
         connection._closing = true;
-        const quit = new Packet(0, Buffer.from([1, 0, 0, 0, CommandCode.QUIT]), 0, 5);
-        if (this.done) {
-          this.done();
+        const quit = new Packet(
+          0,
+          Buffer.from([1, 0, 0, 0, CommandCode.QUIT]),
+          0,
+          5
+        );
+        if (this.onResult) {
+          this.onResult();
         }
         connection.writePacket(quit);
         return null;
@@ -12799,9 +15440,9 @@ var require_quit = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/index.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/index.js
 var require_commands2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/commands/index.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/commands/index.js"(exports, module2) {
     "use strict";
     var ClientHandshake = require_client_handshake();
     var ServerHandshake = require_server_handshake();
@@ -12830,9 +15471,105 @@ var require_commands2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/ssl_profiles.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/package.json
+var require_package = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/package.json"(exports, module2) {
+    module2.exports = {
+      name: "mysql2",
+      version: "3.5.1",
+      description: "fast mysql driver. Implements core protocol, prepared statements, ssl and compression in native JS",
+      main: "index.js",
+      directories: {
+        example: "examples"
+      },
+      typings: "typings/mysql/index",
+      scripts: {
+        lint: "npm run lint:docs && npm run lint:code",
+        "lint:code": 'eslint index.js promise.js index.d.ts promise.d.ts "typings/**/*.ts" "lib/**/*.js" "test/**/*.{js,ts}" "benchmarks/**/*.js"',
+        "lint:docs": 'eslint Contributing.md README.md "documentation/**/*.md" "examples/*.js"',
+        test: "node ./test/run.js",
+        "test:builtin-node-runner": "NODE_V8_COVERAGE=./coverage node --test --experimental-test-coverage test/builtin-runner",
+        "test:tsc-build": 'cd "test/tsc-build" && npx tsc -p "tsconfig.json"',
+        "coverage-test": "c8 -r cobertura -r lcov -r text node ./test/run.js",
+        benchmark: "node ./benchmarks/benchmark.js",
+        prettier: 'prettier --single-quote --trailing-comma none --write "{lib,examples,test}/**/*.js"',
+        "prettier:docs": "prettier --single-quote --trailing-comma none --write README.md documentation/*",
+        precommit: "lint-staged",
+        "eslint-check": "eslint --print-config .eslintrc | eslint-config-prettier-check",
+        "wait-port": "wait-on"
+      },
+      "lint-staged": {
+        "*.js": [
+          "prettier --single-quote --trailing-comma none --write",
+          "git add"
+        ]
+      },
+      repository: {
+        type: "git",
+        url: "https://github.com/sidorares/node-mysql2"
+      },
+      keywords: [
+        "mysql",
+        "client",
+        "server"
+      ],
+      files: [
+        "lib",
+        "typings/mysql",
+        "index.js",
+        "index.d.ts",
+        "promise.js",
+        "promise.d.ts"
+      ],
+      exports: {
+        ".": "./index.js",
+        "./package.json": "./package.json",
+        "./promise": "./promise.js",
+        "./promise.js": "./promise.js"
+      },
+      engines: {
+        node: ">= 8.0"
+      },
+      author: "Andrey Sidorov <andrey.sidorov@gmail.com>",
+      license: "MIT",
+      dependencies: {
+        denque: "^2.1.0",
+        "generate-function": "^2.3.1",
+        "iconv-lite": "^0.6.3",
+        long: "^5.2.1",
+        "lru-cache": "^8.0.0",
+        "named-placeholders": "^1.1.3",
+        "seq-queue": "^0.0.5",
+        sqlstring: "^2.3.2"
+      },
+      devDependencies: {
+        "@types/node": "^20.0.0",
+        "@typescript-eslint/eslint-plugin": "^5.42.1",
+        "@typescript-eslint/parser": "^5.42.1",
+        "assert-diff": "^3.0.2",
+        benchmark: "^2.1.4",
+        c8: "^8.0.0",
+        "error-stack-parser": "^2.0.3",
+        eslint: "^8.27.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-async-await": "0.0.0",
+        "eslint-plugin-markdown": "^3.0.0",
+        husky: "^8.0.2",
+        "lint-staged": "^13.0.3",
+        portfinder: "^1.0.28",
+        prettier: "^3.0.0",
+        progress: "^2.0.3",
+        typescript: "^5.0.2",
+        urun: "0.0.8",
+        utest: "0.0.8"
+      }
+    };
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/ssl_profiles.js
 var require_ssl_profiles = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/constants/ssl_profiles.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/constants/ssl_profiles.js"(exports) {
     "use strict";
     exports["Amazon RDS"] = {
       ca: [
@@ -12881,19 +15618,31 @@ var require_ssl_profiles = __commonJS({
         "-----BEGIN CERTIFICATE-----\nMIIEDDCCAvSgAwIBAgICcEUwDQYJKoZIhvcNAQELBQAwgY8xCzAJBgNVBAYTAlVT\nMRAwDgYDVQQHDAdTZWF0dGxlMRMwEQYDVQQIDApXYXNoaW5ndG9uMSIwIAYDVQQK\nDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJbmMuMRMwEQYDVQQLDApBbWF6b24gUkRT\nMSAwHgYDVQQDDBdBbWF6b24gUkRTIFJvb3QgMjAxOSBDQTAeFw0xOTA5MTgxNjU2\nMjBaFw0yNDA4MjIxNzA4NTBaMIGZMQswCQYDVQQGEwJVUzETMBEGA1UECAwKV2Fz\naGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEiMCAGA1UECgwZQW1hem9uIFdlYiBT\nZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1hem9uIFJEUzEqMCgGA1UEAwwhQW1h\nem9uIFJEUyBhcC1ub3J0aGVhc3QtMSAyMDE5IENBMIIBIjANBgkqhkiG9w0BAQEF\nAAOCAQ8AMIIBCgKCAQEAndtkldmHtk4TVQAyqhAvtEHSMb6pLhyKrIFved1WO3S7\n+I+bWwv9b2W/ljJxLq9kdT43bhvzonNtI4a1LAohS6bqyirmk8sFfsWT3akb+4Sx\n1sjc8Ovc9eqIWJCrUiSvv7+cS7ZTA9AgM1PxvHcsqrcUXiK3Jd/Dax9jdZE1e15s\nBEhb2OEPE+tClFZ+soj8h8Pl2Clo5OAppEzYI4LmFKtp1X/BOf62k4jviXuCSst3\nUnRJzE/CXtjmN6oZySVWSe0rQYuyqRl6//9nK40cfGKyxVnimB8XrrcxUN743Vud\nQQVU0Esm8OVTX013mXWQXJHP2c0aKkog8LOga0vobQIDAQABo2YwZDAOBgNVHQ8B\nAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQULmoOS1mFSjj+\nsnUPx4DgS3SkLFYwHwYDVR0jBBgwFoAUc19g2LzLA5j0Kxc0LjZapmD/vB8wDQYJ\nKoZIhvcNAQELBQADggEBAAkVL2P1M2/G9GM3DANVAqYOwmX0Xk58YBHQu6iiQg4j\nb4Ky/qsZIsgT7YBsZA4AOcPKQFgGTWhe9pvhmXqoN3RYltN8Vn7TbUm/ZVDoMsrM\ngwv0+TKxW1/u7s8cXYfHPiTzVSJuOogHx99kBW6b2f99GbP7O1Sv3sLq4j6lVvBX\nFiacf5LAWC925nvlTzLlBgIc3O9xDtFeAGtZcEtxZJ4fnGXiqEnN4539+nqzIyYq\nnvlgCzyvcfRAxwltrJHuuRu6Maw5AGcd2Y0saMhqOVq9KYKFKuD/927BTrbd2JVf\n2sGWyuPZPCk3gq+5pCjbD0c6DkhcMGI6WwxvM5V/zSM=\n-----END CERTIFICATE-----\n",
         "-----BEGIN CERTIFICATE-----\nMIIEBzCCAu+gAwIBAgICJDQwDQYJKoZIhvcNAQELBQAwgY8xCzAJBgNVBAYTAlVT\nMRAwDgYDVQQHDAdTZWF0dGxlMRMwEQYDVQQIDApXYXNoaW5ndG9uMSIwIAYDVQQK\nDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJbmMuMRMwEQYDVQQLDApBbWF6b24gUkRT\nMSAwHgYDVQQDDBdBbWF6b24gUkRTIFJvb3QgMjAxOSBDQTAeFw0xOTA5MTgxNzAz\nMTVaFw0yNDA4MjIxNzA4NTBaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECAwKV2Fz\naGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEiMCAGA1UECgwZQW1hem9uIFdlYiBT\nZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1hem9uIFJEUzElMCMGA1UEAwwcQW1h\nem9uIFJEUyBldS13ZXN0LTMgMjAxOSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEP\nADCCAQoCggEBAL9bL7KE0n02DLVtlZ2PL+g/BuHpMYFq2JnE2RgompGurDIZdjmh\n1pxfL3nT+QIVMubuAOy8InRfkRxfpxyjKYdfLJTPJG+jDVL+wDcPpACFVqoV7Prg\npVYEV0lc5aoYw4bSeYFhdzgim6F8iyjoPnObjll9mo4XsHzSoqJLCd0QC+VG9Fw2\nq+GDRZrLRmVM2oNGDRbGpGIFg77aRxRapFZa8SnUgs2AqzuzKiprVH5i0S0M6dWr\ni+kk5epmTtkiDHceX+dP/0R1NcnkCPoQ9TglyXyPdUdTPPRfKCq12dftqll+u4mV\nARdN6WFjovxax8EAP2OAUTi1afY+1JFMj+sCAwEAAaNmMGQwDgYDVR0PAQH/BAQD\nAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFLfhrbrO5exkCVgxW0x3\nY2mAi8lNMB8GA1UdIwQYMBaAFHNfYNi8ywOY9CsXNC42WqZg/7wfMA0GCSqGSIb3\nDQEBCwUAA4IBAQAigQ5VBNGyw+OZFXwxeJEAUYaXVoP/qrhTOJ6mCE2DXUVEoJeV\nSxScy/TlFA9tJXqmit8JH8VQ/xDL4ubBfeMFAIAo4WzNWDVoeVMqphVEcDWBHsI1\nAETWzfsapRS9yQekOMmxg63d/nV8xewIl8aNVTHdHYXMqhhik47VrmaVEok1UQb3\nO971RadLXIEbVd9tjY5bMEHm89JsZDnDEw1hQXBb67Elu64OOxoKaHBgUH8AZn/2\nzFsL1ynNUjOhCSAA15pgd1vjwc0YsBbAEBPcHBWYBEyME6NLNarjOzBl4FMtATSF\nwWCKRGkvqN8oxYhwR2jf2rR5Mu4DWkK5Q8Ep\n-----END CERTIFICATE-----\n",
         "-----BEGIN CERTIFICATE-----\nMIIEBzCCAu+gAwIBAgICJVUwDQYJKoZIhvcNAQELBQAwgY8xCzAJBgNVBAYTAlVT\nMRAwDgYDVQQHDAdTZWF0dGxlMRMwEQYDVQQIDApXYXNoaW5ndG9uMSIwIAYDVQQK\nDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJbmMuMRMwEQYDVQQLDApBbWF6b24gUkRT\nMSAwHgYDVQQDDBdBbWF6b24gUkRTIFJvb3QgMjAxOSBDQTAeFw0xOTA5MTkxODE2\nNTNaFw0yNDA4MjIxNzA4NTBaMIGUMQswCQYDVQQGEwJVUzETMBEGA1UECAwKV2Fz\naGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTEiMCAGA1UECgwZQW1hem9uIFdlYiBT\nZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1hem9uIFJEUzElMCMGA1UEAwwcQW1h\nem9uIFJEUyB1cy1lYXN0LTEgMjAxOSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEP\nADCCAQoCggEBAM3i/k2u6cqbMdcISGRvh+m+L0yaSIoOXjtpNEoIftAipTUYoMhL\nInXGlQBVA4shkekxp1N7HXe1Y/iMaPEyb3n+16pf3vdjKl7kaSkIhjdUz3oVUEYt\ni8Z/XeJJ9H2aEGuiZh3kHixQcZczn8cg3dA9aeeyLSEnTkl/npzLf//669Ammyhs\nXcAo58yvT0D4E0D/EEHf2N7HRX7j/TlyWvw/39SW0usiCrHPKDLxByLojxLdHzso\nQIp/S04m+eWn6rmD+uUiRteN1hI5ncQiA3wo4G37mHnUEKo6TtTUh+sd/ku6a8HK\nglMBcgqudDI90s1OpuIAWmuWpY//8xEG2YECAwEAAaNmMGQwDgYDVR0PAQH/BAQD\nAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFPqhoWZcrVY9mU7tuemR\nRBnQIj1jMB8GA1UdIwQYMBaAFHNfYNi8ywOY9CsXNC42WqZg/7wfMA0GCSqGSIb3\nDQEBCwUAA4IBAQB6zOLZ+YINEs72heHIWlPZ8c6WY8MDU+Be5w1M+BK2kpcVhCUK\nPJO4nMXpgamEX8DIiaO7emsunwJzMSvavSPRnxXXTKIc0i/g1EbiDjnYX9d85DkC\nE1LaAUCmCZBVi9fIe0H2r9whIh4uLWZA41oMnJx/MOmo3XyMfQoWcqaSFlMqfZM4\n0rNoB/tdHLNuV4eIdaw2mlHxdWDtF4oH+HFm+2cVBUVC1jXKrFv/euRVtsTT+A6i\nh2XBHKxQ1Y4HgAn0jACP2QSPEmuoQEIa57bEKEcZsBR8SDY6ZdTd2HLRIApcCOSF\nMRM8CKLeF658I0XgF8D5EsYoKPsA+74Z+jDH\n-----END CERTIFICATE-----\n",
-        "-----BEGIN CERTIFICATE-----\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\nrqXRfboQnoZsG4q5WTP468SQvvG5\n-----END CERTIFICATE-----\n"
+        "-----BEGIN CERTIFICATE-----\nMIIDQTCCAimgAwIBAgITBmyfz5m/jAo54vB4ikPmljZbyjANBgkqhkiG9w0BAQsF\nADA5MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6\nb24gUm9vdCBDQSAxMB4XDTE1MDUyNjAwMDAwMFoXDTM4MDExNzAwMDAwMFowOTEL\nMAkGA1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJv\nb3QgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALJ4gHHKeNXj\nca9HgFB0fW7Y14h29Jlo91ghYPl0hAEvrAIthtOgQ3pOsqTQNroBvo3bSMgHFzZM\n9O6II8c+6zf1tRn4SWiw3te5djgdYZ6k/oI2peVKVuRF4fn9tBb6dNqcmzU5L/qw\nIFAGbHrQgLKm+a/sRxmPUDgH3KKHOVj4utWp+UhnMJbulHheb4mjUcAwhmahRWa6\nVOujw5H5SNz/0egwLX0tdHA114gk957EWW67c4cX8jJGKLhD+rcdqsq08p8kDi1L\n93FcXmn/6pUCyziKrlA4b9v7LWIbxcceVOF34GfID5yHI9Y/QCB/IIDEgEw+OyQm\njgSubJrIqg0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0OBBYEFIQYzIU07LwMlJQuCFmcx7IQTgoIMA0GCSqGSIb3DQEBCwUA\nA4IBAQCY8jdaQZChGsV2USggNiMOruYou6r4lK5IpDB/G/wkjUu0yKGX9rbxenDI\nU5PMCCjjmCXPI6T53iHTfIUJrU6adTrCC2qJeHZERxhlbI1Bjjt/msv0tadQ1wUs\nN+gDS63pYaACbvXy8MWy7Vu33PqUXHeeE6V/Uq2V8viTO96LXFvKWlJbYK8U90vv\no/ufQJVtMVT8QtPHRh8jrdkPSHCa2XV4cdFyQzR1bldZwgJcJmApzyMZFo6IQ6XU\n5MsI+yMRQ+hDKXJioaldXgjUkK642M4UwtBV8ob2xJNDd2ZhwLnoQdeXeGADbkpy\nrqXRfboQnoZsG4q5WTP468SQvvG5\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEDDCCAvSgAwIBAgIJAMy5uCBvP5roMA0GCSqGSIb3DQEBCwUAMIGSMQswCQYD\nVQQGEwJVUzEQMA4GA1UEBwwHU2VhdHRsZTETMBEGA1UECAwKV2FzaGluZ3RvbjEi\nMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1h\nem9uIFJEUzEjMCEGA1UEAwwaQW1hem9uIFJEUyBDTiBSb290IDIwMTkgQ0EwHhcN\nMTkwOTA5MTY1NzIyWhcNMjQwOTA5MTY1NzIyWjCBkjELMAkGA1UEBhMCVVMxEDAO\nBgNVBAcMB1NlYXR0bGUxEzARBgNVBAgMCldhc2hpbmd0b24xIjAgBgNVBAoMGUFt\nYXpvbiBXZWIgU2VydmljZXMsIEluYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxIzAh\nBgNVBAMMGkFtYXpvbiBSRFMgQ04gUm9vdCAyMDE5IENBMIIBIjANBgkqhkiG9w0B\nAQEFAAOCAQ8AMIIBCgKCAQEAzxl9K4p06ZTZ9eZmEXyTHe9Ut8OIZR86t6A8b8g0\nnhqMe+y4ee+UfqxumVAVyXwNXOiGQVbuJhScLaJ39/Ol4YzIGjdoD8MUvsf4BuET\nudQh2sJL8OnlXuqSICKpecN5ud4UQvoMVZ9FGJ+e8TvXczW14rGO62sPfYM/WrMD\nR7P4fhQfmWFzkc24/hZGRL1nkvwMdtiwuI2TYobhlwZQOdsNcZ9Ek+PcSI4oqgXN\nSqpYy85JzrRZiR5iFGw1CnJtGlC0oatXFzw/B8XOd9wvLTlJhyLo7zw9j3zedKbv\n33fTdjfvpGvcfw9CYggwrbsVmUeUhVDfMntTc9z9MRccmwIDAQABo2MwYTAOBgNV\nHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU/Z0g+hUMGQou\nhsbyFgSxc5jsbaowHwYDVR0jBBgwFoAU/Z0g+hUMGQouhsbyFgSxc5jsbaowDQYJ\nKoZIhvcNAQELBQADggEBAAlGPCq1D/PGkWoZZpAK3V94EOByklp2HkUPEZ0PPv3Z\n/euD2wUPkXnf27FC1XJE0pJX96B97ZXIEHl4S4obBRSlybzuvmfH4gyu+b+7Tebv\nVmfsAodyfYCm90heAYADWkc/XKDj+oe3NkbR+LokrM+5aOB71f5mMLnFgYHQW/dI\nIRDziUSpP0LMr+YNKvM7qytrobPS2TOWtweWpXesNBBeiLTHZpTEu8DYcE+4e2tj\nO0spF3HuoF0Oc7ioVy2exE+HV1oJOquHGSanZSdMHCAEDMfKUmlT7/zcwC877UT/\nsysqYU/fl6vX48QDfalZuBYj+d1dUxIb1sx6q4Iw4+s=\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEDDCCAvSgAwIBAgIDAIMzMA0GCSqGSIb3DQEBCwUAMIGSMQswCQYDVQQGEwJV\nUzEQMA4GA1UEBwwHU2VhdHRsZTETMBEGA1UECAwKV2FzaGluZ3RvbjEiMCAGA1UE\nCgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1hem9uIFJE\nUzEjMCEGA1UEAwwaQW1hem9uIFJEUyBDTiBSb290IDIwMTkgQ0EwHhcNMTkwOTA5\nMjAzMjM3WhcNMjQwOTA5MTY1NzIyWjCBlTELMAkGA1UEBhMCVVMxEzARBgNVBAgM\nCldhc2hpbmd0b24xEDAOBgNVBAcMB1NlYXR0bGUxIjAgBgNVBAoMGUFtYXpvbiBX\nZWIgU2VydmljZXMsIEluYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxJjAkBgNVBAMM\nHUFtYXpvbiBSRFMgY24tbm9ydGgtMSAyMDE5IENBMIIBIjANBgkqhkiG9w0BAQEF\nAAOCAQ8AMIIBCgKCAQEA1QX8vbiba8pa4b2CLVBNhqFFYwsuekptFPv/RTixRZ6K\na1fZ/vp/d7xhfhwU9DKXyQ3ONhwOVKnFuvQuWXQiPc2cRkxM+TF7yF6hoPrIOOzr\ns6ANmR2k/n9X0aOO7sqx4q7A73ueIDJst3IjfaFgt1jaqfC7tcSSROB/+vZZTNGP\nKgFvd02ut2mCtLgohzavVDicUc0V8H1sV5Ah4n0VafW7Fqru9ehiPO79JXJKIS7W\ngcgOOiK6YDqxaQRN+LTNYdZ+DZ1+Gx8NBN80fVOO2hpRFpb662k/hQH8onYkvXaY\nkr9ouDTjfr5t8E8CEvkO/Y/B3/lt7mVjEGqImCwJawIDAQABo2YwZDAOBgNVHQ8B\nAf8EBAMCAQYwEgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUXJaoUok7ROtv\n5/2xeuaRqelnejIwHwYDVR0jBBgwFoAU/Z0g+hUMGQouhsbyFgSxc5jsbaowDQYJ\nKoZIhvcNAQELBQADggEBAIiPRsCpaiMsWUq7liRV6NDgljzjVOMzUsDnfusGUQtO\nfa3tCI+sx5j92jFzlS0GwseB/3FjVQDRll/kFTqbVwpHw2kaLeAbVvquxZAoD/91\n6gBGSF3qmLestFpf02kNHlv9skqnMrBLYkQ4kckgt4Y8E8pNLSeNtJykbp7XCf7H\nA+izbITBxNHxLUqMStEtk8RhIWUmiAbp5ENHwYCL5h9g4VV7X4TsW/1Q4KgEstWa\n1t65VWr3p7NnKpMX5CL/v5FGCYq0TDdr3qmHKbXbofmUKltZ7VxSAh5LFrfLuGzt\nMtXQkd0NDvVqMNHAjEkj7/MtlYyridWrKsiUc3ALBR4=\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIGADCCA+igAwIBAgIQfFbtOHNGJtTnXjvwddAHjTANBgkqhkiG9w0BAQwFADCB\nmDELMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIElu\nYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTEwLwYDVQQDDChB\nbWF6b24gUkRTIGNuLW5vcnRoLTEgUm9vdCBDQSBSU0E0MDk2IEcxMRAwDgYDVQQH\nDAdTZWF0dGxlMCAXDTIxMDUyNTIzMTg1MloYDzIxMjEwNTI2MDAxODUyWjCBmDEL\nMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIEluYy4x\nEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTEwLwYDVQQDDChBbWF6\nb24gUkRTIGNuLW5vcnRoLTEgUm9vdCBDQSBSU0E0MDk2IEcxMRAwDgYDVQQHDAdT\nZWF0dGxlMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0OO5+lCMwInN\ntMJ19bv+uyEE74uE5vHQHtla5sI1Hp+A8DhTURgJvIHRxv3Tgtk6ja4v/VcbLcVr\nR4OkZBY9b5RKHMGDK1ljwo/MxMFuK/TGkHcrjhiZcgYyNm2oxK33/YafLqq18a8p\nHREEZwz7wSi6DY8Mf9heH8a2T3ZDlUovj5JUVIDu7kSGYHw16eUi9twX7MtO0b43\nociygADBSoZeyMKZHisYdyf4D/LLDYgh7ja+Ncu4k3ErMmxGN5cZN+USyquxmnr8\nuXkl2t9VH0BhB0kej/vO9DhLdpKJRVaML1A9Wg3pd0U37xOJhTU6wCm23zdga3kR\nbf9azdS68zDK9tYiDrGc7kRkj7SOUWLY7fagyKv3rESWXrGkV8lzsK7xseomAKvL\nfHEfL0QUD63kEk4W8VH8XY7NwXZD6Je5hiQtLu8/uxed96FWwZ1DJrzojW4mKFQF\neECHU5b5jza4gjZ/pOeeqRmx3iojjYf2ZVm0+0SRFd+BWWPpqyeVUvC9gVZ+VMPr\nSUqgIrHZ2GMNJXIHt9TR3oq4XnXVcvsPuKQCWg8HIgczfDc//zaYhLdcVQbsTVEo\nI8nLqs6FygTnhyPSbJG9n9fF+RpTowXVb1UNovCTR/UBvR9l8JobnaqKUFMI1W2d\nDy98l55+LFT1VYm+rbvxJlVJm9kw6usCAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB\n/zAdBgNVHQ4EFgQUfVNPfvq3BkZRL2qrVKEvMbPBSHAwDgYDVR0PAQH/BAQDAgGG\nMA0GCSqGSIb3DQEBDAUAA4ICAQBZ9hDaGcZFSxEyV4Yk7ynJrpKznaLWaq8T72lb\nsXcgnGGnTYQtUhdR2atA6KVtc2D8UCxDiP4kE8xC+voGKgRRt3WvIX/KRiYH4Rr/\n8DS/wux6MYYEaXjoCil1xNTOyhMCmtEPIFo8LDStbaur/PmE5VGVr45XcqNdNt5A\nS8esMGK5aI7D2zQEfGN940+U2sUCVYnvuaR1nbcMkgMzzdL2yCCZ1mlyk2KvSsF7\nb0P772MnZ3x4mP3IcUh0/6XSSIxWMAB6r6s1nCZd2JGGIyVSc2YLsB2jib2gYyfT\nzq2SL040aatsOAecrfYDG6UbeL0OUXivhOzycvS92FhEDU0BNB44wEO0Qg/zAc2C\nJlkPCMKIZc9g70RhHQ9VV9kc/SCjVRu1PauryzTmXEfr+ItrbZVW33JQg7ZOmgfj\njgpKF9q7sG2VJBDCRdp2nfeA1Bblc36yC0LodZ7voSzcJI7nnv1aO3U1CvQl0Mha\nfMjZqd0kPIX6d0G4C5SImvMCF59annWwt4V1sbWrgEvqdICe0kVsofUtEW35kX3C\nW344OxVkmhhFuniTFWYCyuQNlhIIdA0I5trZPtRaWsV2cTkNIzfe2vHGXuMnwd6V\nCwxPaPdyvKB7n6x6tF5RUOXq0EZQf9XOmdOiCTua1WT+vobRX18RtJLaOa/n5AKo\nLlYzqw==\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEATCCAumgAwIBAgIRAN9d6r2p5Wg5Gwl1bK3+WfkwDQYJKoZIhvcNAQELBQAw\ngZgxCzAJBgNVBAYTAlVTMSIwIAYDVQQKDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJ\nbmMuMRMwEQYDVQQLDApBbWF6b24gUkRTMQswCQYDVQQIDAJXQTExMC8GA1UEAwwo\nQW1hem9uIFJEUyBjbi1ub3J0aC0xIFJvb3QgQ0EgUlNBMjA0OCBHMTEQMA4GA1UE\nBwwHU2VhdHRsZTAgFw0yMTA1MjUyMzE1MDdaGA8yMDYxMDUyNjAwMTUwN1owgZgx\nCzAJBgNVBAYTAlVTMSIwIAYDVQQKDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJbmMu\nMRMwEQYDVQQLDApBbWF6b24gUkRTMQswCQYDVQQIDAJXQTExMC8GA1UEAwwoQW1h\nem9uIFJEUyBjbi1ub3J0aC0xIFJvb3QgQ0EgUlNBMjA0OCBHMTEQMA4GA1UEBwwH\nU2VhdHRsZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAKvw4zHfM3cU\nyFI9KFITDF4feeon2P49qXx8YX8KUEYzNbkNQhPSt1J91kvy0ddHLrxxNd+LoQFi\nA5vu7a51VmX1MtKYs7SzEIUdrON3FKK/2cci2yCnwzoc3kam3jXvPUu56op+aH35\n0JHEco0i+NUjh7n5UV/yWc1+8kPLBQr+VMV3ndp85ik209esvCRWgQ+iWuADqHbf\nvjrFm/zjFIiwuX5qapkDtSRVwM6FwIfjSEF6udhZjsermfD2AoTesptZEiNIPRzV\net6s/U5gMjvAhc+MQgjjdCLBlhbXWR1CPtXOMp6o8Pjn2Et3eiM6G1T0jUO28BGP\n3/iq3JOXFj8CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUEoBo\nnXIxui+T8RXYqgzikVat82EwDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBCwUA\nA4IBAQAk4XdDesWKYgE35KMqg2+tCY/gbBrKVMdvZzy2kAv9QH8bwCcojeMw4wGh\nu0mjfX0vawoot2bNY6Yu0+mVxBtkelhay7enN+mA5g5DfkyKkLb6Jg/9N7m95w4N\nICQwM3Yb9OsuquxBPPE7JkrZv10AzVz2Xqu/OHDyDpfnkcCfNusHyIAycjxq/ZEF\n7LOSBv3S20sJU72EKfrNGSfMDv9qvnusum/vTYKuSNCTR0vARxbB7LLVZZ/Pg2w8\n22RQK9zr+u5WkfTGMqF4NnbuJGphU21QHUIZYY8QAnte0hbK+AbTUyeKGHxqRDun\nBQn6/GvgP2tPDKj/Huauo/CVSd+M\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIICrzCCAjWgAwIBAgIQTEq2iHmd2QzeVBzmBUbAUTAKBggqhkjOPQQDAzCBlzEL\nMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIEluYy4x\nEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTAwLgYDVQQDDCdBbWF6\nb24gUkRTIGNuLW5vcnRoLTEgUm9vdCBDQSBFQ0MzODQgRzExEDAOBgNVBAcMB1Nl\nYXR0bGUwIBcNMjEwNTI1MjMyMjQ4WhgPMjEyMTA1MjYwMDIyNDhaMIGXMQswCQYD\nVQQGEwJVUzEiMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEG\nA1UECwwKQW1hem9uIFJEUzELMAkGA1UECAwCV0ExMDAuBgNVBAMMJ0FtYXpvbiBS\nRFMgY24tbm9ydGgtMSBSb290IENBIEVDQzM4NCBHMTEQMA4GA1UEBwwHU2VhdHRs\nZTB2MBAGByqGSM49AgEGBSuBBAAiA2IABBV1FSsxoXGFDBIMj6b+EfJvLINkTtVv\nUucbGUqZMidNfuHoUWTlhwZuX5kMv9hlbQbDxrnHCePo1heHkdqovIi2D77lhvhn\n7UgMupcFx9Tjki+5QhKLW3n7W8dmreJLw6NCMEAwDwYDVR0TAQH/BAUwAwEB/zAd\nBgNVHQ4EFgQUFwPUFTDrjPqdIMjuYGif1wkAtr8wDgYDVR0PAQH/BAQDAgGGMAoG\nCCqGSM49BAMDA2gAMGUCMQCrAtoyWILR++OEhFmuJhSR8cgEW/rGyf+lMDwq9dcA\neJPK7l9S8iT30JOo++hWwYcCMFl9MWvoQU3iUDH+j33I26+whkvZ6LLw2dajww1X\n0MPXbT3P9P0Jk/Vv+gand92fAw==\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEDDCCAvSgAwIBAgIJAMy5uCBvP5roMA0GCSqGSIb3DQEBCwUAMIGSMQswCQYD\nVQQGEwJVUzEQMA4GA1UEBwwHU2VhdHRsZTETMBEGA1UECAwKV2FzaGluZ3RvbjEi\nMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1h\nem9uIFJEUzEjMCEGA1UEAwwaQW1hem9uIFJEUyBDTiBSb290IDIwMTkgQ0EwHhcN\nMTkwOTA5MTY1NzIyWhcNMjQwOTA5MTY1NzIyWjCBkjELMAkGA1UEBhMCVVMxEDAO\nBgNVBAcMB1NlYXR0bGUxEzARBgNVBAgMCldhc2hpbmd0b24xIjAgBgNVBAoMGUFt\nYXpvbiBXZWIgU2VydmljZXMsIEluYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxIzAh\nBgNVBAMMGkFtYXpvbiBSRFMgQ04gUm9vdCAyMDE5IENBMIIBIjANBgkqhkiG9w0B\nAQEFAAOCAQ8AMIIBCgKCAQEAzxl9K4p06ZTZ9eZmEXyTHe9Ut8OIZR86t6A8b8g0\nnhqMe+y4ee+UfqxumVAVyXwNXOiGQVbuJhScLaJ39/Ol4YzIGjdoD8MUvsf4BuET\nudQh2sJL8OnlXuqSICKpecN5ud4UQvoMVZ9FGJ+e8TvXczW14rGO62sPfYM/WrMD\nR7P4fhQfmWFzkc24/hZGRL1nkvwMdtiwuI2TYobhlwZQOdsNcZ9Ek+PcSI4oqgXN\nSqpYy85JzrRZiR5iFGw1CnJtGlC0oatXFzw/B8XOd9wvLTlJhyLo7zw9j3zedKbv\n33fTdjfvpGvcfw9CYggwrbsVmUeUhVDfMntTc9z9MRccmwIDAQABo2MwYTAOBgNV\nHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU/Z0g+hUMGQou\nhsbyFgSxc5jsbaowHwYDVR0jBBgwFoAU/Z0g+hUMGQouhsbyFgSxc5jsbaowDQYJ\nKoZIhvcNAQELBQADggEBAAlGPCq1D/PGkWoZZpAK3V94EOByklp2HkUPEZ0PPv3Z\n/euD2wUPkXnf27FC1XJE0pJX96B97ZXIEHl4S4obBRSlybzuvmfH4gyu+b+7Tebv\nVmfsAodyfYCm90heAYADWkc/XKDj+oe3NkbR+LokrM+5aOB71f5mMLnFgYHQW/dI\nIRDziUSpP0LMr+YNKvM7qytrobPS2TOWtweWpXesNBBeiLTHZpTEu8DYcE+4e2tj\nO0spF3HuoF0Oc7ioVy2exE+HV1oJOquHGSanZSdMHCAEDMfKUmlT7/zcwC877UT/\nsysqYU/fl6vX48QDfalZuBYj+d1dUxIb1sx6q4Iw4+s=\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEEDCCAvigAwIBAgIDAJJhMA0GCSqGSIb3DQEBCwUAMIGSMQswCQYDVQQGEwJV\nUzEQMA4GA1UEBwwHU2VhdHRsZTETMBEGA1UECAwKV2FzaGluZ3RvbjEiMCAGA1UE\nCgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEGA1UECwwKQW1hem9uIFJE\nUzEjMCEGA1UEAwwaQW1hem9uIFJEUyBDTiBSb290IDIwMTkgQ0EwHhcNMTkwOTE3\nMTY0OTE3WhcNMjQwOTA5MTY1NzIyWjCBmTELMAkGA1UEBhMCVVMxEzARBgNVBAgM\nCldhc2hpbmd0b24xEDAOBgNVBAcMB1NlYXR0bGUxIjAgBgNVBAoMGUFtYXpvbiBX\nZWIgU2VydmljZXMsIEluYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxKjAoBgNVBAMM\nIUFtYXpvbiBSRFMgY24tbm9ydGh3ZXN0LTEgMjAxOSBDQTCCASIwDQYJKoZIhvcN\nAQEBBQADggEPADCCAQoCggEBAMr4bvXQVykL0RHtBALyP7FycubzLJM178wMw5vK\nQS/1IVlQlbdZ8bNYmSMqa2IlGoWdjvLonES0jD0T8LCOYJy0uPN0DfiH6I9v9th8\nTvG/hAD9pe01xLOUAOTzuikbzcxEf9XX6mG/xAh5rREHsLbQE9R7D4RkqdeJbQBc\nKVcWWrejW9XaleCr+iEuwSqzXYDXNyfJoYic8aNYA8bADG5YPWTPblxA8MCik+zD\nq9r5wMNafUKmdOAFP6qeYo0zA5o9ESM2xJdYqa2gF7lAYsMagtWZWfEW27ZUrYmf\ntlMXu5xF2zZ1z2n7GKBXa8kA+e/dzalUA5ONHZUDIpU51k8CAwEAAaNmMGQwDgYD\nVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFCV3kNIC\n8e01zUu6tXl0/ig8Va5OMB8GA1UdIwQYMBaAFP2dIPoVDBkKLobG8hYEsXOY7G2q\nMA0GCSqGSIb3DQEBCwUAA4IBAQDHKrXWXsv6KKb06XhuC6RrMsLW+fmQXbrU9x4V\nb46VEaHN8lvKx6QWmRKSdnCa7nYZkPUbGdcQtgThfEjkc+UEfJxx/Q2Hb1OslPcj\nEgx5M7NFCGoBbaSKOGnVexEKRfxA2zkPCMi7bDe2m8cgThyBHfsTJSVGJkXsf6VJ\nJKWJULYiHMjF31Npg++eB4iN42bqhPfP5nKloGjOs/TNYdT2rAcI8xZRsd+G+0Aw\nqlQ0VdPmxIK7M0Sv2StGD0244OXbq6A3Ojx4t7/Kl41+FuyaGlnALDvdiYF96Zu1\nVpA/pPn4AC3+/wrXOefZDFJ3dC1uKlIoh63Vv378oI2VQvw3\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIECTCCAvGgAwIBAgIRAOf+QbXXDGRJ7MW8j6FZ5ncwDQYJKoZIhvcNAQELBQAw\ngZwxCzAJBgNVBAYTAlVTMSIwIAYDVQQKDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJ\nbmMuMRMwEQYDVQQLDApBbWF6b24gUkRTMQswCQYDVQQIDAJXQTE1MDMGA1UEAwws\nQW1hem9uIFJEUyBjbi1ub3J0aHdlc3QtMSBSb290IENBIFJTQTIwNDggRzExEDAO\nBgNVBAcMB1NlYXR0bGUwIBcNMjEwNTI1MjI1NjEyWhgPMjA2MTA1MjUyMzU2MTJa\nMIGcMQswCQYDVQQGEwJVUzEiMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywg\nSW5jLjETMBEGA1UECwwKQW1hem9uIFJEUzELMAkGA1UECAwCV0ExNTAzBgNVBAMM\nLEFtYXpvbiBSRFMgY24tbm9ydGh3ZXN0LTEgUm9vdCBDQSBSU0EyMDQ4IEcxMRAw\nDgYDVQQHDAdTZWF0dGxlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA\n0XBh/AY4j5RP9XUbYGMaCaBuG4FAbHU/Qfz/hHBNfy/QMi2hF4LQECGqp+j/8fML\n45c6b0NyCLvZuIfB4F1s+dctJpqauDqzYacw3/fMmxNyzgkrYa8VhoRdPWH6ZX2e\n0VNfTOJo64ShJaePdizBAoBnfX+xvDyZ6BLGtdUsvsfdDSCTt2fgTAk8DBTmHode\nhCC3EfVcAjk99+Fe0RWPnDBXQkA8VrbgSxXPN8Gfag1wIzS44BcxhxHDiwQoL4Ao\nFfOwvgRJANeUGcqnL5IpF8xxU3lk7nMcXuQu17597+UGwTiFLAT0bnVK/TgakefX\nM3ZH9gUi0Di3dJNIKtq/3wIDAQABo0IwQDAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud\nDgQWBBTX4eJfUNknv33QnNNfkDsrYrO1uzAOBgNVHQ8BAf8EBAMCAYYwDQYJKoZI\nhvcNAQELBQADggEBAKIlgCuSJYIgvHK2zoT9PugiyBE5vvo5HyrTOJIhPknB2aY7\nx2Gwbv7YlXzncpQM+aPA88PlIvwPmGj0Nb8ph6vZ55DOxWrBE8LuXMR/+71vMYaF\nM9iTud2OyRLa2EIpS7nq3jWKjiDFkfrkUg8JmLCWHv0qEANX8XJ5NVhrRSAJzvDA\nMArXq2k5oJZoRJxyGlz6dSoU/rxsQF/oTihpcH/cEbL6ZD8sZ5xLJpCHTJcnBAEZ\nL18sYc8F/91akqXn1re/7/K3NwT9usyh89e5pegx/U2ySI3KJuc464HmCV7YZ0iJ\nEQYsQRGFZr/Miu5V4hrpuggsrnmi/RagWYJGPfQ=\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIGCTCCA/GgAwIBAgIRAJ3YjujPNbJWN/domX9EvW8wDQYJKoZIhvcNAQEMBQAw\ngZwxCzAJBgNVBAYTAlVTMSIwIAYDVQQKDBlBbWF6b24gV2ViIFNlcnZpY2VzLCBJ\nbmMuMRMwEQYDVQQLDApBbWF6b24gUkRTMQswCQYDVQQIDAJXQTE1MDMGA1UEAwws\nQW1hem9uIFJEUyBjbi1ub3J0aHdlc3QtMSBSb290IENBIFJTQTQwOTYgRzExEDAO\nBgNVBAcMB1NlYXR0bGUwIBcNMjEwNTI1MjMwMDE1WhgPMjEyMTA1MjYwMDAwMTVa\nMIGcMQswCQYDVQQGEwJVUzEiMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywg\nSW5jLjETMBEGA1UECwwKQW1hem9uIFJEUzELMAkGA1UECAwCV0ExNTAzBgNVBAMM\nLEFtYXpvbiBSRFMgY24tbm9ydGh3ZXN0LTEgUm9vdCBDQSBSU0E0MDk2IEcxMRAw\nDgYDVQQHDAdTZWF0dGxlMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA\ny8Wy3CndOV9n8V3yZ3aOTm6sKlxmtS7GYlAiguNjyqS2ERP6x3l6JlkuKyAtYut/\nUOJL6TBWQNLUsNpFJnLkomaqWRYNjSSogSLt2F6BIr/fM8pOmXvBHg9OB/I24DUE\n6bKuVbe+qrGN6ypTAsrfZJ94ED0wmMb8RMOlXOBgB3GxbuQjUFN0XLXurJygj9k7\nSM3RQggoaO94T1qoi4LD/NS/4/Z3eUksLZgkC19fSSVnuUfu845x+MXlVhLeHcLo\n9IIONonUJvkKPS90TQtB2spSqFd+MkiX3izPDii1kHfFHsl2CzwcdbxvcAZ742np\nMjDFpE4Zl6Nf28jGm6ODg6F/yZIiqWpvDemfnHfgkv1SFJnMpIAnLEIRnD5iZPRY\nvP9tJVxGo/kB7ogYLKboOtQyzQC5G6KIbkblJ+MjVcf5iQIUn5Ir7s91/7s6uVRT\nOY76S3SppFQltNwh1yW5s7Ppc9XR5cp0F37NfEm90g+r2JMH6da+Zd0zd+oG4JUJ\nGQWAIhvoOo2jjfX33GqxJI5QrhyVFQpIGs6WU3Z7uZou6/orDaEzAkedMC4w53aZ\nKmJevk2btsWRcGTYyJxf5GZ9HnUcDApcZ9QZ/9f7iIrGPTO4W6BJ9wzzc5PoenlD\noubhx9fofSIepk822gD/93fakRUJlYXKNvxJC8qXRn8CAwEAAaNCMEAwDwYDVR0T\nAQH/BAUwAwEB/zAdBgNVHQ4EFgQUbApE7vMSJDpJph7Lrq6rAMCwQF4wDgYDVR0P\nAQH/BAQDAgGGMA0GCSqGSIb3DQEBDAUAA4ICAQBSTbw8jIpZyAwQiJv5D6B9g4fX\n9PsTFTmb2eszZZZO/i0T8hbqAA3DmjjM5QqUdbjXiq4aLec04aH/ltc/12b6lypX\nsfhtUJd5rgVyEyi9VpZwL+3LrV8CC9rel1v1euOvQ+6ojsoU9PKVLSw5G1Owzy8x\npQwJU9ZTIMgz0TdlFUugaccLH54uy/c7FclO8HpOwHbwMtuMrsEt3p9vea7UoSn3\n54usb0p8ex2brMrOxKmLXXQOGoDFF8U5JCivdQaYuG7LO9NocaeyLNkc22MrxvhV\n1x3I1CE5Y1vMEqf0B8mMl2tAZ6l68r8qv1SoIrvm3ioZpdDBNkyyYVfRLpvmQBw4\nF0NQIW5wAumqbyHLRKMf/wmeuBwYjWrAeJdwDTsNVDPnhXpTOobKH432+i7v5U8n\n1dcrLdYwzRMXxY2+Wrmgte2JdsvfNkcDou9ZnjqTt8u5L7eFd5kWOLnZAWtsIef5\n2QzfKFjpbg9q/zt9RcNULAUaMB0twG1G6eO9stPElE2B0k3wM0FCTXfrh8v0FWEx\nZbnef3OwiiHHQ6EBHYvbZm0qwuYdBz8KtwurYwEUpgldls5hcj9eI3pDCjTzJncP\nGpVjJTtIE0CGOcAgIt5G6idQ1oQudW8DMb/M0QXibI5fjqEXYoYQEnjko9AqLdzI\npn++DGngGu3NLeSVfA==\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIICtjCCAj2gAwIBAgIQHBx4LmhvEVmG1P6tMGhI8DAKBggqhkjOPQQDAzCBmzEL\nMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIEluYy4x\nEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTQwMgYDVQQDDCtBbWF6\nb24gUkRTIGNuLW5vcnRod2VzdC0xIFJvb3QgQ0EgRUNDMzg0IEcxMRAwDgYDVQQH\nDAdTZWF0dGxlMCAXDTIxMDUyNTIzMDM1NVoYDzIxMjEwNTI2MDAwMzU1WjCBmzEL\nMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIEluYy4x\nEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTQwMgYDVQQDDCtBbWF6\nb24gUkRTIGNuLW5vcnRod2VzdC0xIFJvb3QgQ0EgRUNDMzg0IEcxMRAwDgYDVQQH\nDAdTZWF0dGxlMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEJxUculiPchcuEWMgFK+T\njmYSVKrpF0NbDteKKJ45BbTzhwwCSKyEY3vVCqwMQ+wYiJZ87OyxLU1cqq/WCg3s\n7aD8Ro9DezvR+Fu+/AV61BLCgeSLr9S1ZCC6cpn5l0a4o0IwQDAPBgNVHRMBAf8E\nBTADAQH/MB0GA1UdDgQWBBSK4CT2IBuyX0nXmkC15OHfxtqh8zAOBgNVHQ8BAf8E\nBAMCAYYwCgYIKoZIzj0EAwMDZwAwZAIwQB38Wg42v48d5O1i53hg2qF/H0QW/8eO\n/xVtA8PK2ztDgQm+O0vKb34nj6X4Kcn8AjBSJmft8t7LMN/UwnhptyYINerpDMzZ\ng0OtBwn1QMWWlkFNf8ajLURXKGg9e2mfkpw=\n-----END CERTIFICATE-----\n",
+        "-----BEGIN CERTIFICATE-----\nMIIEIjCCAwqgAwIBAgIQI2AINKjtLFqXO+5mqmHJOzANBgkqhkiG9w0BAQsFADCB\nnDELMAkGA1UEBhMCVVMxIjAgBgNVBAoMGUFtYXpvbiBXZWIgU2VydmljZXMsIElu\nYy4xEzARBgNVBAsMCkFtYXpvbiBSRFMxCzAJBgNVBAgMAldBMTUwMwYDVQQDDCxB\nbWF6b24gUkRTIGNuLW5vcnRod2VzdC0xIFJvb3QgQ0EgUlNBMjA0OCBHMTEQMA4G\nA1UEBwwHU2VhdHRsZTAeFw0yMTEwMjAyMjE5NTBaFw0yNjEwMjAyMzE5NTBaMIGU\nMQswCQYDVQQGEwJVUzEQMA4GA1UEBwwHU2VhdHRsZTETMBEGA1UECAwKV2FzaGlu\nZ3RvbjEiMCAGA1UECgwZQW1hem9uIFdlYiBTZXJ2aWNlcywgSW5jLjETMBEGA1UE\nCwwKQW1hem9uIFJEUzElMCMGA1UEAwwcQW1hem9uIFJEUyBjbi1ub3J0aHdlc3Qt\nMSBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMk+1qHD+w3Wns8f\nWNs6ZKtd6r8eJSilT8SKdhuvZ77C2a5CRaWhihwTznGW1vCaR9+O4OIJZCJj3iV+\n75arKXK5XJTPNJo8aW5pW9ljh/KsudkT7gzURQ3n3xFiv9vQwPRSE9gPn20Cad8U\n64KPl20DvA1XD3CoaACafRz5BlZwGJAi6xI9DqdiQRGEcNlwBzMSv9E0MqkW9pDN\n+goGEkVyfLA83hUM58zXr7AwUEw7RH64rNZcoWYT89AVKvUQnyyEs6hZvIIVwTQm\nv/YpYEH3BsN/SshaQpmh1scN/aHurVfBn0ZaY2EaTBv/u1YsalhbnZglFX6581X7\n9UkEocECAwEAAaNmMGQwEgYDVR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBTX\n4eJfUNknv33QnNNfkDsrYrO1uzAdBgNVHQ4EFgQUfGOsnDYUtkLIlP6gKPd/lkbh\nsn4wDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBCwUAA4IBAQCxYKgzCB6gcrYi\n1op0n615lk/hLD5LEmpNYYgqtOOAPf7mGF1VLu+GtDmyAqRnQjr80hFO2Tvdv614\nu0D5joapjD+aAQIb+OeVVmXYPm3UfUotnUkHGalkofEWkS/7h/dUzKARBdpsKBP9\nezSf8GBVRd0EDP8PLK5iplX4B+aQxmIBgYNIXSlgjaNX8SfjzKsRiLPmumWrb7gi\nlbqkdRuafQ3hj6K+I2JbgEEz2ggNBgUiwJRr+2B511RWHu3wEW86aEbl0+f5crJA\nXNn0nVq3tl8XMkorbAD+/8dbxMxV5wtMHY7nWsG8TlJ+8Vb9FwC5vIWSYun8u3Rh\ntOoQ3GAy\n-----END CERTIFICATE-----\n"
       ]
     };
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/connection_config.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/connection_config.js
 var require_connection_config = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/connection_config.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/connection_config.js"(exports, module2) {
     "use strict";
     var { URL: URL2 } = require("url");
     var ClientConstants = require_client();
     var Charsets = require_charsets();
+    var { version } = require_package();
     var SSLProfiles = null;
     var validOptions = {
       authPlugins: 1,
@@ -12920,6 +15669,9 @@ var require_connection_config = __commonJS({
       namedPlaceholders: 1,
       nestTables: 1,
       password: 1,
+      password1: 1,
+      password2: 1,
+      password3: 1,
       passwordSha1: 1,
       pool: 1,
       port: 1,
@@ -12936,6 +15688,8 @@ var require_connection_config = __commonJS({
       uri: 1,
       user: 1,
       connectionLimit: 1,
+      maxIdle: 1,
+      idleTimeout: 1,
       Promise: 1,
       queueLimit: 1,
       waitForConnections: 1
@@ -12958,17 +15712,21 @@ var require_connection_config = __commonJS({
           if (!Object.prototype.hasOwnProperty.call(options, key))
             continue;
           if (validOptions[key] !== 1) {
-            console.error(`Ignoring invalid configuration option passed to Connection: ${key}. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection`);
+            console.error(
+              `Ignoring invalid configuration option passed to Connection: ${key}. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection`
+            );
           }
         }
         this.isServer = options.isServer;
         this.stream = options.stream;
         this.host = options.host || "localhost";
-        this.port = options.port || 3306;
+        this.port = (typeof options.port === "string" ? parseInt(options.port, 10) : options.port) || 3306;
         this.localAddress = options.localAddress;
         this.socketPath = options.socketPath;
         this.user = options.user || void 0;
-        this.password = options.password || void 0;
+        this.password = options.password || options.password1 || void 0;
+        this.password2 = options.password2 || void 0;
+        this.password3 = options.password3 || void 0;
         this.passwordSha1 = options.passwordSha1 || void 0;
         this.database = options.database;
         this.connectTimeout = isNaN(options.connectTimeout) ? 10 * 1e3 : options.connectTimeout;
@@ -12980,10 +15738,12 @@ var require_connection_config = __commonJS({
         this.debug = options.debug;
         this.trace = options.trace !== false;
         this.stringifyObjects = options.stringifyObjects || false;
-        this.enableKeepAlive = !!options.enableKeepAlive;
+        this.enableKeepAlive = options.enableKeepAlive !== false;
         this.keepAliveInitialDelay = options.keepAliveInitialDelay || 0;
         if (options.timezone && !/^(?:local|Z|[ +-]\d\d:\d\d)$/.test(options.timezone)) {
-          console.error(`Ignoring invalid timezone passed to Connection: ${options.timezone}. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection`);
+          console.error(
+            `Ignoring invalid timezone passed to Connection: ${options.timezone}. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection`
+          );
           this.timezone = "Z";
         } else {
           this.timezone = options.timezone || "local";
@@ -12997,11 +15757,13 @@ var require_connection_config = __commonJS({
         this.nestTables = options.nestTables === void 0 ? void 0 : options.nestTables;
         this.typeCast = options.typeCast === void 0 ? true : options.typeCast;
         if (this.timezone[0] === " ") {
-          this.timezone = `+${this.timezone.substr(1)}`;
+          this.timezone = `+${this.timezone.slice(1)}`;
         }
         if (this.ssl) {
           if (typeof this.ssl !== "object") {
-            throw new TypeError(`SSL profile must be an object, instead it's a ${typeof this.ssl}`);
+            throw new TypeError(
+              `SSL profile must be an object, instead it's a ${typeof this.ssl}`
+            );
           }
           this.ssl.rejectUnauthorized = this.ssl.rejectUnauthorized !== false;
         }
@@ -13010,8 +15772,15 @@ var require_connection_config = __commonJS({
         this.compress = options.compress || false;
         this.authPlugins = options.authPlugins;
         this.authSwitchHandler = options.authSwitchHandler;
-        this.clientFlags = ConnectionConfig.mergeFlags(ConnectionConfig.getDefaultFlags(options), options.flags || "");
-        this.connectAttributes = options.connectAttributes;
+        this.clientFlags = ConnectionConfig.mergeFlags(
+          ConnectionConfig.getDefaultFlags(options),
+          options.flags || ""
+        );
+        const defaultConnectAttributes = {
+          _client_name: "Node-MySQL-2",
+          _client_version: version
+        };
+        this.connectAttributes = { ...defaultConnectAttributes, ...options.connectAttributes || {} };
         this.maxPreparedStatements = options.maxPreparedStatements || 16e3;
       }
       static mergeFlags(default_flags, user_flags) {
@@ -13041,6 +15810,7 @@ var require_connection_config = __commonJS({
           "LONG_PASSWORD",
           "FOUND_ROWS",
           "LONG_FLAG",
+          "CONNECT_WITH_DB",
           "ODBC",
           "LOCAL_FILES",
           "IGNORE_SPACE",
@@ -13051,15 +15821,11 @@ var require_connection_config = __commonJS({
           "SECURE_CONNECTION",
           "MULTI_RESULTS",
           "TRANSACTIONS",
-          "SESSION_TRACK"
+          "SESSION_TRACK",
+          "CONNECT_ATTRS"
         ];
-        if (options) {
-          if (options.multipleStatements)
-            defaultFlags.push("MULTI_STATEMENTS");
-          if (options.database)
-            defaultFlags.push("CONNECT_WITH_DB");
-          if (options.connectAttributes)
-            defaultFlags.push("CONNECT_ATTRS");
+        if (options && options.multipleStatements) {
+          defaultFlags.push("MULTI_STATEMENTS");
         }
         defaultFlags.push("PLUGIN_AUTH");
         defaultFlags.push("PLUGIN_AUTH_LENENC_CLIENT_DATA");
@@ -13086,8 +15852,8 @@ var require_connection_config = __commonJS({
         const parsedUrl = new URL2(url);
         const options = {
           host: parsedUrl.hostname,
-          port: parsedUrl.port,
-          database: parsedUrl.pathname.substr(1),
+          port: parseInt(parsedUrl.port, 10),
+          database: parsedUrl.pathname.slice(1),
           user: parsedUrl.username,
           password: parsedUrl.password
         };
@@ -13105,458 +15871,9 @@ var require_connection_config = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/promise.js
-var require_promise = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/promise.js"(exports) {
-    "use strict";
-    var core = require_mysql2();
-    var EventEmitter = require("events").EventEmitter;
-    function makeDoneCb(resolve, reject, localErr) {
-      return function(err, rows, fields, time) {
-        if (err) {
-          localErr.message = err.message;
-          localErr.code = err.code;
-          localErr.errno = err.errno;
-          localErr.sql = err.sql;
-          localErr.sqlState = err.sqlState;
-          localErr.sqlMessage = err.sqlMessage;
-          reject(localErr);
-        } else {
-          resolve([rows, fields, time]);
-        }
-      };
-    }
-    function inheritEvents(source2, target, events) {
-      const listeners = {};
-      target.on("newListener", (eventName) => {
-        if (events.indexOf(eventName) >= 0 && !target.listenerCount(eventName)) {
-          source2.on(eventName, listeners[eventName] = function() {
-            const args = [].slice.call(arguments);
-            args.unshift(eventName);
-            target.emit.apply(target, args);
-          });
-        }
-      }).on("removeListener", (eventName) => {
-        if (events.indexOf(eventName) >= 0 && !target.listenerCount(eventName)) {
-          source2.removeListener(eventName, listeners[eventName]);
-          delete listeners[eventName];
-        }
-      });
-    }
-    var PromisePreparedStatementInfo = class {
-      constructor(statement, promiseImpl) {
-        this.statement = statement;
-        this.Promise = promiseImpl;
-      }
-      execute(parameters) {
-        const s2 = this.statement;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          if (parameters) {
-            s2.execute(parameters, done);
-          } else {
-            s2.execute(done);
-          }
-        });
-      }
-      close() {
-        return new this.Promise((resolve) => {
-          this.statement.close();
-          resolve();
-        });
-      }
-    };
-    var PromiseConnection = class extends EventEmitter {
-      constructor(connection, promiseImpl) {
-        super();
-        this.connection = connection;
-        this.Promise = promiseImpl || Promise;
-        inheritEvents(connection, this, [
-          "error",
-          "drain",
-          "connect",
-          "end",
-          "enqueue"
-        ]);
-      }
-      release() {
-        this.connection.release();
-      }
-      query(query, params) {
-        const c = this.connection;
-        const localErr = new Error();
-        if (typeof params === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          if (params !== void 0) {
-            c.query(query, params, done);
-          } else {
-            c.query(query, done);
-          }
-        });
-      }
-      execute(query, params) {
-        const c = this.connection;
-        const localErr = new Error();
-        if (typeof params === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          if (params !== void 0) {
-            c.execute(query, params, done);
-          } else {
-            c.execute(query, done);
-          }
-        });
-      }
-      end() {
-        return new this.Promise((resolve) => {
-          this.connection.end(resolve);
-        });
-      }
-      beginTransaction() {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          c.beginTransaction(done);
-        });
-      }
-      commit() {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          c.commit(done);
-        });
-      }
-      rollback() {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          c.rollback(done);
-        });
-      }
-      ping() {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          c.ping(done);
-        });
-      }
-      connect() {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          c.connect((err, param) => {
-            if (err) {
-              localErr.message = err.message;
-              localErr.code = err.code;
-              localErr.errno = err.errno;
-              localErr.sqlState = err.sqlState;
-              localErr.sqlMessage = err.sqlMessage;
-              reject(localErr);
-            } else {
-              resolve(param);
-            }
-          });
-        });
-      }
-      prepare(options) {
-        const c = this.connection;
-        const promiseImpl = this.Promise;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          c.prepare(options, (err, statement) => {
-            if (err) {
-              localErr.message = err.message;
-              localErr.code = err.code;
-              localErr.errno = err.errno;
-              localErr.sqlState = err.sqlState;
-              localErr.sqlMessage = err.sqlMessage;
-              reject(localErr);
-            } else {
-              const wrappedStatement = new PromisePreparedStatementInfo(statement, promiseImpl);
-              resolve(wrappedStatement);
-            }
-          });
-        });
-      }
-      changeUser(options) {
-        const c = this.connection;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          c.changeUser(options, (err) => {
-            if (err) {
-              localErr.message = err.message;
-              localErr.code = err.code;
-              localErr.errno = err.errno;
-              localErr.sqlState = err.sqlState;
-              localErr.sqlMessage = err.sqlMessage;
-              reject(localErr);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-      get config() {
-        return this.connection.config;
-      }
-      get threadId() {
-        return this.connection.threadId;
-      }
-    };
-    function createConnection(opts) {
-      const coreConnection = core.createConnection(opts);
-      const createConnectionErr = new Error();
-      const thePromise = opts.Promise || Promise;
-      if (!thePromise) {
-        throw new Error("no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }");
-      }
-      return new thePromise((resolve, reject) => {
-        coreConnection.once("connect", () => {
-          resolve(new PromiseConnection(coreConnection, thePromise));
-        });
-        coreConnection.once("error", (err) => {
-          createConnectionErr.message = err.message;
-          createConnectionErr.code = err.code;
-          createConnectionErr.errno = err.errno;
-          createConnectionErr.sqlState = err.sqlState;
-          reject(createConnectionErr);
-        });
-      });
-    }
-    (function(functionsToWrap) {
-      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
-        const func = functionsToWrap[i2];
-        if (typeof core.Connection.prototype[func] === "function" && PromiseConnection.prototype[func] === void 0) {
-          PromiseConnection.prototype[func] = function factory(funcName) {
-            return function() {
-              return core.Connection.prototype[funcName].apply(this.connection, arguments);
-            };
-          }(func);
-        }
-      }
-    })([
-      "close",
-      "createBinlogStream",
-      "destroy",
-      "escape",
-      "escapeId",
-      "format",
-      "pause",
-      "pipe",
-      "resume",
-      "unprepare"
-    ]);
-    var PromisePoolConnection = class extends PromiseConnection {
-      constructor(connection, promiseImpl) {
-        super(connection, promiseImpl);
-      }
-      destroy() {
-        return core.PoolConnection.prototype.destroy.apply(this.connection, arguments);
-      }
-    };
-    var PromisePool = class extends EventEmitter {
-      constructor(pool2, thePromise) {
-        super();
-        this.pool = pool2;
-        this.Promise = thePromise || Promise;
-        inheritEvents(pool2, this, ["acquire", "connection", "enqueue", "release"]);
-      }
-      getConnection() {
-        const corePool = this.pool;
-        return new this.Promise((resolve, reject) => {
-          corePool.getConnection((err, coreConnection) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(new PromisePoolConnection(coreConnection, this.Promise));
-            }
-          });
-        });
-      }
-      query(sql, args) {
-        const corePool = this.pool;
-        const localErr = new Error();
-        if (typeof args === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          if (args !== void 0) {
-            corePool.query(sql, args, done);
-          } else {
-            corePool.query(sql, done);
-          }
-        });
-      }
-      execute(sql, args) {
-        const corePool = this.pool;
-        const localErr = new Error();
-        if (typeof args === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          if (args) {
-            corePool.execute(sql, args, done);
-          } else {
-            corePool.execute(sql, done);
-          }
-        });
-      }
-      end() {
-        const corePool = this.pool;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          corePool.end((err) => {
-            if (err) {
-              localErr.message = err.message;
-              localErr.code = err.code;
-              localErr.errno = err.errno;
-              localErr.sqlState = err.sqlState;
-              localErr.sqlMessage = err.sqlMessage;
-              reject(localErr);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-    };
-    function createPool2(opts) {
-      const corePool = core.createPool(opts);
-      const thePromise = opts.Promise || Promise;
-      if (!thePromise) {
-        throw new Error("no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }");
-      }
-      return new PromisePool(corePool, thePromise);
-    }
-    (function(functionsToWrap) {
-      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
-        const func = functionsToWrap[i2];
-        if (typeof core.Pool.prototype[func] === "function" && PromisePool.prototype[func] === void 0) {
-          PromisePool.prototype[func] = function factory(funcName) {
-            return function() {
-              return core.Pool.prototype[funcName].apply(this.pool, arguments);
-            };
-          }(func);
-        }
-      }
-    })([
-      "escape",
-      "escapeId",
-      "format"
-    ]);
-    var PromisePoolCluster = class extends EventEmitter {
-      constructor(poolCluster, thePromise) {
-        super();
-        this.poolCluster = poolCluster;
-        this.Promise = thePromise || Promise;
-        inheritEvents(poolCluster, this, ["acquire", "connection", "enqueue", "release"]);
-      }
-      getConnection() {
-        const corePoolCluster = this.poolCluster;
-        return new this.Promise((resolve, reject) => {
-          corePoolCluster.getConnection((err, coreConnection) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(new PromisePoolConnection(coreConnection, this.Promise));
-            }
-          });
-        });
-      }
-      query(sql, args) {
-        const corePoolCluster = this.poolCluster;
-        const localErr = new Error();
-        if (typeof args === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          corePoolCluster.query(sql, args, done);
-        });
-      }
-      execute(sql, args) {
-        const corePoolCluster = this.poolCluster;
-        const localErr = new Error();
-        if (typeof args === "function") {
-          throw new Error("Callback function is not available with promise clients.");
-        }
-        return new this.Promise((resolve, reject) => {
-          const done = makeDoneCb(resolve, reject, localErr);
-          corePoolCluster.execute(sql, args, done);
-        });
-      }
-      of(pattern, selector) {
-        return new PromisePoolCluster(this.poolCluster.of(pattern, selector), this.Promise);
-      }
-      end() {
-        const corePoolCluster = this.poolCluster;
-        const localErr = new Error();
-        return new this.Promise((resolve, reject) => {
-          corePoolCluster.end((err) => {
-            if (err) {
-              localErr.message = err.message;
-              localErr.code = err.code;
-              localErr.errno = err.errno;
-              localErr.sqlState = err.sqlState;
-              localErr.sqlMessage = err.sqlMessage;
-              reject(localErr);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-    };
-    (function(functionsToWrap) {
-      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
-        const func = functionsToWrap[i2];
-        if (typeof core.PoolCluster.prototype[func] === "function" && PromisePoolCluster.prototype[func] === void 0) {
-          PromisePoolCluster.prototype[func] = function factory(funcName) {
-            return function() {
-              return core.PoolCluster.prototype[funcName].apply(this.poolCluster, arguments);
-            };
-          }(func);
-        }
-      }
-    })([
-      "add"
-    ]);
-    function createPoolCluster(opts) {
-      const corePoolCluster = core.createPoolCluster(opts);
-      const thePromise = opts && opts.Promise || Promise;
-      if (!thePromise) {
-        throw new Error("no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }");
-      }
-      return new PromisePoolCluster(corePoolCluster, thePromise);
-    }
-    exports.createConnection = createConnection;
-    exports.createPool = createPool2;
-    exports.createPoolCluster = createPoolCluster;
-    exports.escape = core.escape;
-    exports.escapeId = core.escapeId;
-    exports.format = core.format;
-    exports.raw = core.raw;
-    exports.PromisePool = PromisePool;
-    exports.PromiseConnection = PromiseConnection;
-    exports.PromisePoolConnection = PromisePoolConnection;
-  }
-});
-
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/connection.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/connection.js
 var require_connection = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/connection.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/connection.js"(exports, module2) {
     "use strict";
     var Net = require("net");
     var Tls = require("tls");
@@ -13565,7 +15882,7 @@ var require_connection = __commonJS({
     var Readable = require("stream").Readable;
     var Queue = require_denque();
     var SqlString = require_sqlstring();
-    var LRU = require_lru_cache();
+    var LRU = require_index_cjs().default;
     var PacketParser = require_packet_parser();
     var Packets = require_packets();
     var Commands = require_commands2();
@@ -13580,8 +15897,16 @@ var require_connection = __commonJS({
           if (opts.config.socketPath) {
             this.stream = Net.connect(opts.config.socketPath);
           } else {
-            this.stream = Net.connect(opts.config.port, opts.config.host);
-            this.stream.setKeepAlive(true, this.config.keepAliveInitialDelay);
+            this.stream = Net.connect(
+              opts.config.port,
+              opts.config.host
+            );
+            if (this.config.enableKeepAlive) {
+              this.stream.on("connect", () => {
+                this.stream.setKeepAlive(true, this.config.keepAliveInitialDelay);
+              });
+            }
+            this.stream.setNoDelay(true);
           }
         } else if (typeof opts.config.stream === "function") {
           this.stream = opts.config.stream(opts);
@@ -13595,7 +15920,7 @@ var require_connection = __commonJS({
         this._paused_packets = new Queue();
         this._statements = new LRU({
           max: this.config.maxPreparedStatements,
-          dispose: function(key, statement) {
+          dispose: function(statement) {
             statement.close();
           }
         });
@@ -13620,12 +15945,17 @@ var require_connection = __commonJS({
           }
           this.packetParser.execute(data);
         });
+        this.stream.on("end", () => {
+          this.emit("end");
+        });
         this.stream.on("close", () => {
           if (this._closing) {
             return;
           }
           if (!this._protocolError) {
-            this._protocolError = new Error("Connection lost: The server closed the connection.");
+            this._protocolError = new Error(
+              "Connection lost: The server closed the connection."
+            );
             this._protocolError.fatal = true;
             this._protocolError.code = "PROTOCOL_CONNECTION_LOST";
           }
@@ -13651,7 +15981,10 @@ var require_connection = __commonJS({
         this.serverEncoding = "utf8";
         if (this.config.connectTimeout) {
           const timeoutHandler = this._handleTimeoutError.bind(this);
-          this.connectTimeout = Timers.setTimeout(timeoutHandler, this.config.connectTimeout);
+          this.connectTimeout = Timers.setTimeout(
+            timeoutHandler,
+            this.config.connectTimeout
+          );
         }
       }
       promise(promiseImpl) {
@@ -13659,7 +15992,9 @@ var require_connection = __commonJS({
         return new PromiseConnection(this, promiseImpl);
       }
       _addCommandClosedState(cmd) {
-        const err = new Error("Can't add new command when connection is in closed state");
+        const err = new Error(
+          "Can't add new command when connection is in closed state"
+        );
         err.fatal = true;
         if (cmd.onResult) {
           cmd.onResult(err);
@@ -13682,7 +16017,7 @@ var require_connection = __commonJS({
           Timers.clearTimeout(this.connectTimeout);
           this.connectTimeout = null;
         }
-        if (err.errno === "ECONNRESET" && this._closing) {
+        if (err.code === "ECONNRESET" && this._closing) {
           return;
         }
         this._handleFatalError(err);
@@ -13758,15 +16093,23 @@ var require_connection = __commonJS({
         if (length < MAX_PACKET_LENGTH) {
           packet.writeHeader(this.sequenceId);
           if (this.config.debug) {
-            console.log(`${this._internalId} ${this.connectionId} <== ${this._command._commandName}#${this._command.stateName()}(${[this.sequenceId, packet._name, packet.length()].join(",")})`);
-            console.log(`${this._internalId} ${this.connectionId} <== ${packet.buffer.toString("hex")}`);
+            console.log(
+              `${this._internalId} ${this.connectionId} <== ${this._command._commandName}#${this._command.stateName()}(${[this.sequenceId, packet._name, packet.length()].join(",")})`
+            );
+            console.log(
+              `${this._internalId} ${this.connectionId} <== ${packet.buffer.toString("hex")}`
+            );
           }
           this._bumpSequenceId(1);
           this.write(packet.buffer);
         } else {
           if (this.config.debug) {
-            console.log(`${this._internalId} ${this.connectionId} <== Writing large packet, raw content not written:`);
-            console.log(`${this._internalId} ${this.connectionId} <== ${this._command._commandName}#${this._command.stateName()}(${[this.sequenceId, packet._name, packet.length()].join(",")})`);
+            console.log(
+              `${this._internalId} ${this.connectionId} <== Writing large packet, raw content not written:`
+            );
+            console.log(
+              `${this._internalId} ${this.connectionId} <== ${this._command._commandName}#${this._command.stateName()}(${[this.sequenceId, packet._name, packet.length()].join(",")})`
+            );
           }
           for (offset = 4; offset < 4 + length; offset += MAX_PACKET_LENGTH) {
             chunk = packet.buffer.slice(offset, offset + MAX_PACKET_LENGTH);
@@ -13796,45 +16139,46 @@ var require_connection = __commonJS({
           ciphers: this.config.ssl.ciphers,
           key: this.config.ssl.key,
           passphrase: this.config.ssl.passphrase,
-          minVersion: this.config.ssl.minVersion
+          minVersion: this.config.ssl.minVersion,
+          maxVersion: this.config.ssl.maxVersion
         });
         const rejectUnauthorized = this.config.ssl.rejectUnauthorized;
+        const verifyIdentity = this.config.ssl.verifyIdentity;
+        const servername = this.config.host;
         let secureEstablished = false;
-        const secureSocket = new Tls.TLSSocket(this.stream, {
+        this.stream.removeAllListeners("data");
+        const secureSocket = Tls.connect({
           rejectUnauthorized,
-          requestCert: true,
+          requestCert: rejectUnauthorized,
           secureContext,
-          isServer: false
+          isServer: false,
+          socket: this.stream,
+          servername
+        }, () => {
+          secureEstablished = true;
+          if (rejectUnauthorized) {
+            if (typeof servername === "string" && verifyIdentity) {
+              const cert = secureSocket.getPeerCertificate(true);
+              const serverIdentityCheckError = Tls.checkServerIdentity(servername, cert);
+              if (serverIdentityCheckError) {
+                onSecure(serverIdentityCheckError);
+                return;
+              }
+            }
+          }
+          onSecure();
         });
-        secureSocket.on("_tlsError", (err) => {
+        secureSocket.on("error", (err) => {
           if (secureEstablished) {
             this._handleNetworkError(err);
           } else {
             onSecure(err);
           }
         });
-        secureSocket.on("secure", () => {
-          secureEstablished = true;
-          onSecure(rejectUnauthorized ? secureSocket.ssl.verifyError() : null);
-        });
         secureSocket.on("data", (data) => {
           this.packetParser.execute(data);
         });
-        this.write = (buffer) => {
-          secureSocket.write(buffer);
-        };
-        secureSocket._start();
-      }
-      pipe() {
-        if (this.stream instanceof Net.Stream) {
-          this.stream.ondata = (data, start, end) => {
-            this.packetParser.execute(data, start, end);
-          };
-        } else {
-          this.stream.on("data", (data) => {
-            this.packetParser.execute(data.parent, data.offset, data.offset + data.length);
-          });
-        }
+        this.write = (buffer) => secureSocket.write(buffer);
       }
       protocolError(message, code) {
         if (this._closing) {
@@ -13845,28 +16189,25 @@ var require_connection = __commonJS({
         err.code = code || "PROTOCOL_ERROR";
         this.emit("error", err);
       }
+      get fatalError() {
+        return this._fatalError;
+      }
       handlePacket(packet) {
         if (this._paused) {
           this._paused_packets.push(packet);
           return;
         }
-        if (packet) {
-          if (this.sequenceId !== packet.sequenceId) {
-            const err = new Error(`Warning: got packets out of order. Expected ${this.sequenceId} but received ${packet.sequenceId}`);
-            err.expected = this.sequenceId;
-            err.received = packet.sequenceId;
-            this.emit("warn", err);
-            console.error(err.message);
-          }
-          this._bumpSequenceId(packet.numPackets);
-        }
         if (this.config.debug) {
           if (packet) {
-            console.log(` raw: ${packet.buffer.slice(packet.offset, packet.offset + packet.length()).toString("hex")}`);
+            console.log(
+              ` raw: ${packet.buffer.slice(packet.offset, packet.offset + packet.length()).toString("hex")}`
+            );
             console.trace();
             const commandName = this._command ? this._command._commandName : "(no command)";
             const stateName = this._command ? this._command.stateName() : "(no command)";
-            console.log(`${this._internalId} ${this.connectionId} ==> ${commandName}#${stateName}(${[packet.sequenceId, packet.type(), packet.length()].join(",")})`);
+            console.log(
+              `${this._internalId} ${this.connectionId} ==> ${commandName}#${stateName}(${[packet.sequenceId, packet.type(), packet.length()].join(",")})`
+            );
           }
         }
         if (!this._command) {
@@ -13875,19 +16216,42 @@ var require_connection = __commonJS({
             const error = Packets.Error.fromPacket(packet);
             this.protocolError(error.message, error.code);
           } else {
-            this.protocolError("Unexpected packet while no commands in the queue", "PROTOCOL_UNEXPECTED_PACKET");
+            this.protocolError(
+              "Unexpected packet while no commands in the queue",
+              "PROTOCOL_UNEXPECTED_PACKET"
+            );
           }
           this.close();
           return;
         }
-        const done = this._command.execute(packet, this);
-        if (done) {
-          this._command = this._commands.shift();
-          if (this._command) {
-            this.sequenceId = 0;
-            this.compressedSequenceId = 0;
-            this.handlePacket();
+        if (packet) {
+          if (this.sequenceId !== packet.sequenceId) {
+            const err = new Error(
+              `Warning: got packets out of order. Expected ${this.sequenceId} but received ${packet.sequenceId}`
+            );
+            err.expected = this.sequenceId;
+            err.received = packet.sequenceId;
+            this.emit("warn", err);
+            console.error(err.message);
           }
+          this._bumpSequenceId(packet.numPackets);
+        }
+        try {
+          if (this._fatalError) {
+            return;
+          }
+          const done = this._command.execute(packet, this);
+          if (done) {
+            this._command = this._commands.shift();
+            if (this._command) {
+              this.sequenceId = 0;
+              this.compressedSequenceId = 0;
+              this.handlePacket();
+            }
+          }
+        } catch (err) {
+          this._handleFatalError(err);
+          this.stream.destroy();
         }
       }
       addCommand(cmd) {
@@ -13906,13 +16270,23 @@ var require_connection = __commonJS({
       }
       format(sql, values) {
         if (typeof this.config.queryFormat === "function") {
-          return this.config.queryFormat.call(this, sql, values, this.config.timezone);
+          return this.config.queryFormat.call(
+            this,
+            sql,
+            values,
+            this.config.timezone
+          );
         }
         const opts = {
           sql,
           values
         };
-        return SqlString.format(opts.sql, opts.values, this.config.stringifyObjects, this.config.timezone);
+        return SqlString.format(
+          opts.sql,
+          opts.values,
+          this.config.stringifyObjects,
+          this.config.timezone
+        );
       }
       escape(value) {
         return SqlString.escape(value, false, this.config.timezone);
@@ -13922,6 +16296,8 @@ var require_connection = __commonJS({
       }
       raw(sql) {
         return SqlString.raw(sql);
+      }
+      _resolveNamedPlaceholders(options) {
       }
       query(sql, values, cb) {
         let cmdQuery;
@@ -13965,7 +16341,7 @@ var require_connection = __commonJS({
         const key = Connection.statementKey(options);
         const stmt = this._statements.get(key);
         if (stmt) {
-          this._statements.del(key);
+          this._statements.delete(key);
           stmt.close();
         }
         return stmt;
@@ -13993,7 +16369,9 @@ var require_connection = __commonJS({
               val = null;
             }
             if (typeof val === "function") {
-              throw new TypeError("Bind parameters must not contain function(s). To pass the body of a function as a string call .toString() first");
+              throw new TypeError(
+                "Bind parameters must not contain function(s). To pass the body of a function as a string call .toString() first"
+              );
             }
           });
         }
@@ -14023,22 +16401,29 @@ var require_connection = __commonJS({
           options = {};
         }
         const charsetNumber = options.charset ? ConnectionConfig.getCharsetNumber(options.charset) : this.config.charsetNumber;
-        return this.addCommand(new Commands.ChangeUser({
-          user: options.user || this.config.user,
-          password: options.password || this.config.password,
-          passwordSha1: options.passwordSha1 || this.config.passwordSha1,
-          database: options.database || this.config.database,
-          timeout: options.timeout,
-          charsetNumber,
-          currentConfig: this.config
-        }, (err) => {
-          if (err) {
-            err.fatal = true;
-          }
-          if (callback) {
-            callback(err);
-          }
-        }));
+        return this.addCommand(
+          new Commands.ChangeUser(
+            {
+              user: options.user || this.config.user,
+              password: options.password || options.password1 || this.config.password || this.config.password1,
+              password2: options.password2 || this.config.password2,
+              password3: options.password3 || this.config.password3,
+              passwordSha1: options.passwordSha1 || this.config.passwordSha1,
+              database: options.database || this.config.database,
+              timeout: options.timeout,
+              charsetNumber,
+              currentConfig: this.config
+            },
+            (err) => {
+              if (err) {
+                err.fatal = true;
+              }
+              if (callback) {
+                callback(err);
+              }
+            }
+          )
+        );
       }
       beginTransaction(cb) {
         return this.query("START TRANSACTION", cb);
@@ -14121,21 +16506,33 @@ var require_connection = __commonJS({
       writeColumns(columns) {
         this.writePacket(Packets.ResultSetHeader.toPacket(columns.length));
         columns.forEach((column) => {
-          this.writePacket(Packets.ColumnDefinition.toPacket(column, this.serverConfig.encoding));
+          this.writePacket(
+            Packets.ColumnDefinition.toPacket(column, this.serverConfig.encoding)
+          );
         });
         this.writeEof();
       }
       writeTextRow(column) {
-        this.writePacket(Packets.TextRow.toPacket(column, this.serverConfig.encoding));
+        this.writePacket(
+          Packets.TextRow.toPacket(column, this.serverConfig.encoding)
+        );
       }
-      writeTextResult(rows, columns) {
+      writeBinaryRow(column) {
+        this.writePacket(
+          Packets.BinaryRow.toPacket(column, this.serverConfig.encoding)
+        );
+      }
+      writeTextResult(rows, columns, binary = false) {
         this.writeColumns(columns);
         rows.forEach((row) => {
           const arrayRow = new Array(columns.length);
           columns.forEach((column) => {
             arrayRow.push(row[column.name]);
           });
-          this.writeTextRow(arrayRow);
+          if (binary) {
+            this.writeBinaryRow(arrayRow);
+          } else
+            this.writeTextRow(arrayRow);
         });
         this.writeEof();
       }
@@ -14196,54 +16593,20 @@ var require_connection = __commonJS({
         return `${typeof options.nestTables}/${options.nestTables}/${options.rowsAsArray}${options.sql}`;
       }
     };
-    if (Tls.TLSSocket) {
-    } else {
-      Connection.prototype.startTLS = function _startTLS(onSecure) {
-        if (this.config.debug) {
-          console.log("Upgrading connection to TLS");
-        }
-        const crypto = require("crypto");
-        const config = this.config;
-        const stream = this.stream;
-        const rejectUnauthorized = this.config.ssl.rejectUnauthorized;
-        const credentials = crypto.createCredentials({
-          key: config.ssl.key,
-          cert: config.ssl.cert,
-          passphrase: config.ssl.passphrase,
-          ca: config.ssl.ca,
-          ciphers: config.ssl.ciphers
-        });
-        const securePair = Tls.createSecurePair(credentials, false, true, rejectUnauthorized);
-        if (stream.ondata) {
-          stream.ondata = null;
-        }
-        stream.removeAllListeners("data");
-        stream.pipe(securePair.encrypted);
-        securePair.encrypted.pipe(stream);
-        securePair.cleartext.on("data", (data) => {
-          this.packetParser.execute(data);
-        });
-        this.write = function(buffer) {
-          securePair.cleartext.write(buffer);
-        };
-        securePair.on("secure", () => {
-          onSecure(rejectUnauthorized ? securePair.ssl.verifyError() : null);
-        });
-      };
-    }
     module2.exports = Connection;
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_connection.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_connection.js
 var require_pool_connection = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_connection.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_connection.js"(exports, module2) {
     "use strict";
     var Connection = require_mysql2().Connection;
     var PoolConnection = class extends Connection {
       constructor(pool2, options) {
         super(options);
         this._pool = pool2;
+        this.lastActiveTime = Date.now();
         this.once("end", () => {
           this._removeFromPool();
         });
@@ -14255,6 +16618,7 @@ var require_pool_connection = __commonJS({
         if (!this._pool || this._pool._closed) {
           return;
         }
+        this.lastActiveTime = Date.now();
         this._pool.releaseConnection(this);
       }
       promise(promiseImpl) {
@@ -14262,7 +16626,9 @@ var require_pool_connection = __commonJS({
         return new PromisePoolConnection(this, promiseImpl);
       }
       end() {
-        const err = new Error("Calling conn.end() to release a pooled connection is deprecated. In next version calling conn.end() will be restored to default conn.end() behavior. Use conn.release() instead.");
+        const err = new Error(
+          "Calling conn.end() to release a pooled connection is deprecated. In next version calling conn.end() will be restored to default conn.end() behavior. Use conn.release() instead."
+        );
         this.emit("warn", err);
         console.warn(err.message);
         this.release();
@@ -14286,9 +16652,9 @@ var require_pool_connection = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool.js
 var require_pool = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool.js"(exports, module2) {
     "use strict";
     var process2 = require("process");
     var mysql = require_mysql2();
@@ -14314,6 +16680,9 @@ var require_pool = __commonJS({
         this._freeConnections = new Queue();
         this._connectionQueue = new Queue();
         this._closed = false;
+        if (this.config.maxIdle < this.config.connectionLimit) {
+          this._removeIdleTimeoutConnections();
+        }
       }
       promise(promiseImpl) {
         const PromisePool = require_promise().PromisePool;
@@ -14325,7 +16694,7 @@ var require_pool = __commonJS({
         }
         let connection;
         if (this._freeConnections.length > 0) {
-          connection = this._freeConnections.shift();
+          connection = this._freeConnections.pop();
           this.emit("acquire", connection);
           return process2.nextTick(() => cb(null, connection));
         }
@@ -14402,7 +16771,12 @@ var require_pool = __commonJS({
         }
       }
       query(sql, values, cb) {
-        const cmdQuery = Connection.createQuery(sql, values, cb, this.config.connectionConfig);
+        const cmdQuery = Connection.createQuery(
+          sql,
+          values,
+          cb,
+          this.config.connectionConfig
+        );
         if (typeof cmdQuery.namedPlaceholders === "undefined") {
           cmdQuery.namedPlaceholders = this.config.connectionConfig.namedPlaceholders;
         }
@@ -14421,7 +16795,7 @@ var require_pool = __commonJS({
             });
           } catch (e2) {
             conn.release();
-            throw e2;
+            return cb(e2);
           }
         });
         return cmdQuery;
@@ -14441,7 +16815,7 @@ var require_pool = __commonJS({
             });
           } catch (e2) {
             conn.release();
-            throw e2;
+            return cb(e2);
           }
         });
       }
@@ -14450,11 +16824,34 @@ var require_pool = __commonJS({
         spliceConnection(this._freeConnections, connection);
         this.releaseConnection(connection);
       }
+      _removeIdleTimeoutConnections() {
+        if (this._removeIdleTimeoutConnectionsTimer) {
+          clearTimeout(this._removeIdleTimeoutConnectionsTimer);
+        }
+        this._removeIdleTimeoutConnectionsTimer = setTimeout(() => {
+          try {
+            while (this._freeConnections.length > this.config.maxIdle && Date.now() - this._freeConnections.get(0).lastActiveTime > this.config.idleTimeout) {
+              this._freeConnections.get(0).destroy();
+            }
+          } finally {
+            this._removeIdleTimeoutConnections();
+          }
+        }, 1e3);
+      }
       format(sql, values) {
-        return mysql.format(sql, values, this.config.connectionConfig.stringifyObjects, this.config.connectionConfig.timezone);
+        return mysql.format(
+          sql,
+          values,
+          this.config.connectionConfig.stringifyObjects,
+          this.config.connectionConfig.timezone
+        );
       }
       escape(value) {
-        return mysql.escape(value, this.config.connectionConfig.stringifyObjects, this.config.connectionConfig.timezone);
+        return mysql.escape(
+          value,
+          this.config.connectionConfig.stringifyObjects,
+          this.config.connectionConfig.timezone
+        );
       }
       escapeId(value) {
         return mysql.escapeId(value, false);
@@ -14464,9 +16861,9 @@ var require_pool = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_config.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_config.js
 var require_pool_config = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_config.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_config.js"(exports, module2) {
     "use strict";
     var ConnectionConfig = require_connection_config();
     var PoolConfig = class {
@@ -14477,6 +16874,8 @@ var require_pool_config = __commonJS({
         this.connectionConfig = new ConnectionConfig(options);
         this.waitForConnections = options.waitForConnections === void 0 ? true : Boolean(options.waitForConnections);
         this.connectionLimit = isNaN(options.connectionLimit) ? 10 : Number(options.connectionLimit);
+        this.maxIdle = isNaN(options.maxIdle) ? this.connectionLimit : Number(options.maxIdle);
+        this.idleTimeout = isNaN(options.idleTimeout) ? 6e4 : Number(options.idleTimeout);
         this.queueLimit = isNaN(options.queueLimit) ? 0 : Number(options.queueLimit);
       }
     };
@@ -14484,9 +16883,9 @@ var require_pool_config = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_cluster.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_cluster.js
 var require_pool_cluster = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/pool_cluster.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/pool_cluster.js"(exports, module2) {
     "use strict";
     var process2 = require("process");
     var Pool2 = require_pool();
@@ -14670,7 +17069,9 @@ var require_pool_cluster = __commonJS({
           foundNodeIds = [pattern];
         } else {
           const keyword = pattern.substring(pattern.length - 1, 0);
-          foundNodeIds = this._serviceableNodeIds.filter((id) => id.startsWith(keyword));
+          foundNodeIds = this._serviceableNodeIds.filter(
+            (id) => id.startsWith(keyword)
+          );
         }
         this._findCaches[pattern] = foundNodeIds;
         return foundNodeIds;
@@ -14719,9 +17120,9 @@ var require_pool_cluster = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/server.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/server.js
 var require_server = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/lib/server.js"(exports, module2) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/server.js"(exports, module2) {
     "use strict";
     var net = require("net");
     var EventEmitter = require("events").EventEmitter;
@@ -14754,9 +17155,22 @@ var require_server = __commonJS({
   }
 });
 
-// node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/index.js
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/index.js
+var require_auth_plugins = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/lib/auth_plugins/index.js"(exports, module2) {
+    "use strict";
+    module2.exports = {
+      caching_sha2_password: require_caching_sha2_password(),
+      mysql_clear_password: require_mysql_clear_password(),
+      mysql_native_password: require_mysql_native_password(),
+      sha256_password: require_sha256_password()
+    };
+  }
+});
+
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/index.js
 var require_mysql2 = __commonJS({
-  "node_modules/.pnpm/mysql2@2.3.3/node_modules/mysql2/index.js"(exports) {
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/index.js"(exports) {
     "use strict";
     var SqlString = require_sqlstring();
     var Connection = require_connection();
@@ -14767,6 +17181,7 @@ var require_mysql2 = __commonJS({
     };
     exports.connect = exports.createConnection;
     exports.Connection = Connection;
+    exports.ConnectionConfig = ConnectionConfig;
     var Pool2 = require_pool();
     var PoolCluster = require_pool_cluster();
     exports.createPool = function(config) {
@@ -14789,16 +17204,32 @@ var require_mysql2 = __commonJS({
       return s2;
     };
     exports.PoolConnection = require_pool_connection();
+    exports.authPlugins = require_auth_plugins();
     exports.escape = SqlString.escape;
     exports.escapeId = SqlString.escapeId;
     exports.format = SqlString.format;
     exports.raw = SqlString.raw;
-    exports.__defineGetter__("createConnectionPromise", () => require_promise().createConnection);
-    exports.__defineGetter__("createPoolPromise", () => require_promise().createPool);
-    exports.__defineGetter__("createPoolClusterPromise", () => require_promise().createPoolCluster);
+    exports.__defineGetter__(
+      "createConnectionPromise",
+      () => require_promise().createConnection
+    );
+    exports.__defineGetter__(
+      "createPoolPromise",
+      () => require_promise().createPool
+    );
+    exports.__defineGetter__(
+      "createPoolClusterPromise",
+      () => require_promise().createPoolCluster
+    );
     exports.__defineGetter__("Types", () => require_types());
-    exports.__defineGetter__("Charsets", () => require_charsets());
-    exports.__defineGetter__("CharsetToEncoding", () => require_charset_encodings());
+    exports.__defineGetter__(
+      "Charsets",
+      () => require_charsets()
+    );
+    exports.__defineGetter__(
+      "CharsetToEncoding",
+      () => require_charset_encodings()
+    );
     exports.setMaxParserCache = function(max) {
       parserCache.setMaxCache(max);
     };
@@ -14808,866 +17239,1533 @@ var require_mysql2 = __commonJS({
   }
 });
 
-// src/config/index.ts
-var resourceName, mysql_debug, mysql_ui, mysql_slow_query_warning, mysql_connection_string, mysql_transaction_isolation_level;
-var init_config = __esm({
-  "src/config/index.ts"() {
-    resourceName = GetCurrentResourceName();
-    mysql_debug = GetConvar("mysql_debug", "false") === "true";
-    mysql_ui = GetConvar("mysql_ui", "false") === "true";
-    mysql_slow_query_warning = GetConvarInt("mysql_slow_query_warning", 200);
-    mysql_connection_string = GetConvar("mysql_connection_string", "");
-    mysql_transaction_isolation_level = (() => {
-      const query = "SET TRANSACTION ISOLATION LEVEL";
-      switch (GetConvarInt("mysql_transaction_isolation_level", 2)) {
-        case 1:
-          return `${query} REPEATABLE READ`;
-        case 2:
-          return `${query} READ COMMITTED`;
-        case 3:
-          return `${query} READ UNCOMMITTED`;
-        case 4:
-          return `${query} SERIALIZABLE`;
-        default:
-          return `${query} READ COMMITTED`;
-      }
-    })();
-  }
-});
-
-// node_modules/.pnpm/pseudomap@1.0.2/node_modules/pseudomap/pseudomap.js
-var require_pseudomap = __commonJS({
-  "node_modules/.pnpm/pseudomap@1.0.2/node_modules/pseudomap/pseudomap.js"(exports, module2) {
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    module2.exports = PseudoMap;
-    function PseudoMap(set2) {
-      if (!(this instanceof PseudoMap))
-        throw new TypeError("Constructor PseudoMap requires 'new'");
-      this.clear();
-      if (set2) {
-        if (set2 instanceof PseudoMap || typeof Map === "function" && set2 instanceof Map)
-          set2.forEach(function(value, key) {
-            this.set(key, value);
-          }, this);
-        else if (Array.isArray(set2))
-          set2.forEach(function(kv) {
-            this.set(kv[0], kv[1]);
-          }, this);
-        else
-          throw new TypeError("invalid argument");
-      }
-    }
-    PseudoMap.prototype.forEach = function(fn, thisp) {
-      thisp = thisp || this;
-      Object.keys(this._data).forEach(function(k) {
-        if (k !== "size")
-          fn.call(thisp, this._data[k].value, this._data[k].key);
-      }, this);
-    };
-    PseudoMap.prototype.has = function(k) {
-      return !!find(this._data, k);
-    };
-    PseudoMap.prototype.get = function(k) {
-      var res = find(this._data, k);
-      return res && res.value;
-    };
-    PseudoMap.prototype.set = function(k, v) {
-      set(this._data, k, v);
-    };
-    PseudoMap.prototype.delete = function(k) {
-      var res = find(this._data, k);
-      if (res) {
-        delete this._data[res._index];
-        this._data.size--;
-      }
-    };
-    PseudoMap.prototype.clear = function() {
-      var data = /* @__PURE__ */ Object.create(null);
-      data.size = 0;
-      Object.defineProperty(this, "_data", {
-        value: data,
-        enumerable: false,
-        configurable: true,
-        writable: false
-      });
-    };
-    Object.defineProperty(PseudoMap.prototype, "size", {
-      get: function() {
-        return this._data.size;
-      },
-      set: function(n) {
-      },
-      enumerable: true,
-      configurable: true
-    });
-    PseudoMap.prototype.values = PseudoMap.prototype.keys = PseudoMap.prototype.entries = function() {
-      throw new Error("iterators are not implemented in this version");
-    };
-    function same(a, b) {
-      return a === b || a !== a && b !== b;
-    }
-    function Entry(k, v, i2) {
-      this.key = k;
-      this.value = v;
-      this._index = i2;
-    }
-    function find(data, k) {
-      for (var i2 = 0, s2 = "_" + k, key = s2; hasOwnProperty.call(data, key); key = s2 + i2++) {
-        if (same(data[key].key, k))
-          return data[key];
-      }
-    }
-    function set(data, k, v) {
-      for (var i2 = 0, s2 = "_" + k, key = s2; hasOwnProperty.call(data, key); key = s2 + i2++) {
-        if (same(data[key].key, k)) {
-          data[key].value = v;
-          return;
-        }
-      }
-      data.size++;
-      data[key] = new Entry(k, v, key);
-    }
-  }
-});
-
-// node_modules/.pnpm/pseudomap@1.0.2/node_modules/pseudomap/map.js
-var require_map = __commonJS({
-  "node_modules/.pnpm/pseudomap@1.0.2/node_modules/pseudomap/map.js"(exports, module2) {
-    if (process.env.npm_package_name === "pseudomap" && process.env.npm_lifecycle_script === "test")
-      process.env.TEST_PSEUDOMAP = "true";
-    if (typeof Map === "function" && !process.env.TEST_PSEUDOMAP) {
-      module2.exports = Map;
-    } else {
-      module2.exports = require_pseudomap();
-    }
-  }
-});
-
-// node_modules/.pnpm/yallist@2.1.2/node_modules/yallist/yallist.js
-var require_yallist2 = __commonJS({
-  "node_modules/.pnpm/yallist@2.1.2/node_modules/yallist/yallist.js"(exports, module2) {
-    module2.exports = Yallist;
-    Yallist.Node = Node;
-    Yallist.create = Yallist;
-    function Yallist(list) {
-      var self2 = this;
-      if (!(self2 instanceof Yallist)) {
-        self2 = new Yallist();
-      }
-      self2.tail = null;
-      self2.head = null;
-      self2.length = 0;
-      if (list && typeof list.forEach === "function") {
-        list.forEach(function(item) {
-          self2.push(item);
-        });
-      } else if (arguments.length > 0) {
-        for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-          self2.push(arguments[i2]);
-        }
-      }
-      return self2;
-    }
-    Yallist.prototype.removeNode = function(node) {
-      if (node.list !== this) {
-        throw new Error("removing node which does not belong to this list");
-      }
-      var next = node.next;
-      var prev = node.prev;
-      if (next) {
-        next.prev = prev;
-      }
-      if (prev) {
-        prev.next = next;
-      }
-      if (node === this.head) {
-        this.head = next;
-      }
-      if (node === this.tail) {
-        this.tail = prev;
-      }
-      node.list.length--;
-      node.next = null;
-      node.prev = null;
-      node.list = null;
-    };
-    Yallist.prototype.unshiftNode = function(node) {
-      if (node === this.head) {
-        return;
-      }
-      if (node.list) {
-        node.list.removeNode(node);
-      }
-      var head = this.head;
-      node.list = this;
-      node.next = head;
-      if (head) {
-        head.prev = node;
-      }
-      this.head = node;
-      if (!this.tail) {
-        this.tail = node;
-      }
-      this.length++;
-    };
-    Yallist.prototype.pushNode = function(node) {
-      if (node === this.tail) {
-        return;
-      }
-      if (node.list) {
-        node.list.removeNode(node);
-      }
-      var tail = this.tail;
-      node.list = this;
-      node.prev = tail;
-      if (tail) {
-        tail.next = node;
-      }
-      this.tail = node;
-      if (!this.head) {
-        this.head = node;
-      }
-      this.length++;
-    };
-    Yallist.prototype.push = function() {
-      for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-        push(this, arguments[i2]);
-      }
-      return this.length;
-    };
-    Yallist.prototype.unshift = function() {
-      for (var i2 = 0, l = arguments.length; i2 < l; i2++) {
-        unshift(this, arguments[i2]);
-      }
-      return this.length;
-    };
-    Yallist.prototype.pop = function() {
-      if (!this.tail) {
-        return void 0;
-      }
-      var res = this.tail.value;
-      this.tail = this.tail.prev;
-      if (this.tail) {
-        this.tail.next = null;
-      } else {
-        this.head = null;
-      }
-      this.length--;
-      return res;
-    };
-    Yallist.prototype.shift = function() {
-      if (!this.head) {
-        return void 0;
-      }
-      var res = this.head.value;
-      this.head = this.head.next;
-      if (this.head) {
-        this.head.prev = null;
-      } else {
-        this.tail = null;
-      }
-      this.length--;
-      return res;
-    };
-    Yallist.prototype.forEach = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this.head, i2 = 0; walker !== null; i2++) {
-        fn.call(thisp, walker.value, i2, this);
-        walker = walker.next;
-      }
-    };
-    Yallist.prototype.forEachReverse = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this.tail, i2 = this.length - 1; walker !== null; i2--) {
-        fn.call(thisp, walker.value, i2, this);
-        walker = walker.prev;
-      }
-    };
-    Yallist.prototype.get = function(n) {
-      for (var i2 = 0, walker = this.head; walker !== null && i2 < n; i2++) {
-        walker = walker.next;
-      }
-      if (i2 === n && walker !== null) {
-        return walker.value;
-      }
-    };
-    Yallist.prototype.getReverse = function(n) {
-      for (var i2 = 0, walker = this.tail; walker !== null && i2 < n; i2++) {
-        walker = walker.prev;
-      }
-      if (i2 === n && walker !== null) {
-        return walker.value;
-      }
-    };
-    Yallist.prototype.map = function(fn, thisp) {
-      thisp = thisp || this;
-      var res = new Yallist();
-      for (var walker = this.head; walker !== null; ) {
-        res.push(fn.call(thisp, walker.value, this));
-        walker = walker.next;
-      }
-      return res;
-    };
-    Yallist.prototype.mapReverse = function(fn, thisp) {
-      thisp = thisp || this;
-      var res = new Yallist();
-      for (var walker = this.tail; walker !== null; ) {
-        res.push(fn.call(thisp, walker.value, this));
-        walker = walker.prev;
-      }
-      return res;
-    };
-    Yallist.prototype.reduce = function(fn, initial) {
-      var acc;
-      var walker = this.head;
-      if (arguments.length > 1) {
-        acc = initial;
-      } else if (this.head) {
-        walker = this.head.next;
-        acc = this.head.value;
-      } else {
-        throw new TypeError("Reduce of empty list with no initial value");
-      }
-      for (var i2 = 0; walker !== null; i2++) {
-        acc = fn(acc, walker.value, i2);
-        walker = walker.next;
-      }
-      return acc;
-    };
-    Yallist.prototype.reduceReverse = function(fn, initial) {
-      var acc;
-      var walker = this.tail;
-      if (arguments.length > 1) {
-        acc = initial;
-      } else if (this.tail) {
-        walker = this.tail.prev;
-        acc = this.tail.value;
-      } else {
-        throw new TypeError("Reduce of empty list with no initial value");
-      }
-      for (var i2 = this.length - 1; walker !== null; i2--) {
-        acc = fn(acc, walker.value, i2);
-        walker = walker.prev;
-      }
-      return acc;
-    };
-    Yallist.prototype.toArray = function() {
-      var arr = new Array(this.length);
-      for (var i2 = 0, walker = this.head; walker !== null; i2++) {
-        arr[i2] = walker.value;
-        walker = walker.next;
-      }
-      return arr;
-    };
-    Yallist.prototype.toArrayReverse = function() {
-      var arr = new Array(this.length);
-      for (var i2 = 0, walker = this.tail; walker !== null; i2++) {
-        arr[i2] = walker.value;
-        walker = walker.prev;
-      }
-      return arr;
-    };
-    Yallist.prototype.slice = function(from, to) {
-      to = to || this.length;
-      if (to < 0) {
-        to += this.length;
-      }
-      from = from || 0;
-      if (from < 0) {
-        from += this.length;
-      }
-      var ret = new Yallist();
-      if (to < from || to < 0) {
-        return ret;
-      }
-      if (from < 0) {
-        from = 0;
-      }
-      if (to > this.length) {
-        to = this.length;
-      }
-      for (var i2 = 0, walker = this.head; walker !== null && i2 < from; i2++) {
-        walker = walker.next;
-      }
-      for (; walker !== null && i2 < to; i2++, walker = walker.next) {
-        ret.push(walker.value);
-      }
-      return ret;
-    };
-    Yallist.prototype.sliceReverse = function(from, to) {
-      to = to || this.length;
-      if (to < 0) {
-        to += this.length;
-      }
-      from = from || 0;
-      if (from < 0) {
-        from += this.length;
-      }
-      var ret = new Yallist();
-      if (to < from || to < 0) {
-        return ret;
-      }
-      if (from < 0) {
-        from = 0;
-      }
-      if (to > this.length) {
-        to = this.length;
-      }
-      for (var i2 = this.length, walker = this.tail; walker !== null && i2 > to; i2--) {
-        walker = walker.prev;
-      }
-      for (; walker !== null && i2 > from; i2--, walker = walker.prev) {
-        ret.push(walker.value);
-      }
-      return ret;
-    };
-    Yallist.prototype.reverse = function() {
-      var head = this.head;
-      var tail = this.tail;
-      for (var walker = head; walker !== null; walker = walker.prev) {
-        var p = walker.prev;
-        walker.prev = walker.next;
-        walker.next = p;
-      }
-      this.head = tail;
-      this.tail = head;
-      return this;
-    };
-    function push(self2, item) {
-      self2.tail = new Node(item, self2.tail, null, self2);
-      if (!self2.head) {
-        self2.head = self2.tail;
-      }
-      self2.length++;
-    }
-    function unshift(self2, item) {
-      self2.head = new Node(item, null, self2.head, self2);
-      if (!self2.tail) {
-        self2.tail = self2.head;
-      }
-      self2.length++;
-    }
-    function Node(value, prev, next, list) {
-      if (!(this instanceof Node)) {
-        return new Node(value, prev, next, list);
-      }
-      this.list = list;
-      this.value = value;
-      if (prev) {
-        prev.next = this;
-        this.prev = prev;
-      } else {
-        this.prev = null;
-      }
-      if (next) {
-        next.prev = this;
-        this.next = next;
-      } else {
-        this.next = null;
-      }
-    }
-  }
-});
-
-// node_modules/.pnpm/lru-cache@4.1.5/node_modules/lru-cache/index.js
-var require_lru_cache2 = __commonJS({
-  "node_modules/.pnpm/lru-cache@4.1.5/node_modules/lru-cache/index.js"(exports, module2) {
+// node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/promise.js
+var require_promise = __commonJS({
+  "node_modules/.pnpm/mysql2@3.5.1/node_modules/mysql2/promise.js"(exports) {
     "use strict";
-    module2.exports = LRUCache;
-    var Map2 = require_map();
-    var util = require("util");
-    var Yallist = require_yallist2();
-    var hasSymbol = typeof Symbol === "function" && process.env._nodeLRUCacheForceNoSymbol !== "1";
-    var makeSymbol;
-    if (hasSymbol) {
-      makeSymbol = function(key) {
-        return Symbol(key);
+    var core = require_mysql2();
+    var EventEmitter = require("events").EventEmitter;
+    var parserCache = require_parser_cache();
+    function makeDoneCb(resolve, reject, localErr) {
+      return function(err, rows, fields) {
+        if (err) {
+          localErr.message = err.message;
+          localErr.code = err.code;
+          localErr.errno = err.errno;
+          localErr.sql = err.sql;
+          localErr.sqlState = err.sqlState;
+          localErr.sqlMessage = err.sqlMessage;
+          reject(localErr);
+        } else {
+          resolve([rows, fields]);
+        }
       };
-    } else {
-      makeSymbol = function(key) {
-        return "_" + key;
-      };
     }
-    var MAX = makeSymbol("max");
-    var LENGTH = makeSymbol("length");
-    var LENGTH_CALCULATOR = makeSymbol("lengthCalculator");
-    var ALLOW_STALE = makeSymbol("allowStale");
-    var MAX_AGE = makeSymbol("maxAge");
-    var DISPOSE = makeSymbol("dispose");
-    var NO_DISPOSE_ON_SET = makeSymbol("noDisposeOnSet");
-    var LRU_LIST = makeSymbol("lruList");
-    var CACHE = makeSymbol("cache");
-    function naiveLength() {
-      return 1;
-    }
-    function LRUCache(options) {
-      if (!(this instanceof LRUCache)) {
-        return new LRUCache(options);
-      }
-      if (typeof options === "number") {
-        options = { max: options };
-      }
-      if (!options) {
-        options = {};
-      }
-      var max = this[MAX] = options.max;
-      if (!max || !(typeof max === "number") || max <= 0) {
-        this[MAX] = Infinity;
-      }
-      var lc = options.length || naiveLength;
-      if (typeof lc !== "function") {
-        lc = naiveLength;
-      }
-      this[LENGTH_CALCULATOR] = lc;
-      this[ALLOW_STALE] = options.stale || false;
-      this[MAX_AGE] = options.maxAge || 0;
-      this[DISPOSE] = options.dispose;
-      this[NO_DISPOSE_ON_SET] = options.noDisposeOnSet || false;
-      this.reset();
-    }
-    Object.defineProperty(LRUCache.prototype, "max", {
-      set: function(mL) {
-        if (!mL || !(typeof mL === "number") || mL <= 0) {
-          mL = Infinity;
+    function inheritEvents(source2, target, events) {
+      const listeners = {};
+      target.on("newListener", (eventName) => {
+        if (events.indexOf(eventName) >= 0 && !target.listenerCount(eventName)) {
+          source2.on(
+            eventName,
+            listeners[eventName] = function() {
+              const args = [].slice.call(arguments);
+              args.unshift(eventName);
+              target.emit.apply(target, args);
+            }
+          );
         }
-        this[MAX] = mL;
-        trim(this);
-      },
-      get: function() {
-        return this[MAX];
-      },
-      enumerable: true
-    });
-    Object.defineProperty(LRUCache.prototype, "allowStale", {
-      set: function(allowStale) {
-        this[ALLOW_STALE] = !!allowStale;
-      },
-      get: function() {
-        return this[ALLOW_STALE];
-      },
-      enumerable: true
-    });
-    Object.defineProperty(LRUCache.prototype, "maxAge", {
-      set: function(mA) {
-        if (!mA || !(typeof mA === "number") || mA < 0) {
-          mA = 0;
+      }).on("removeListener", (eventName) => {
+        if (events.indexOf(eventName) >= 0 && !target.listenerCount(eventName)) {
+          source2.removeListener(eventName, listeners[eventName]);
+          delete listeners[eventName];
         }
-        this[MAX_AGE] = mA;
-        trim(this);
-      },
-      get: function() {
-        return this[MAX_AGE];
-      },
-      enumerable: true
-    });
-    Object.defineProperty(LRUCache.prototype, "lengthCalculator", {
-      set: function(lC) {
-        if (typeof lC !== "function") {
-          lC = naiveLength;
-        }
-        if (lC !== this[LENGTH_CALCULATOR]) {
-          this[LENGTH_CALCULATOR] = lC;
-          this[LENGTH] = 0;
-          this[LRU_LIST].forEach(function(hit) {
-            hit.length = this[LENGTH_CALCULATOR](hit.value, hit.key);
-            this[LENGTH] += hit.length;
-          }, this);
-        }
-        trim(this);
-      },
-      get: function() {
-        return this[LENGTH_CALCULATOR];
-      },
-      enumerable: true
-    });
-    Object.defineProperty(LRUCache.prototype, "length", {
-      get: function() {
-        return this[LENGTH];
-      },
-      enumerable: true
-    });
-    Object.defineProperty(LRUCache.prototype, "itemCount", {
-      get: function() {
-        return this[LRU_LIST].length;
-      },
-      enumerable: true
-    });
-    LRUCache.prototype.rforEach = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this[LRU_LIST].tail; walker !== null; ) {
-        var prev = walker.prev;
-        forEachStep(this, fn, walker, thisp);
-        walker = prev;
-      }
-    };
-    function forEachStep(self2, fn, node, thisp) {
-      var hit = node.value;
-      if (isStale(self2, hit)) {
-        del(self2, node);
-        if (!self2[ALLOW_STALE]) {
-          hit = void 0;
-        }
-      }
-      if (hit) {
-        fn.call(thisp, hit.value, hit.key, self2);
-      }
-    }
-    LRUCache.prototype.forEach = function(fn, thisp) {
-      thisp = thisp || this;
-      for (var walker = this[LRU_LIST].head; walker !== null; ) {
-        var next = walker.next;
-        forEachStep(this, fn, walker, thisp);
-        walker = next;
-      }
-    };
-    LRUCache.prototype.keys = function() {
-      return this[LRU_LIST].toArray().map(function(k) {
-        return k.key;
-      }, this);
-    };
-    LRUCache.prototype.values = function() {
-      return this[LRU_LIST].toArray().map(function(k) {
-        return k.value;
-      }, this);
-    };
-    LRUCache.prototype.reset = function() {
-      if (this[DISPOSE] && this[LRU_LIST] && this[LRU_LIST].length) {
-        this[LRU_LIST].forEach(function(hit) {
-          this[DISPOSE](hit.key, hit.value);
-        }, this);
-      }
-      this[CACHE] = new Map2();
-      this[LRU_LIST] = new Yallist();
-      this[LENGTH] = 0;
-    };
-    LRUCache.prototype.dump = function() {
-      return this[LRU_LIST].map(function(hit) {
-        if (!isStale(this, hit)) {
-          return {
-            k: hit.key,
-            v: hit.value,
-            e: hit.now + (hit.maxAge || 0)
-          };
-        }
-      }, this).toArray().filter(function(h2) {
-        return h2;
       });
-    };
-    LRUCache.prototype.dumpLru = function() {
-      return this[LRU_LIST];
-    };
-    LRUCache.prototype.inspect = function(n, opts) {
-      var str = "LRUCache {";
-      var extras = false;
-      var as = this[ALLOW_STALE];
-      if (as) {
-        str += "\n  allowStale: true";
-        extras = true;
+    }
+    var PromisePreparedStatementInfo = class {
+      constructor(statement, promiseImpl) {
+        this.statement = statement;
+        this.Promise = promiseImpl;
       }
-      var max = this[MAX];
-      if (max && max !== Infinity) {
-        if (extras) {
-          str += ",";
-        }
-        str += "\n  max: " + util.inspect(max, opts);
-        extras = true;
-      }
-      var maxAge = this[MAX_AGE];
-      if (maxAge) {
-        if (extras) {
-          str += ",";
-        }
-        str += "\n  maxAge: " + util.inspect(maxAge, opts);
-        extras = true;
-      }
-      var lc = this[LENGTH_CALCULATOR];
-      if (lc && lc !== naiveLength) {
-        if (extras) {
-          str += ",";
-        }
-        str += "\n  length: " + util.inspect(this[LENGTH], opts);
-        extras = true;
-      }
-      var didFirst = false;
-      this[LRU_LIST].forEach(function(item) {
-        if (didFirst) {
-          str += ",\n  ";
-        } else {
-          if (extras) {
-            str += ",\n";
+      execute(parameters) {
+        const s2 = this.statement;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          if (parameters) {
+            s2.execute(parameters, done);
+          } else {
+            s2.execute(done);
           }
-          didFirst = true;
-          str += "\n  ";
+        });
+      }
+      close() {
+        return new this.Promise((resolve) => {
+          this.statement.close();
+          resolve();
+        });
+      }
+    };
+    var PromiseConnection = class extends EventEmitter {
+      constructor(connection, promiseImpl) {
+        super();
+        this.connection = connection;
+        this.Promise = promiseImpl || Promise;
+        inheritEvents(connection, this, [
+          "error",
+          "drain",
+          "connect",
+          "end",
+          "enqueue"
+        ]);
+      }
+      release() {
+        this.connection.release();
+      }
+      query(query, params) {
+        const c = this.connection;
+        const localErr = new Error();
+        if (typeof params === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
         }
-        var key = util.inspect(item.key).split("\n").join("\n  ");
-        var val = { value: item.value };
-        if (item.maxAge !== maxAge) {
-          val.maxAge = item.maxAge;
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          if (params !== void 0) {
+            c.query(query, params, done);
+          } else {
+            c.query(query, done);
+          }
+        });
+      }
+      execute(query, params) {
+        const c = this.connection;
+        const localErr = new Error();
+        if (typeof params === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
         }
-        if (lc !== naiveLength) {
-          val.length = item.length;
-        }
-        if (isStale(this, item)) {
-          val.stale = true;
-        }
-        val = util.inspect(val, opts).split("\n").join("\n  ");
-        str += key + " => " + val;
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          if (params !== void 0) {
+            c.execute(query, params, done);
+          } else {
+            c.execute(query, done);
+          }
+        });
+      }
+      end() {
+        return new this.Promise((resolve) => {
+          this.connection.end(resolve);
+        });
+      }
+      beginTransaction() {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          c.beginTransaction(done);
+        });
+      }
+      commit() {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          c.commit(done);
+        });
+      }
+      rollback() {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          c.rollback(done);
+        });
+      }
+      ping() {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          c.ping((err) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              resolve(true);
+            }
+          });
+        });
+      }
+      connect() {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          c.connect((err, param) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              resolve(param);
+            }
+          });
+        });
+      }
+      prepare(options) {
+        const c = this.connection;
+        const promiseImpl = this.Promise;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          c.prepare(options, (err, statement) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              const wrappedStatement = new PromisePreparedStatementInfo(
+                statement,
+                promiseImpl
+              );
+              resolve(wrappedStatement);
+            }
+          });
+        });
+      }
+      changeUser(options) {
+        const c = this.connection;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          c.changeUser(options, (err) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
+      get config() {
+        return this.connection.config;
+      }
+      get threadId() {
+        return this.connection.threadId;
+      }
+    };
+    function createConnection(opts) {
+      const coreConnection = core.createConnection(opts);
+      const createConnectionErr = new Error();
+      const thePromise = opts.Promise || Promise;
+      if (!thePromise) {
+        throw new Error(
+          "no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }"
+        );
+      }
+      return new thePromise((resolve, reject) => {
+        coreConnection.once("connect", () => {
+          resolve(new PromiseConnection(coreConnection, thePromise));
+        });
+        coreConnection.once("error", (err) => {
+          createConnectionErr.message = err.message;
+          createConnectionErr.code = err.code;
+          createConnectionErr.errno = err.errno;
+          createConnectionErr.sqlState = err.sqlState;
+          reject(createConnectionErr);
+        });
       });
-      if (didFirst || extras) {
-        str += "\n";
-      }
-      str += "}";
-      return str;
-    };
-    LRUCache.prototype.set = function(key, value, maxAge) {
-      maxAge = maxAge || this[MAX_AGE];
-      var now = maxAge ? Date.now() : 0;
-      var len = this[LENGTH_CALCULATOR](value, key);
-      if (this[CACHE].has(key)) {
-        if (len > this[MAX]) {
-          del(this, this[CACHE].get(key));
-          return false;
+    }
+    (function(functionsToWrap) {
+      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
+        const func = functionsToWrap[i2];
+        if (typeof core.Connection.prototype[func] === "function" && PromiseConnection.prototype[func] === void 0) {
+          PromiseConnection.prototype[func] = function factory(funcName) {
+            return function() {
+              return core.Connection.prototype[funcName].apply(
+                this.connection,
+                arguments
+              );
+            };
+          }(func);
         }
-        var node = this[CACHE].get(key);
-        var item = node.value;
-        if (this[DISPOSE]) {
-          if (!this[NO_DISPOSE_ON_SET]) {
-            this[DISPOSE](key, item.value);
+      }
+    })([
+      "close",
+      "createBinlogStream",
+      "destroy",
+      "escape",
+      "escapeId",
+      "format",
+      "pause",
+      "pipe",
+      "resume",
+      "unprepare"
+    ]);
+    var PromisePoolConnection = class extends PromiseConnection {
+      constructor(connection, promiseImpl) {
+        super(connection, promiseImpl);
+      }
+      destroy() {
+        return core.PoolConnection.prototype.destroy.apply(
+          this.connection,
+          arguments
+        );
+      }
+    };
+    var PromisePool = class extends EventEmitter {
+      constructor(pool2, thePromise) {
+        super();
+        this.pool = pool2;
+        this.Promise = thePromise || Promise;
+        inheritEvents(pool2, this, ["acquire", "connection", "enqueue", "release"]);
+      }
+      getConnection() {
+        const corePool = this.pool;
+        return new this.Promise((resolve, reject) => {
+          corePool.getConnection((err, coreConnection) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(new PromisePoolConnection(coreConnection, this.Promise));
+            }
+          });
+        });
+      }
+      releaseConnection(connection) {
+        if (connection instanceof PromisePoolConnection)
+          connection.release();
+      }
+      query(sql, args) {
+        const corePool = this.pool;
+        const localErr = new Error();
+        if (typeof args === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
+        }
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          if (args !== void 0) {
+            corePool.query(sql, args, done);
+          } else {
+            corePool.query(sql, done);
           }
+        });
+      }
+      execute(sql, args) {
+        const corePool = this.pool;
+        const localErr = new Error();
+        if (typeof args === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
         }
-        item.now = now;
-        item.maxAge = maxAge;
-        item.value = value;
-        this[LENGTH] += len - item.length;
-        item.length = len;
-        this.get(key);
-        trim(this);
-        return true;
-      }
-      var hit = new Entry(key, value, len, now, maxAge);
-      if (hit.length > this[MAX]) {
-        if (this[DISPOSE]) {
-          this[DISPOSE](key, value);
-        }
-        return false;
-      }
-      this[LENGTH] += hit.length;
-      this[LRU_LIST].unshift(hit);
-      this[CACHE].set(key, this[LRU_LIST].head);
-      trim(this);
-      return true;
-    };
-    LRUCache.prototype.has = function(key) {
-      if (!this[CACHE].has(key))
-        return false;
-      var hit = this[CACHE].get(key).value;
-      if (isStale(this, hit)) {
-        return false;
-      }
-      return true;
-    };
-    LRUCache.prototype.get = function(key) {
-      return get(this, key, true);
-    };
-    LRUCache.prototype.peek = function(key) {
-      return get(this, key, false);
-    };
-    LRUCache.prototype.pop = function() {
-      var node = this[LRU_LIST].tail;
-      if (!node)
-        return null;
-      del(this, node);
-      return node.value;
-    };
-    LRUCache.prototype.del = function(key) {
-      del(this, this[CACHE].get(key));
-    };
-    LRUCache.prototype.load = function(arr) {
-      this.reset();
-      var now = Date.now();
-      for (var l = arr.length - 1; l >= 0; l--) {
-        var hit = arr[l];
-        var expiresAt = hit.e || 0;
-        if (expiresAt === 0) {
-          this.set(hit.k, hit.v);
-        } else {
-          var maxAge = expiresAt - now;
-          if (maxAge > 0) {
-            this.set(hit.k, hit.v, maxAge);
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          if (args) {
+            corePool.execute(sql, args, done);
+          } else {
+            corePool.execute(sql, done);
           }
-        }
+        });
+      }
+      end() {
+        const corePool = this.pool;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          corePool.end((err) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              resolve();
+            }
+          });
+        });
       }
     };
-    LRUCache.prototype.prune = function() {
-      var self2 = this;
-      this[CACHE].forEach(function(value, key) {
-        get(self2, key, false);
-      });
+    function createPool2(opts) {
+      const corePool = core.createPool(opts);
+      const thePromise = opts.Promise || Promise;
+      if (!thePromise) {
+        throw new Error(
+          "no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }"
+        );
+      }
+      return new PromisePool(corePool, thePromise);
+    }
+    (function(functionsToWrap) {
+      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
+        const func = functionsToWrap[i2];
+        if (typeof core.Pool.prototype[func] === "function" && PromisePool.prototype[func] === void 0) {
+          PromisePool.prototype[func] = function factory(funcName) {
+            return function() {
+              return core.Pool.prototype[funcName].apply(this.pool, arguments);
+            };
+          }(func);
+        }
+      }
+    })([
+      "escape",
+      "escapeId",
+      "format"
+    ]);
+    var PromisePoolCluster = class extends EventEmitter {
+      constructor(poolCluster, thePromise) {
+        super();
+        this.poolCluster = poolCluster;
+        this.Promise = thePromise || Promise;
+        inheritEvents(poolCluster, this, ["acquire", "connection", "enqueue", "release"]);
+      }
+      getConnection() {
+        const corePoolCluster = this.poolCluster;
+        return new this.Promise((resolve, reject) => {
+          corePoolCluster.getConnection((err, coreConnection) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(new PromisePoolConnection(coreConnection, this.Promise));
+            }
+          });
+        });
+      }
+      query(sql, args) {
+        const corePoolCluster = this.poolCluster;
+        const localErr = new Error();
+        if (typeof args === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
+        }
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          corePoolCluster.query(sql, args, done);
+        });
+      }
+      execute(sql, args) {
+        const corePoolCluster = this.poolCluster;
+        const localErr = new Error();
+        if (typeof args === "function") {
+          throw new Error(
+            "Callback function is not available with promise clients."
+          );
+        }
+        return new this.Promise((resolve, reject) => {
+          const done = makeDoneCb(resolve, reject, localErr);
+          corePoolCluster.execute(sql, args, done);
+        });
+      }
+      of(pattern, selector) {
+        return new PromisePoolCluster(
+          this.poolCluster.of(pattern, selector),
+          this.Promise
+        );
+      }
+      end() {
+        const corePoolCluster = this.poolCluster;
+        const localErr = new Error();
+        return new this.Promise((resolve, reject) => {
+          corePoolCluster.end((err) => {
+            if (err) {
+              localErr.message = err.message;
+              localErr.code = err.code;
+              localErr.errno = err.errno;
+              localErr.sqlState = err.sqlState;
+              localErr.sqlMessage = err.sqlMessage;
+              reject(localErr);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
     };
-    function get(self2, key, doUse) {
-      var node = self2[CACHE].get(key);
-      if (node) {
-        var hit = node.value;
-        if (isStale(self2, hit)) {
-          del(self2, node);
-          if (!self2[ALLOW_STALE])
-            hit = void 0;
-        } else {
-          if (doUse) {
-            self2[LRU_LIST].unshiftNode(node);
-          }
-        }
-        if (hit)
-          hit = hit.value;
-      }
-      return hit;
-    }
-    function isStale(self2, hit) {
-      if (!hit || !hit.maxAge && !self2[MAX_AGE]) {
-        return false;
-      }
-      var stale = false;
-      var diff = Date.now() - hit.now;
-      if (hit.maxAge) {
-        stale = diff > hit.maxAge;
-      } else {
-        stale = self2[MAX_AGE] && diff > self2[MAX_AGE];
-      }
-      return stale;
-    }
-    function trim(self2) {
-      if (self2[LENGTH] > self2[MAX]) {
-        for (var walker = self2[LRU_LIST].tail; self2[LENGTH] > self2[MAX] && walker !== null; ) {
-          var prev = walker.prev;
-          del(self2, walker);
-          walker = prev;
+    (function(functionsToWrap) {
+      for (let i2 = 0; functionsToWrap && i2 < functionsToWrap.length; i2++) {
+        const func = functionsToWrap[i2];
+        if (typeof core.PoolCluster.prototype[func] === "function" && PromisePoolCluster.prototype[func] === void 0) {
+          PromisePoolCluster.prototype[func] = function factory(funcName) {
+            return function() {
+              return core.PoolCluster.prototype[funcName].apply(this.poolCluster, arguments);
+            };
+          }(func);
         }
       }
-    }
-    function del(self2, node) {
-      if (node) {
-        var hit = node.value;
-        if (self2[DISPOSE]) {
-          self2[DISPOSE](hit.key, hit.value);
-        }
-        self2[LENGTH] -= hit.length;
-        self2[CACHE].delete(hit.key);
-        self2[LRU_LIST].removeNode(node);
+    })([
+      "add"
+    ]);
+    function createPoolCluster(opts) {
+      const corePoolCluster = core.createPoolCluster(opts);
+      const thePromise = opts && opts.Promise || Promise;
+      if (!thePromise) {
+        throw new Error(
+          "no Promise implementation available.Use promise-enabled node version or pass userland Promise implementation as parameter, for example: { Promise: require('bluebird') }"
+        );
       }
+      return new PromisePoolCluster(corePoolCluster, thePromise);
     }
-    function Entry(key, value, length, now, maxAge) {
-      this.key = key;
-      this.value = value;
-      this.length = length;
-      this.now = now;
-      this.maxAge = maxAge || 0;
-    }
+    exports.createConnection = createConnection;
+    exports.createPool = createPool2;
+    exports.createPoolCluster = createPoolCluster;
+    exports.escape = core.escape;
+    exports.escapeId = core.escapeId;
+    exports.format = core.format;
+    exports.raw = core.raw;
+    exports.PromisePool = PromisePool;
+    exports.PromiseConnection = PromiseConnection;
+    exports.PromisePoolConnection = PromisePoolConnection;
+    exports.__defineGetter__("Types", () => require_types());
+    exports.__defineGetter__(
+      "Charsets",
+      () => require_charsets()
+    );
+    exports.__defineGetter__(
+      "CharsetToEncoding",
+      () => require_charset_encodings()
+    );
+    exports.setMaxParserCache = function(max) {
+      parserCache.setMaxCache(max);
+    };
+    exports.clearParserCache = function() {
+      parserCache.clearCache();
+    };
   }
 });
 
-// node_modules/.pnpm/named-placeholders@1.1.2/node_modules/named-placeholders/index.js
+// node_modules/.pnpm/lru-cache@7.18.3/node_modules/lru-cache/index.js
+var require_lru_cache = __commonJS({
+  "node_modules/.pnpm/lru-cache@7.18.3/node_modules/lru-cache/index.js"(exports, module2) {
+    var perf = typeof performance === "object" && performance && typeof performance.now === "function" ? performance : Date;
+    var hasAbortController = typeof AbortController === "function";
+    var AC = hasAbortController ? AbortController : class AbortController {
+      constructor() {
+        this.signal = new AS();
+      }
+      abort(reason = new Error("This operation was aborted")) {
+        this.signal.reason = this.signal.reason || reason;
+        this.signal.aborted = true;
+        this.signal.dispatchEvent({
+          type: "abort",
+          target: this.signal
+        });
+      }
+    };
+    var hasAbortSignal = typeof AbortSignal === "function";
+    var hasACAbortSignal = typeof AC.AbortSignal === "function";
+    var AS = hasAbortSignal ? AbortSignal : hasACAbortSignal ? AC.AbortController : class AbortSignal {
+      constructor() {
+        this.reason = void 0;
+        this.aborted = false;
+        this._listeners = [];
+      }
+      dispatchEvent(e2) {
+        if (e2.type === "abort") {
+          this.aborted = true;
+          this.onabort(e2);
+          this._listeners.forEach((f3) => f3(e2), this);
+        }
+      }
+      onabort() {
+      }
+      addEventListener(ev, fn) {
+        if (ev === "abort") {
+          this._listeners.push(fn);
+        }
+      }
+      removeEventListener(ev, fn) {
+        if (ev === "abort") {
+          this._listeners = this._listeners.filter((f3) => f3 !== fn);
+        }
+      }
+    };
+    var warned = /* @__PURE__ */ new Set();
+    var deprecatedOption = (opt, instead) => {
+      const code = `LRU_CACHE_OPTION_${opt}`;
+      if (shouldWarn(code)) {
+        warn(code, `${opt} option`, `options.${instead}`, LRUCache);
+      }
+    };
+    var deprecatedMethod = (method, instead) => {
+      const code = `LRU_CACHE_METHOD_${method}`;
+      if (shouldWarn(code)) {
+        const { prototype } = LRUCache;
+        const { get } = Object.getOwnPropertyDescriptor(prototype, method);
+        warn(code, `${method} method`, `cache.${instead}()`, get);
+      }
+    };
+    var deprecatedProperty = (field, instead) => {
+      const code = `LRU_CACHE_PROPERTY_${field}`;
+      if (shouldWarn(code)) {
+        const { prototype } = LRUCache;
+        const { get } = Object.getOwnPropertyDescriptor(prototype, field);
+        warn(code, `${field} property`, `cache.${instead}`, get);
+      }
+    };
+    var emitWarning = (...a) => {
+      typeof process === "object" && process && typeof process.emitWarning === "function" ? process.emitWarning(...a) : console.error(...a);
+    };
+    var shouldWarn = (code) => !warned.has(code);
+    var warn = (code, what, instead, fn) => {
+      warned.add(code);
+      const msg = `The ${what} is deprecated. Please use ${instead} instead.`;
+      emitWarning(msg, "DeprecationWarning", code, fn);
+    };
+    var isPosInt = (n) => n && n === Math.floor(n) && n > 0 && isFinite(n);
+    var getUintArray = (max) => !isPosInt(max) ? null : max <= Math.pow(2, 8) ? Uint8Array : max <= Math.pow(2, 16) ? Uint16Array : max <= Math.pow(2, 32) ? Uint32Array : max <= Number.MAX_SAFE_INTEGER ? ZeroArray : null;
+    var ZeroArray = class extends Array {
+      constructor(size) {
+        super(size);
+        this.fill(0);
+      }
+    };
+    var Stack = class {
+      constructor(max) {
+        if (max === 0) {
+          return [];
+        }
+        const UintArray = getUintArray(max);
+        this.heap = new UintArray(max);
+        this.length = 0;
+      }
+      push(n) {
+        this.heap[this.length++] = n;
+      }
+      pop() {
+        return this.heap[--this.length];
+      }
+    };
+    var LRUCache = class {
+      constructor(options = {}) {
+        const {
+          max = 0,
+          ttl,
+          ttlResolution = 1,
+          ttlAutopurge,
+          updateAgeOnGet,
+          updateAgeOnHas,
+          allowStale,
+          dispose,
+          disposeAfter,
+          noDisposeOnSet,
+          noUpdateTTL,
+          maxSize = 0,
+          maxEntrySize = 0,
+          sizeCalculation,
+          fetchMethod,
+          fetchContext,
+          noDeleteOnFetchRejection,
+          noDeleteOnStaleGet,
+          allowStaleOnFetchRejection,
+          allowStaleOnFetchAbort,
+          ignoreFetchAbort
+        } = options;
+        const { length, maxAge, stale } = options instanceof LRUCache ? {} : options;
+        if (max !== 0 && !isPosInt(max)) {
+          throw new TypeError("max option must be a nonnegative integer");
+        }
+        const UintArray = max ? getUintArray(max) : Array;
+        if (!UintArray) {
+          throw new Error("invalid max value: " + max);
+        }
+        this.max = max;
+        this.maxSize = maxSize;
+        this.maxEntrySize = maxEntrySize || this.maxSize;
+        this.sizeCalculation = sizeCalculation || length;
+        if (this.sizeCalculation) {
+          if (!this.maxSize && !this.maxEntrySize) {
+            throw new TypeError(
+              "cannot set sizeCalculation without setting maxSize or maxEntrySize"
+            );
+          }
+          if (typeof this.sizeCalculation !== "function") {
+            throw new TypeError("sizeCalculation set to non-function");
+          }
+        }
+        this.fetchMethod = fetchMethod || null;
+        if (this.fetchMethod && typeof this.fetchMethod !== "function") {
+          throw new TypeError(
+            "fetchMethod must be a function if specified"
+          );
+        }
+        this.fetchContext = fetchContext;
+        if (!this.fetchMethod && fetchContext !== void 0) {
+          throw new TypeError(
+            "cannot set fetchContext without fetchMethod"
+          );
+        }
+        this.keyMap = /* @__PURE__ */ new Map();
+        this.keyList = new Array(max).fill(null);
+        this.valList = new Array(max).fill(null);
+        this.next = new UintArray(max);
+        this.prev = new UintArray(max);
+        this.head = 0;
+        this.tail = 0;
+        this.free = new Stack(max);
+        this.initialFill = 1;
+        this.size = 0;
+        if (typeof dispose === "function") {
+          this.dispose = dispose;
+        }
+        if (typeof disposeAfter === "function") {
+          this.disposeAfter = disposeAfter;
+          this.disposed = [];
+        } else {
+          this.disposeAfter = null;
+          this.disposed = null;
+        }
+        this.noDisposeOnSet = !!noDisposeOnSet;
+        this.noUpdateTTL = !!noUpdateTTL;
+        this.noDeleteOnFetchRejection = !!noDeleteOnFetchRejection;
+        this.allowStaleOnFetchRejection = !!allowStaleOnFetchRejection;
+        this.allowStaleOnFetchAbort = !!allowStaleOnFetchAbort;
+        this.ignoreFetchAbort = !!ignoreFetchAbort;
+        if (this.maxEntrySize !== 0) {
+          if (this.maxSize !== 0) {
+            if (!isPosInt(this.maxSize)) {
+              throw new TypeError(
+                "maxSize must be a positive integer if specified"
+              );
+            }
+          }
+          if (!isPosInt(this.maxEntrySize)) {
+            throw new TypeError(
+              "maxEntrySize must be a positive integer if specified"
+            );
+          }
+          this.initializeSizeTracking();
+        }
+        this.allowStale = !!allowStale || !!stale;
+        this.noDeleteOnStaleGet = !!noDeleteOnStaleGet;
+        this.updateAgeOnGet = !!updateAgeOnGet;
+        this.updateAgeOnHas = !!updateAgeOnHas;
+        this.ttlResolution = isPosInt(ttlResolution) || ttlResolution === 0 ? ttlResolution : 1;
+        this.ttlAutopurge = !!ttlAutopurge;
+        this.ttl = ttl || maxAge || 0;
+        if (this.ttl) {
+          if (!isPosInt(this.ttl)) {
+            throw new TypeError(
+              "ttl must be a positive integer if specified"
+            );
+          }
+          this.initializeTTLTracking();
+        }
+        if (this.max === 0 && this.ttl === 0 && this.maxSize === 0) {
+          throw new TypeError(
+            "At least one of max, maxSize, or ttl is required"
+          );
+        }
+        if (!this.ttlAutopurge && !this.max && !this.maxSize) {
+          const code = "LRU_CACHE_UNBOUNDED";
+          if (shouldWarn(code)) {
+            warned.add(code);
+            const msg = "TTL caching without ttlAutopurge, max, or maxSize can result in unbounded memory consumption.";
+            emitWarning(msg, "UnboundedCacheWarning", code, LRUCache);
+          }
+        }
+        if (stale) {
+          deprecatedOption("stale", "allowStale");
+        }
+        if (maxAge) {
+          deprecatedOption("maxAge", "ttl");
+        }
+        if (length) {
+          deprecatedOption("length", "sizeCalculation");
+        }
+      }
+      getRemainingTTL(key) {
+        return this.has(key, { updateAgeOnHas: false }) ? Infinity : 0;
+      }
+      initializeTTLTracking() {
+        this.ttls = new ZeroArray(this.max);
+        this.starts = new ZeroArray(this.max);
+        this.setItemTTL = (index, ttl, start = perf.now()) => {
+          this.starts[index] = ttl !== 0 ? start : 0;
+          this.ttls[index] = ttl;
+          if (ttl !== 0 && this.ttlAutopurge) {
+            const t2 = setTimeout(() => {
+              if (this.isStale(index)) {
+                this.delete(this.keyList[index]);
+              }
+            }, ttl + 1);
+            if (t2.unref) {
+              t2.unref();
+            }
+          }
+        };
+        this.updateItemAge = (index) => {
+          this.starts[index] = this.ttls[index] !== 0 ? perf.now() : 0;
+        };
+        this.statusTTL = (status, index) => {
+          if (status) {
+            status.ttl = this.ttls[index];
+            status.start = this.starts[index];
+            status.now = cachedNow || getNow();
+            status.remainingTTL = status.now + status.ttl - status.start;
+          }
+        };
+        let cachedNow = 0;
+        const getNow = () => {
+          const n = perf.now();
+          if (this.ttlResolution > 0) {
+            cachedNow = n;
+            const t2 = setTimeout(
+              () => cachedNow = 0,
+              this.ttlResolution
+            );
+            if (t2.unref) {
+              t2.unref();
+            }
+          }
+          return n;
+        };
+        this.getRemainingTTL = (key) => {
+          const index = this.keyMap.get(key);
+          if (index === void 0) {
+            return 0;
+          }
+          return this.ttls[index] === 0 || this.starts[index] === 0 ? Infinity : this.starts[index] + this.ttls[index] - (cachedNow || getNow());
+        };
+        this.isStale = (index) => {
+          return this.ttls[index] !== 0 && this.starts[index] !== 0 && (cachedNow || getNow()) - this.starts[index] > this.ttls[index];
+        };
+      }
+      updateItemAge(_index) {
+      }
+      statusTTL(_status, _index) {
+      }
+      setItemTTL(_index, _ttl, _start) {
+      }
+      isStale(_index) {
+        return false;
+      }
+      initializeSizeTracking() {
+        this.calculatedSize = 0;
+        this.sizes = new ZeroArray(this.max);
+        this.removeItemSize = (index) => {
+          this.calculatedSize -= this.sizes[index];
+          this.sizes[index] = 0;
+        };
+        this.requireSize = (k, v, size, sizeCalculation) => {
+          if (this.isBackgroundFetch(v)) {
+            return 0;
+          }
+          if (!isPosInt(size)) {
+            if (sizeCalculation) {
+              if (typeof sizeCalculation !== "function") {
+                throw new TypeError("sizeCalculation must be a function");
+              }
+              size = sizeCalculation(v, k);
+              if (!isPosInt(size)) {
+                throw new TypeError(
+                  "sizeCalculation return invalid (expect positive integer)"
+                );
+              }
+            } else {
+              throw new TypeError(
+                "invalid size value (must be positive integer). When maxSize or maxEntrySize is used, sizeCalculation or size must be set."
+              );
+            }
+          }
+          return size;
+        };
+        this.addItemSize = (index, size, status) => {
+          this.sizes[index] = size;
+          if (this.maxSize) {
+            const maxSize = this.maxSize - this.sizes[index];
+            while (this.calculatedSize > maxSize) {
+              this.evict(true);
+            }
+          }
+          this.calculatedSize += this.sizes[index];
+          if (status) {
+            status.entrySize = size;
+            status.totalCalculatedSize = this.calculatedSize;
+          }
+        };
+      }
+      removeItemSize(_index) {
+      }
+      addItemSize(_index, _size) {
+      }
+      requireSize(_k, _v, size, sizeCalculation) {
+        if (size || sizeCalculation) {
+          throw new TypeError(
+            "cannot set size without setting maxSize or maxEntrySize on cache"
+          );
+        }
+      }
+      *indexes({ allowStale = this.allowStale } = {}) {
+        if (this.size) {
+          for (let i2 = this.tail; true; ) {
+            if (!this.isValidIndex(i2)) {
+              break;
+            }
+            if (allowStale || !this.isStale(i2)) {
+              yield i2;
+            }
+            if (i2 === this.head) {
+              break;
+            } else {
+              i2 = this.prev[i2];
+            }
+          }
+        }
+      }
+      *rindexes({ allowStale = this.allowStale } = {}) {
+        if (this.size) {
+          for (let i2 = this.head; true; ) {
+            if (!this.isValidIndex(i2)) {
+              break;
+            }
+            if (allowStale || !this.isStale(i2)) {
+              yield i2;
+            }
+            if (i2 === this.tail) {
+              break;
+            } else {
+              i2 = this.next[i2];
+            }
+          }
+        }
+      }
+      isValidIndex(index) {
+        return index !== void 0 && this.keyMap.get(this.keyList[index]) === index;
+      }
+      *entries() {
+        for (const i2 of this.indexes()) {
+          if (this.valList[i2] !== void 0 && this.keyList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield [this.keyList[i2], this.valList[i2]];
+          }
+        }
+      }
+      *rentries() {
+        for (const i2 of this.rindexes()) {
+          if (this.valList[i2] !== void 0 && this.keyList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield [this.keyList[i2], this.valList[i2]];
+          }
+        }
+      }
+      *keys() {
+        for (const i2 of this.indexes()) {
+          if (this.keyList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield this.keyList[i2];
+          }
+        }
+      }
+      *rkeys() {
+        for (const i2 of this.rindexes()) {
+          if (this.keyList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield this.keyList[i2];
+          }
+        }
+      }
+      *values() {
+        for (const i2 of this.indexes()) {
+          if (this.valList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield this.valList[i2];
+          }
+        }
+      }
+      *rvalues() {
+        for (const i2 of this.rindexes()) {
+          if (this.valList[i2] !== void 0 && !this.isBackgroundFetch(this.valList[i2])) {
+            yield this.valList[i2];
+          }
+        }
+      }
+      [Symbol.iterator]() {
+        return this.entries();
+      }
+      find(fn, getOptions) {
+        for (const i2 of this.indexes()) {
+          const v = this.valList[i2];
+          const value = this.isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          if (fn(value, this.keyList[i2], this)) {
+            return this.get(this.keyList[i2], getOptions);
+          }
+        }
+      }
+      forEach(fn, thisp = this) {
+        for (const i2 of this.indexes()) {
+          const v = this.valList[i2];
+          const value = this.isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          fn.call(thisp, value, this.keyList[i2], this);
+        }
+      }
+      rforEach(fn, thisp = this) {
+        for (const i2 of this.rindexes()) {
+          const v = this.valList[i2];
+          const value = this.isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          fn.call(thisp, value, this.keyList[i2], this);
+        }
+      }
+      get prune() {
+        deprecatedMethod("prune", "purgeStale");
+        return this.purgeStale;
+      }
+      purgeStale() {
+        let deleted = false;
+        for (const i2 of this.rindexes({ allowStale: true })) {
+          if (this.isStale(i2)) {
+            this.delete(this.keyList[i2]);
+            deleted = true;
+          }
+        }
+        return deleted;
+      }
+      dump() {
+        const arr = [];
+        for (const i2 of this.indexes({ allowStale: true })) {
+          const key = this.keyList[i2];
+          const v = this.valList[i2];
+          const value = this.isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+          if (value === void 0)
+            continue;
+          const entry = { value };
+          if (this.ttls) {
+            entry.ttl = this.ttls[i2];
+            const age = perf.now() - this.starts[i2];
+            entry.start = Math.floor(Date.now() - age);
+          }
+          if (this.sizes) {
+            entry.size = this.sizes[i2];
+          }
+          arr.unshift([key, entry]);
+        }
+        return arr;
+      }
+      load(arr) {
+        this.clear();
+        for (const [key, entry] of arr) {
+          if (entry.start) {
+            const age = Date.now() - entry.start;
+            entry.start = perf.now() - age;
+          }
+          this.set(key, entry.value, entry);
+        }
+      }
+      dispose(_v, _k, _reason) {
+      }
+      set(k, v, {
+        ttl = this.ttl,
+        start,
+        noDisposeOnSet = this.noDisposeOnSet,
+        size = 0,
+        sizeCalculation = this.sizeCalculation,
+        noUpdateTTL = this.noUpdateTTL,
+        status
+      } = {}) {
+        size = this.requireSize(k, v, size, sizeCalculation);
+        if (this.maxEntrySize && size > this.maxEntrySize) {
+          if (status) {
+            status.set = "miss";
+            status.maxEntrySizeExceeded = true;
+          }
+          this.delete(k);
+          return this;
+        }
+        let index = this.size === 0 ? void 0 : this.keyMap.get(k);
+        if (index === void 0) {
+          index = this.newIndex();
+          this.keyList[index] = k;
+          this.valList[index] = v;
+          this.keyMap.set(k, index);
+          this.next[this.tail] = index;
+          this.prev[index] = this.tail;
+          this.tail = index;
+          this.size++;
+          this.addItemSize(index, size, status);
+          if (status) {
+            status.set = "add";
+          }
+          noUpdateTTL = false;
+        } else {
+          this.moveToTail(index);
+          const oldVal = this.valList[index];
+          if (v !== oldVal) {
+            if (this.isBackgroundFetch(oldVal)) {
+              oldVal.__abortController.abort(new Error("replaced"));
+            } else {
+              if (!noDisposeOnSet) {
+                this.dispose(oldVal, k, "set");
+                if (this.disposeAfter) {
+                  this.disposed.push([oldVal, k, "set"]);
+                }
+              }
+            }
+            this.removeItemSize(index);
+            this.valList[index] = v;
+            this.addItemSize(index, size, status);
+            if (status) {
+              status.set = "replace";
+              const oldValue = oldVal && this.isBackgroundFetch(oldVal) ? oldVal.__staleWhileFetching : oldVal;
+              if (oldValue !== void 0)
+                status.oldValue = oldValue;
+            }
+          } else if (status) {
+            status.set = "update";
+          }
+        }
+        if (ttl !== 0 && this.ttl === 0 && !this.ttls) {
+          this.initializeTTLTracking();
+        }
+        if (!noUpdateTTL) {
+          this.setItemTTL(index, ttl, start);
+        }
+        this.statusTTL(status, index);
+        if (this.disposeAfter) {
+          while (this.disposed.length) {
+            this.disposeAfter(...this.disposed.shift());
+          }
+        }
+        return this;
+      }
+      newIndex() {
+        if (this.size === 0) {
+          return this.tail;
+        }
+        if (this.size === this.max && this.max !== 0) {
+          return this.evict(false);
+        }
+        if (this.free.length !== 0) {
+          return this.free.pop();
+        }
+        return this.initialFill++;
+      }
+      pop() {
+        if (this.size) {
+          const val = this.valList[this.head];
+          this.evict(true);
+          return val;
+        }
+      }
+      evict(free) {
+        const head = this.head;
+        const k = this.keyList[head];
+        const v = this.valList[head];
+        if (this.isBackgroundFetch(v)) {
+          v.__abortController.abort(new Error("evicted"));
+        } else {
+          this.dispose(v, k, "evict");
+          if (this.disposeAfter) {
+            this.disposed.push([v, k, "evict"]);
+          }
+        }
+        this.removeItemSize(head);
+        if (free) {
+          this.keyList[head] = null;
+          this.valList[head] = null;
+          this.free.push(head);
+        }
+        this.head = this.next[head];
+        this.keyMap.delete(k);
+        this.size--;
+        return head;
+      }
+      has(k, { updateAgeOnHas = this.updateAgeOnHas, status } = {}) {
+        const index = this.keyMap.get(k);
+        if (index !== void 0) {
+          if (!this.isStale(index)) {
+            if (updateAgeOnHas) {
+              this.updateItemAge(index);
+            }
+            if (status)
+              status.has = "hit";
+            this.statusTTL(status, index);
+            return true;
+          } else if (status) {
+            status.has = "stale";
+            this.statusTTL(status, index);
+          }
+        } else if (status) {
+          status.has = "miss";
+        }
+        return false;
+      }
+      peek(k, { allowStale = this.allowStale } = {}) {
+        const index = this.keyMap.get(k);
+        if (index !== void 0 && (allowStale || !this.isStale(index))) {
+          const v = this.valList[index];
+          return this.isBackgroundFetch(v) ? v.__staleWhileFetching : v;
+        }
+      }
+      backgroundFetch(k, index, options, context) {
+        const v = index === void 0 ? void 0 : this.valList[index];
+        if (this.isBackgroundFetch(v)) {
+          return v;
+        }
+        const ac = new AC();
+        if (options.signal) {
+          options.signal.addEventListener(
+            "abort",
+            () => ac.abort(options.signal.reason)
+          );
+        }
+        const fetchOpts = {
+          signal: ac.signal,
+          options,
+          context
+        };
+        const cb = (v2, updateCache = false) => {
+          const { aborted } = ac.signal;
+          const ignoreAbort = options.ignoreFetchAbort && v2 !== void 0;
+          if (options.status) {
+            if (aborted && !updateCache) {
+              options.status.fetchAborted = true;
+              options.status.fetchError = ac.signal.reason;
+              if (ignoreAbort)
+                options.status.fetchAbortIgnored = true;
+            } else {
+              options.status.fetchResolved = true;
+            }
+          }
+          if (aborted && !ignoreAbort && !updateCache) {
+            return fetchFail(ac.signal.reason);
+          }
+          if (this.valList[index] === p) {
+            if (v2 === void 0) {
+              if (p.__staleWhileFetching) {
+                this.valList[index] = p.__staleWhileFetching;
+              } else {
+                this.delete(k);
+              }
+            } else {
+              if (options.status)
+                options.status.fetchUpdated = true;
+              this.set(k, v2, fetchOpts.options);
+            }
+          }
+          return v2;
+        };
+        const eb = (er) => {
+          if (options.status) {
+            options.status.fetchRejected = true;
+            options.status.fetchError = er;
+          }
+          return fetchFail(er);
+        };
+        const fetchFail = (er) => {
+          const { aborted } = ac.signal;
+          const allowStaleAborted = aborted && options.allowStaleOnFetchAbort;
+          const allowStale = allowStaleAborted || options.allowStaleOnFetchRejection;
+          const noDelete = allowStale || options.noDeleteOnFetchRejection;
+          if (this.valList[index] === p) {
+            const del = !noDelete || p.__staleWhileFetching === void 0;
+            if (del) {
+              this.delete(k);
+            } else if (!allowStaleAborted) {
+              this.valList[index] = p.__staleWhileFetching;
+            }
+          }
+          if (allowStale) {
+            if (options.status && p.__staleWhileFetching !== void 0) {
+              options.status.returnedStale = true;
+            }
+            return p.__staleWhileFetching;
+          } else if (p.__returned === p) {
+            throw er;
+          }
+        };
+        const pcall = (res, rej) => {
+          this.fetchMethod(k, v, fetchOpts).then((v2) => res(v2), rej);
+          ac.signal.addEventListener("abort", () => {
+            if (!options.ignoreFetchAbort || options.allowStaleOnFetchAbort) {
+              res();
+              if (options.allowStaleOnFetchAbort) {
+                res = (v2) => cb(v2, true);
+              }
+            }
+          });
+        };
+        if (options.status)
+          options.status.fetchDispatched = true;
+        const p = new Promise(pcall).then(cb, eb);
+        p.__abortController = ac;
+        p.__staleWhileFetching = v;
+        p.__returned = null;
+        if (index === void 0) {
+          this.set(k, p, { ...fetchOpts.options, status: void 0 });
+          index = this.keyMap.get(k);
+        } else {
+          this.valList[index] = p;
+        }
+        return p;
+      }
+      isBackgroundFetch(p) {
+        return p && typeof p === "object" && typeof p.then === "function" && Object.prototype.hasOwnProperty.call(
+          p,
+          "__staleWhileFetching"
+        ) && Object.prototype.hasOwnProperty.call(p, "__returned") && (p.__returned === p || p.__returned === null);
+      }
+      async fetch(k, {
+        allowStale = this.allowStale,
+        updateAgeOnGet = this.updateAgeOnGet,
+        noDeleteOnStaleGet = this.noDeleteOnStaleGet,
+        ttl = this.ttl,
+        noDisposeOnSet = this.noDisposeOnSet,
+        size = 0,
+        sizeCalculation = this.sizeCalculation,
+        noUpdateTTL = this.noUpdateTTL,
+        noDeleteOnFetchRejection = this.noDeleteOnFetchRejection,
+        allowStaleOnFetchRejection = this.allowStaleOnFetchRejection,
+        ignoreFetchAbort = this.ignoreFetchAbort,
+        allowStaleOnFetchAbort = this.allowStaleOnFetchAbort,
+        fetchContext = this.fetchContext,
+        forceRefresh = false,
+        status,
+        signal
+      } = {}) {
+        if (!this.fetchMethod) {
+          if (status)
+            status.fetch = "get";
+          return this.get(k, {
+            allowStale,
+            updateAgeOnGet,
+            noDeleteOnStaleGet,
+            status
+          });
+        }
+        const options = {
+          allowStale,
+          updateAgeOnGet,
+          noDeleteOnStaleGet,
+          ttl,
+          noDisposeOnSet,
+          size,
+          sizeCalculation,
+          noUpdateTTL,
+          noDeleteOnFetchRejection,
+          allowStaleOnFetchRejection,
+          allowStaleOnFetchAbort,
+          ignoreFetchAbort,
+          status,
+          signal
+        };
+        let index = this.keyMap.get(k);
+        if (index === void 0) {
+          if (status)
+            status.fetch = "miss";
+          const p = this.backgroundFetch(k, index, options, fetchContext);
+          return p.__returned = p;
+        } else {
+          const v = this.valList[index];
+          if (this.isBackgroundFetch(v)) {
+            const stale = allowStale && v.__staleWhileFetching !== void 0;
+            if (status) {
+              status.fetch = "inflight";
+              if (stale)
+                status.returnedStale = true;
+            }
+            return stale ? v.__staleWhileFetching : v.__returned = v;
+          }
+          const isStale = this.isStale(index);
+          if (!forceRefresh && !isStale) {
+            if (status)
+              status.fetch = "hit";
+            this.moveToTail(index);
+            if (updateAgeOnGet) {
+              this.updateItemAge(index);
+            }
+            this.statusTTL(status, index);
+            return v;
+          }
+          const p = this.backgroundFetch(k, index, options, fetchContext);
+          const hasStale = p.__staleWhileFetching !== void 0;
+          const staleVal = hasStale && allowStale;
+          if (status) {
+            status.fetch = hasStale && isStale ? "stale" : "refresh";
+            if (staleVal && isStale)
+              status.returnedStale = true;
+          }
+          return staleVal ? p.__staleWhileFetching : p.__returned = p;
+        }
+      }
+      get(k, {
+        allowStale = this.allowStale,
+        updateAgeOnGet = this.updateAgeOnGet,
+        noDeleteOnStaleGet = this.noDeleteOnStaleGet,
+        status
+      } = {}) {
+        const index = this.keyMap.get(k);
+        if (index !== void 0) {
+          const value = this.valList[index];
+          const fetching = this.isBackgroundFetch(value);
+          this.statusTTL(status, index);
+          if (this.isStale(index)) {
+            if (status)
+              status.get = "stale";
+            if (!fetching) {
+              if (!noDeleteOnStaleGet) {
+                this.delete(k);
+              }
+              if (status)
+                status.returnedStale = allowStale;
+              return allowStale ? value : void 0;
+            } else {
+              if (status) {
+                status.returnedStale = allowStale && value.__staleWhileFetching !== void 0;
+              }
+              return allowStale ? value.__staleWhileFetching : void 0;
+            }
+          } else {
+            if (status)
+              status.get = "hit";
+            if (fetching) {
+              return value.__staleWhileFetching;
+            }
+            this.moveToTail(index);
+            if (updateAgeOnGet) {
+              this.updateItemAge(index);
+            }
+            return value;
+          }
+        } else if (status) {
+          status.get = "miss";
+        }
+      }
+      connect(p, n) {
+        this.prev[n] = p;
+        this.next[p] = n;
+      }
+      moveToTail(index) {
+        if (index !== this.tail) {
+          if (index === this.head) {
+            this.head = this.next[index];
+          } else {
+            this.connect(this.prev[index], this.next[index]);
+          }
+          this.connect(this.tail, index);
+          this.tail = index;
+        }
+      }
+      get del() {
+        deprecatedMethod("del", "delete");
+        return this.delete;
+      }
+      delete(k) {
+        let deleted = false;
+        if (this.size !== 0) {
+          const index = this.keyMap.get(k);
+          if (index !== void 0) {
+            deleted = true;
+            if (this.size === 1) {
+              this.clear();
+            } else {
+              this.removeItemSize(index);
+              const v = this.valList[index];
+              if (this.isBackgroundFetch(v)) {
+                v.__abortController.abort(new Error("deleted"));
+              } else {
+                this.dispose(v, k, "delete");
+                if (this.disposeAfter) {
+                  this.disposed.push([v, k, "delete"]);
+                }
+              }
+              this.keyMap.delete(k);
+              this.keyList[index] = null;
+              this.valList[index] = null;
+              if (index === this.tail) {
+                this.tail = this.prev[index];
+              } else if (index === this.head) {
+                this.head = this.next[index];
+              } else {
+                this.next[this.prev[index]] = this.next[index];
+                this.prev[this.next[index]] = this.prev[index];
+              }
+              this.size--;
+              this.free.push(index);
+            }
+          }
+        }
+        if (this.disposed) {
+          while (this.disposed.length) {
+            this.disposeAfter(...this.disposed.shift());
+          }
+        }
+        return deleted;
+      }
+      clear() {
+        for (const index of this.rindexes({ allowStale: true })) {
+          const v = this.valList[index];
+          if (this.isBackgroundFetch(v)) {
+            v.__abortController.abort(new Error("deleted"));
+          } else {
+            const k = this.keyList[index];
+            this.dispose(v, k, "delete");
+            if (this.disposeAfter) {
+              this.disposed.push([v, k, "delete"]);
+            }
+          }
+        }
+        this.keyMap.clear();
+        this.valList.fill(null);
+        this.keyList.fill(null);
+        if (this.ttls) {
+          this.ttls.fill(0);
+          this.starts.fill(0);
+        }
+        if (this.sizes) {
+          this.sizes.fill(0);
+        }
+        this.head = 0;
+        this.tail = 0;
+        this.initialFill = 1;
+        this.free.length = 0;
+        this.calculatedSize = 0;
+        this.size = 0;
+        if (this.disposed) {
+          while (this.disposed.length) {
+            this.disposeAfter(...this.disposed.shift());
+          }
+        }
+      }
+      get reset() {
+        deprecatedMethod("reset", "clear");
+        return this.clear;
+      }
+      get length() {
+        deprecatedProperty("length", "size");
+        return this.size;
+      }
+      static get AbortController() {
+        return AC;
+      }
+      static get AbortSignal() {
+        return AS;
+      }
+    };
+    module2.exports = LRUCache;
+  }
+});
+
+// node_modules/.pnpm/named-placeholders@1.1.3/node_modules/named-placeholders/index.js
 var require_named_placeholders = __commonJS({
-  "node_modules/.pnpm/named-placeholders@1.1.2/node_modules/named-placeholders/index.js"(exports, module2) {
+  "node_modules/.pnpm/named-placeholders@1.1.3/node_modules/named-placeholders/index.js"(exports, module2) {
     "use strict";
     var RE_PARAM = /(?:\?)|(?:(?<!["'])[:@](\d+|(?:[a-zA-Z][a-zA-Z0-9_]*)))/g;
     var DQUOTE = 34;
@@ -15726,8 +18824,6 @@ var require_named_placeholders = __commonJS({
       }
       return [query];
     }
-    var EMPTY_LRU_FN = (key, value) => {
-    };
     function createCompiler(config) {
       if (!config)
         config = {};
@@ -15743,7 +18839,7 @@ var require_named_placeholders = __commonJS({
         cache = config.cache;
       }
       if (config.cache !== false && !cache) {
-        cache = require_lru_cache2()({ max: ncache, dispose: EMPTY_LRU_FN });
+        cache = new (require_lru_cache())({ max: ncache });
       }
       function toArrayParams(tree, params) {
         const arr = [];
@@ -15840,7 +18936,7 @@ var require_named_placeholders = __commonJS({
   }
 });
 
-// node_modules/.pnpm/data-uri-to-buffer@4.0.0/node_modules/data-uri-to-buffer/dist/index.js
+// node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js
 function dataUriToBuffer(uri) {
   if (!/^data:/i.test(uri)) {
     throw new TypeError('`uri` does not appear to be a Data URI (must begin with "data:")');
@@ -15858,7 +18954,7 @@ function dataUriToBuffer(uri) {
   for (let i2 = 1; i2 < meta.length; i2++) {
     if (meta[i2] === "base64") {
       base64 = true;
-    } else {
+    } else if (meta[i2]) {
       typeFull += `;${meta[i2]}`;
       if (meta[i2].indexOf("charset=") === 0) {
         charset = meta[i2].substring(8);
@@ -15879,7 +18975,7 @@ function dataUriToBuffer(uri) {
 }
 var dist_default;
 var init_dist = __esm({
-  "node_modules/.pnpm/data-uri-to-buffer@4.0.0/node_modules/data-uri-to-buffer/dist/index.js"() {
+  "node_modules/.pnpm/data-uri-to-buffer@4.0.1/node_modules/data-uri-to-buffer/dist/index.js"() {
     dist_default = dataUriToBuffer;
   }
 });
@@ -19475,9 +22571,9 @@ var require_ponyfill_es2018 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/streams.cjs
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs
 var require_streams2 = __commonJS({
-  "node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/streams.cjs"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/streams.cjs"() {
     var POOL_SIZE2 = 65536;
     if (!globalThis.ReadableStream) {
       try {
@@ -19521,7 +22617,7 @@ var require_streams2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/index.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js
 async function* toIterator(parts, clone2 = true) {
   for (const part of parts) {
     if ("stream" in part) {
@@ -19552,7 +22648,7 @@ async function* toIterator(parts, clone2 = true) {
 }
 var import_streams, POOL_SIZE, _Blob, Blob2, fetch_blob_default;
 var init_fetch_blob = __esm({
-  "node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/index.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/index.js"() {
     import_streams = __toESM(require_streams2(), 1);
     POOL_SIZE = 65536;
     _Blob = class Blob {
@@ -19584,11 +22680,8 @@ var init_fetch_blob = __esm({
           } else {
             part = encoder.encode(`${element}`);
           }
-          const size = ArrayBuffer.isView(part) ? part.byteLength : part.size;
-          if (size) {
-            this.#size += size;
-            this.#parts.push(part);
-          }
+          this.#size += ArrayBuffer.isView(part) ? part.byteLength : part.size;
+          this.#parts.push(part);
         }
         this.#endings = `${options.endings === void 0 ? "transparent" : options.endings}`;
         const type = options.type === void 0 ? "" : String(options.type);
@@ -19683,10 +22776,10 @@ var init_fetch_blob = __esm({
   }
 });
 
-// node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/file.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js
 var _File, File2, file_default;
 var init_file = __esm({
-  "node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/file.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/file.js"() {
     init_fetch_blob();
     _File = class File extends fetch_blob_default {
       #lastModified = 0;
@@ -19825,10 +22918,10 @@ var init_esm_min = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/base.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/base.js
 var FetchBaseError;
 var init_base = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/base.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/base.js"() {
     FetchBaseError = class extends Error {
       constructor(message, type) {
         super(message);
@@ -19845,10 +22938,10 @@ var init_base = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/fetch-error.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/fetch-error.js
 var FetchError;
 var init_fetch_error = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/fetch-error.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/fetch-error.js"() {
     init_base();
     FetchError = class extends FetchBaseError {
       constructor(message, type, systemError) {
@@ -19862,10 +22955,10 @@ var init_fetch_error = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/is.js
-var NAME, isURLSearchParameters, isBlob, isAbortSignal, isDomainOrSubdomain;
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/is.js
+var NAME, isURLSearchParameters, isBlob, isAbortSignal, isDomainOrSubdomain, isSameProtocol;
 var init_is = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/is.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/is.js"() {
     NAME = Symbol.toStringTag;
     isURLSearchParameters = (object) => {
       return typeof object === "object" && typeof object.append === "function" && typeof object.delete === "function" && typeof object.get === "function" && typeof object.getAll === "function" && typeof object.has === "function" && typeof object.set === "function" && typeof object.sort === "function" && object[NAME] === "URLSearchParams";
@@ -19880,6 +22973,11 @@ var init_is = __esm({
       const orig = new URL(original).hostname;
       const dest = new URL(destination).hostname;
       return orig === dest || orig.endsWith(`.${dest}`);
+    };
+    isSameProtocol = (destination, original) => {
+      const orig = new URL(original).protocol;
+      const dest = new URL(destination).protocol;
+      return orig === dest;
     };
   }
 });
@@ -19899,10 +22997,10 @@ var require_node_domexception = __commonJS({
   }
 });
 
-// node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/from.js
+// node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js
 var import_node_fs, import_node_domexception, stat, BlobDataItem;
 var init_from = __esm({
-  "node_modules/.pnpm/fetch-blob@3.1.5/node_modules/fetch-blob/from.js"() {
+  "node_modules/.pnpm/fetch-blob@3.2.0/node_modules/fetch-blob/from.js"() {
     import_node_fs = require("node:fs");
     import_node_domexception = __toESM(require_node_domexception(), 1);
     init_file();
@@ -19916,20 +23014,18 @@ var init_from = __esm({
         this.#start = options.start;
         this.size = options.size;
         this.lastModified = options.lastModified;
-        this.originalSize = options.originalSize === void 0 ? options.size : options.originalSize;
       }
       slice(start, end) {
         return new BlobDataItem({
           path: this.#path,
           lastModified: this.lastModified,
-          originalSize: this.originalSize,
           size: end - start,
           start: this.#start + start
         });
       }
       async *stream() {
-        const { mtimeMs, size } = await stat(this.#path);
-        if (mtimeMs > this.lastModified || this.originalSize !== size) {
+        const { mtimeMs } = await stat(this.#path);
+        if (mtimeMs > this.lastModified) {
           throw new import_node_domexception.default("The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.", "NotReadableError");
         }
         yield* (0, import_node_fs.createReadStream)(this.#path, {
@@ -19944,7 +23040,7 @@ var init_from = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/multipart-parser.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/multipart-parser.js
 var multipart_parser_exports = {};
 __export(multipart_parser_exports, {
   toFormData: () => toFormData
@@ -20038,7 +23134,7 @@ async function toFormData(Body2, ct) {
 }
 var s, S, f2, F, LF, CR, SPACE, HYPHEN, COLON, A, Z, lower, noop, MultipartParser;
 var init_multipart_parser = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/multipart-parser.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/multipart-parser.js"() {
     init_from();
     init_esm_min();
     s = 0;
@@ -20297,7 +23393,7 @@ var init_multipart_parser = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/body.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/body.js
 async function consumeBody(data) {
   if (data[INTERNALS].disturbed) {
     throw new TypeError(`body used already for: ${data.url}`);
@@ -20344,7 +23440,7 @@ async function consumeBody(data) {
 }
 var import_node_stream, import_node_util, import_node_buffer, pipeline, INTERNALS, Body, clone, getNonSpecFormDataBoundary, extractContentType, getTotalBytes, writeToStream;
 var init_body = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/body.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/body.js"() {
     import_node_stream = __toESM(require("node:stream"), 1);
     import_node_util = require("node:util");
     import_node_buffer = require("node:buffer");
@@ -20448,8 +23544,12 @@ var init_body = __esm({
       blob: { enumerable: true },
       json: { enumerable: true },
       text: { enumerable: true },
-      data: { get: (0, import_node_util.deprecate)(() => {
-      }, "data doesn't exist, use json(), text(), arrayBuffer(), or body instead", "https://github.com/node-fetch/node-fetch/issues/1000 (response)") }
+      data: { get: (0, import_node_util.deprecate)(
+        () => {
+        },
+        "data doesn't exist, use json(), text(), arrayBuffer(), or body instead",
+        "https://github.com/node-fetch/node-fetch/issues/1000 (response)"
+      ) }
     });
     clone = (instance, highWaterMark) => {
       let p1;
@@ -20468,7 +23568,11 @@ var init_body = __esm({
       }
       return body;
     };
-    getNonSpecFormDataBoundary = (0, import_node_util.deprecate)((body) => body.getBoundary(), "form-data doesn't follow the spec and requires special treatment. Use alternative package", "https://github.com/node-fetch/node-fetch/issues/1167");
+    getNonSpecFormDataBoundary = (0, import_node_util.deprecate)(
+      (body) => body.getBoundary(),
+      "form-data doesn't follow the spec and requires special treatment. Use alternative package",
+      "https://github.com/node-fetch/node-fetch/issues/1167"
+    );
     extractContentType = (body, request) => {
       if (body === null) {
         return null;
@@ -20522,26 +23626,28 @@ var init_body = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/headers.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/headers.js
 function fromRawHeaders(headers = []) {
-  return new Headers(headers.reduce((result, value, index, array) => {
-    if (index % 2 === 0) {
-      result.push(array.slice(index, index + 2));
-    }
-    return result;
-  }, []).filter(([name, value]) => {
-    try {
-      validateHeaderName(name);
-      validateHeaderValue(name, String(value));
-      return true;
-    } catch {
-      return false;
-    }
-  }));
+  return new Headers(
+    headers.reduce((result, value, index, array) => {
+      if (index % 2 === 0) {
+        result.push(array.slice(index, index + 2));
+      }
+      return result;
+    }, []).filter(([name, value]) => {
+      try {
+        validateHeaderName(name);
+        validateHeaderValue(name, String(value));
+        return true;
+      } catch {
+        return false;
+      }
+    })
+  );
 }
 var import_node_util2, import_node_http, validateHeaderName, validateHeaderValue, Headers;
 var init_headers = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/headers.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/headers.js"() {
     import_node_util2 = require("node:util");
     import_node_http = __toESM(require("node:http"), 1);
     validateHeaderName = typeof import_node_http.default.validateHeaderName === "function" ? import_node_http.default.validateHeaderName : (name) => {
@@ -20604,14 +23710,21 @@ var init_headers = __esm({
                 return (name, value) => {
                   validateHeaderName(name);
                   validateHeaderValue(name, String(value));
-                  return URLSearchParams.prototype[p].call(target, String(name).toLowerCase(), String(value));
+                  return URLSearchParams.prototype[p].call(
+                    target,
+                    String(name).toLowerCase(),
+                    String(value)
+                  );
                 };
               case "delete":
               case "has":
               case "getAll":
                 return (name) => {
                   validateHeaderName(name);
-                  return URLSearchParams.prototype[p].call(target, String(name).toLowerCase());
+                  return URLSearchParams.prototype[p].call(
+                    target,
+                    String(name).toLowerCase()
+                  );
                 };
               case "keys":
                 return () => {
@@ -20677,17 +23790,20 @@ var init_headers = __esm({
         }, {});
       }
     };
-    Object.defineProperties(Headers.prototype, ["get", "entries", "forEach", "values"].reduce((result, property) => {
-      result[property] = { enumerable: true };
-      return result;
-    }, {}));
+    Object.defineProperties(
+      Headers.prototype,
+      ["get", "entries", "forEach", "values"].reduce((result, property) => {
+        result[property] = { enumerable: true };
+        return result;
+      }, {})
+    );
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/is-redirect.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/is-redirect.js
 var redirectStatus, isRedirect;
 var init_is_redirect = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/is-redirect.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/is-redirect.js"() {
     redirectStatus = /* @__PURE__ */ new Set([301, 302, 303, 307, 308]);
     isRedirect = (code) => {
       return redirectStatus.has(code);
@@ -20695,10 +23811,10 @@ var init_is_redirect = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/response.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/response.js
 var INTERNALS2, Response;
 var init_response = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/response.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/response.js"() {
     init_headers();
     init_body();
     init_is_redirect();
@@ -20777,6 +23893,20 @@ var init_response = __esm({
         response[INTERNALS2].type = "error";
         return response;
       }
+      static json(data = void 0, init = {}) {
+        const body = JSON.stringify(data);
+        if (body === void 0) {
+          throw new TypeError("data is not JSON serializable");
+        }
+        const headers = new Headers(init && init.headers);
+        if (!headers.has("content-type")) {
+          headers.set("content-type", "application/json");
+        }
+        return new Response(body, {
+          ...init,
+          headers
+        });
+      }
       get [Symbol.toStringTag]() {
         return "Response";
       }
@@ -20794,10 +23924,10 @@ var init_response = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/get-search.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/get-search.js
 var getSearch;
 var init_get_search = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/get-search.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/get-search.js"() {
     getSearch = (parsedURL) => {
       if (parsedURL.search) {
         return parsedURL.search;
@@ -20809,7 +23939,7 @@ var init_get_search = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/referrer.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/referrer.js
 function stripURLForUseAsAReferrer(url, originOnly = false) {
   if (url == null) {
     return "no-referrer";
@@ -20845,7 +23975,7 @@ function isOriginPotentiallyTrustworthy(url) {
   if (hostIPVersion === 6 && /^(((0+:){7})|(::(0+:){0,6}))0*1$/.test(hostIp)) {
     return true;
   }
-  if (/^(.+\.)*localhost$/.test(url.host)) {
+  if (url.host === "localhost" || url.host.endsWith(".localhost")) {
     return false;
   }
   if (url.protocol === "file:") {
@@ -20937,7 +24067,7 @@ function parseReferrerPolicyFromHeader(headers) {
 }
 var import_node_net, ReferrerPolicy, DEFAULT_REFERRER_POLICY;
 var init_referrer = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/utils/referrer.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/utils/referrer.js"() {
     import_node_net = require("node:net");
     ReferrerPolicy = /* @__PURE__ */ new Set([
       "",
@@ -20954,10 +24084,10 @@ var init_referrer = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/request.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/request.js
 var import_node_url, import_node_util3, INTERNALS3, isRequest, doBadDataWarn, Request, getNodeRequestOptions;
 var init_request = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/request.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/request.js"() {
     import_node_url = require("node:url");
     import_node_util3 = require("node:util");
     init_headers();
@@ -20969,8 +24099,12 @@ var init_request = __esm({
     isRequest = (object) => {
       return typeof object === "object" && typeof object[INTERNALS3] === "object";
     };
-    doBadDataWarn = (0, import_node_util3.deprecate)(() => {
-    }, ".data is not a valid RequestInit property, use .body instead", "https://github.com/node-fetch/node-fetch/issues/1000 (request)");
+    doBadDataWarn = (0, import_node_util3.deprecate)(
+      () => {
+      },
+      ".data is not a valid RequestInit property, use .body instead",
+      "https://github.com/node-fetch/node-fetch/issues/1000 (request)"
+    );
     Request = class extends Body {
       constructor(input, init = {}) {
         let parsedURL;
@@ -20987,7 +24121,7 @@ var init_request = __esm({
         if (/^(delete|get|head|options|post|put)$/i.test(method)) {
           method = method.toUpperCase();
         }
-        if ("data" in init) {
+        if (!isRequest(init) && "data" in init) {
           doBadDataWarn();
         }
         if ((init.body != null || isRequest(input) && input.body !== null) && (method === "GET" || method === "HEAD")) {
@@ -21120,7 +24254,7 @@ var init_request = __esm({
         headers.set("User-Agent", "node-fetch");
       }
       if (request.compress && !headers.has("Accept-Encoding")) {
-        headers.set("Accept-Encoding", "gzip,deflate,br");
+        headers.set("Accept-Encoding", "gzip, deflate, br");
       }
       let { agent } = request;
       if (typeof agent === "function") {
@@ -21145,10 +24279,10 @@ var init_request = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/abort-error.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/abort-error.js
 var AbortError;
 var init_abort_error = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/errors/abort-error.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/errors/abort-error.js"() {
     init_base();
     AbortError = class extends FetchBaseError {
       constructor(message, type = "aborted") {
@@ -21158,7 +24292,7 @@ var init_abort_error = __esm({
   }
 });
 
-// node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/index.js
+// node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/index.js
 async function fetch(url, options_) {
   return new Promise((resolve, reject) => {
     const request = new Request(url, options_);
@@ -21209,7 +24343,9 @@ async function fetch(url, options_) {
       finalize();
     });
     fixResponseChunkedTransferBadEnding(request_, (error) => {
-      response.body.destroy(error);
+      if (response && response.body) {
+        response.body.destroy(error);
+      }
     });
     if (process.version < "v14") {
       request_.on("socket", (s2) => {
@@ -21270,7 +24406,7 @@ async function fetch(url, options_) {
               referrer: request.referrer,
               referrerPolicy: request.referrerPolicy
             };
-            if (!isDomainOrSubdomain(request.url, locationURL)) {
+            if (!isDomainOrSubdomain(request.url, locationURL) || !isSameProtocol(request.url, locationURL)) {
               for (const name of ["authorization", "www-authenticate", "cookie", "cookie2"]) {
                 requestOptions.headers.delete(name);
               }
@@ -21403,22 +24539,24 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
         errorCallback(error);
       }
     };
-    socket.prependListener("close", onSocketClose);
-    request.on("abort", () => {
-      socket.removeListener("close", onSocketClose);
-    });
-    socket.on("data", (buf) => {
+    const onData = (buf) => {
       properLastChunkReceived = import_node_buffer2.Buffer.compare(buf.slice(-5), LAST_CHUNK) === 0;
       if (!properLastChunkReceived && previousChunk) {
         properLastChunkReceived = import_node_buffer2.Buffer.compare(previousChunk.slice(-3), LAST_CHUNK.slice(0, 3)) === 0 && import_node_buffer2.Buffer.compare(buf.slice(-2), LAST_CHUNK.slice(3)) === 0;
       }
       previousChunk = buf;
+    };
+    socket.prependListener("close", onSocketClose);
+    socket.on("data", onData);
+    request.on("close", () => {
+      socket.removeListener("close", onSocketClose);
+      socket.removeListener("data", onData);
     });
   });
 }
 var import_node_http2, import_node_https, import_node_zlib, import_node_stream2, import_node_buffer2, supportedSchemas;
 var init_src = __esm({
-  "node_modules/.pnpm/node-fetch@3.2.4/node_modules/node-fetch/src/index.js"() {
+  "node_modules/.pnpm/node-fetch@3.3.1/node_modules/node-fetch/src/index.js"() {
     import_node_http2 = __toESM(require("node:http"), 1);
     import_node_https = __toESM(require("node:https"), 1);
     import_node_zlib = __toESM(require("node:zlib"), 1);
@@ -21444,38 +24582,45 @@ var init_src = __esm({
 var update_exports = {};
 var init_update = __esm({
   "src/update/index.ts"() {
+    "use strict";
     init_src();
-    init_config();
-    if (GetConvar("mysql_versioncheck", "true") === "true") {
+    (() => {
+      if (GetConvarInt("mysql_versioncheck", 1) === 0)
+        return;
+      const resourceName2 = GetCurrentResourceName();
+      const currentVersion = GetResourceMetadata(resourceName2, "version", 0)?.match(/(\d)\.(\d)\.(\d)/);
+      if (!currentVersion)
+        return console.log(`^1Unable to determine current resource version for '${resourceName2}'^0`);
       setTimeout(async () => {
-        try {
-          const response = await fetch(`https://api.github.com/repos/overextended/oxmysql/releases/latest`);
-          if (response.status !== 200)
-            return;
-          const release = await response.json();
-          if (release.prerelease)
-            return;
-          const currentVersion = GetResourceMetadata(resourceName, "version", 0).match(/(\d)\.(\d+)\.(\d+)/);
-          if (!currentVersion)
-            return;
-          const latestVersion = release.tag_name.match(/(\d)\.(\d+)\.(\d+)/);
-          if (!latestVersion)
-            return;
-          if (currentVersion[0] === latestVersion[0] || currentVersion[0] > latestVersion[0])
-            return;
-          const updateMessage = currentVersion[3] < latestVersion[3] ? "patch" : currentVersion[2] < latestVersion[2] ? "an update" : "a major update";
-          console.log(`^3There is ${updateMessage} available for oxmysql - please update to the latest release (current version: ${currentVersion[0]})\r
-${release.html_url}^0`);
-        } catch (e2) {
+        const response = await fetch(`https://api.github.com/repos/overextended/oxmysql/releases/latest`);
+        if (response.status !== 200)
+          return;
+        const release = await response.json();
+        if (release.prerelease)
+          return;
+        const latestVersion = release.tag_name.match(/(\d)\.(\d)\.(\d)/);
+        if (!latestVersion || latestVersion[0] === currentVersion[0])
+          return;
+        for (let i2 = 1; i2 < currentVersion.length; i2++) {
+          const current = parseInt(currentVersion[i2]);
+          const latest = parseInt(latestVersion[i2]);
+          if (current !== latest) {
+            if (current < latest)
+              return console.log(
+                `^3An update is available for ${resourceName2} (current version: ${currentVersion[0]})\r
+${release.html_url}^0`
+              );
+            else
+              break;
+          }
         }
       }, 1e3);
-    }
+    })();
   }
 });
 
 // src/database/index.ts
-var import_mysql2 = __toESM(require_mysql2());
-init_config();
+var import_promise = __toESM(require_promise());
 
 // src/utils/typeCast.ts
 var BINARY_CHARSET = 63;
@@ -21509,9 +24654,42 @@ var typeCast = (field, next) => {
   }
 };
 
-// src/database/index.ts
+// src/config.ts
+var mysql_connection_string = GetConvar("mysql_connection_string", "");
+var mysql_ui = GetConvar("mysql_ui", "false") === "true";
+var mysql_slow_query_warning = GetConvarInt("mysql_slow_query_warning", 200);
+var mysql_debug;
+function setDebug() {
+  mysql_ui = GetConvar("mysql_ui", "false") === "true";
+  mysql_slow_query_warning = GetConvarInt("mysql_slow_query_warning", 200);
+  try {
+    const debug = GetConvar("mysql_debug", "false");
+    mysql_debug = debug === "false" ? false : JSON.parse(debug);
+  } catch (e2) {
+    mysql_debug = true;
+  }
+}
+var mysql_transaction_isolation_level = (() => {
+  const query = "SET TRANSACTION ISOLATION LEVEL";
+  switch (GetConvarInt("mysql_transaction_isolation_level", 2)) {
+    case 1:
+      return `${query} REPEATABLE READ`;
+    case 2:
+      return `${query} READ COMMITTED`;
+    case 3:
+      return `${query} READ UNCOMMITTED`;
+    case 4:
+      return `${query} SERIALIZABLE`;
+    default:
+      return `${query} READ COMMITTED`;
+  }
+})();
 var parseUri = (connectionString) => {
-  const splitMatchGroups = connectionString.match(new RegExp("^(?:([^:/?#.]+):)?(?://(?:([^/?#]*)@)?([\\w\\d\\-\\u0100-\\uffff.%]*)(?::([0-9]+))?)?([^?#]+)?(?:\\?([^#]*))?$"));
+  const splitMatchGroups = connectionString.match(
+    new RegExp(
+      "^(?:([^:/?#.]+):)?(?://(?:([^/?#]*)@)?([\\w\\d\\-\\u0100-\\uffff.%]*)(?::([0-9]+))?)?([^?#]+)?(?:\\?([^#]*))?$"
+    )
+  );
   if (!splitMatchGroups)
     throw new Error(`mysql_connection_string structure was invalid (${connectionString})`);
   const authTarget = splitMatchGroups[2] ? splitMatchGroups[2].split(":") : [];
@@ -21529,51 +24707,123 @@ var parseUri = (connectionString) => {
   };
   return options;
 };
+var convertNamedPlaceholders;
 var connectionOptions = (() => {
   const options = mysql_connection_string.includes("mysql://") ? parseUri(mysql_connection_string) : mysql_connection_string.replace(/(?:host(?:name)|ip|server|data\s?source|addr(?:ess)?)=/gi, "host=").replace(/(?:user\s?(?:id|name)?|uid)=/gi, "user=").replace(/(?:pwd|pass)=/gi, "password=").replace(/(?:db)=/gi, "database=").split(";").reduce((connectionInfo, parameter) => {
     const [key, value] = parameter.split("=");
-    connectionInfo[key] = value;
+    if (key)
+      connectionInfo[key] = value;
     return connectionInfo;
   }, {});
-  return options;
-})();
-var pool;
-var serverReady = false;
-setTimeout(() => {
-  pool = (0, import_mysql2.createPool)({
+  convertNamedPlaceholders = options.namedPlaceholders === "false" ? null : require_named_placeholders()();
+  for (const key in ["dateStrings", "flags", "ssl"]) {
+    const value = options[key];
+    if (typeof value === "string") {
+      try {
+        options[key] = JSON.parse(value);
+      } catch {
+      }
+    }
+  }
+  const flags = options.flags || [];
+  flags.push(options.database ? "CONNECT_WITH_DB" : "-CONNECT_WITH_DB");
+  return {
     connectTimeout: 6e4,
     trace: false,
     supportBigNumbers: true,
-    ...connectionOptions,
-    typeCast
+    ...options,
+    typeCast,
+    namedPlaceholders: false,
+    flags
+  };
+})();
+RegisterCommand(
+  "oxmysql_debug",
+  (source2, args) => {
+    if (source2 !== 0)
+      return console.log("^3This command can only be run server side^0");
+    switch (args[0]) {
+      case "add":
+        if (!Array.isArray(mysql_debug))
+          mysql_debug = [];
+        mysql_debug.push(args[1]);
+        SetConvar("mysql_debug", JSON.stringify(mysql_debug));
+        return console.log(`^3Added ${args[1]} to mysql_debug^0`);
+      case "remove":
+        if (Array.isArray(mysql_debug)) {
+          const index = mysql_debug.indexOf(args[1]);
+          if (index === -1)
+            return;
+          mysql_debug.splice(index, 1);
+          if (mysql_debug.length === 0)
+            mysql_debug = false;
+          SetConvar("mysql_debug", JSON.stringify(mysql_debug) || "false");
+          return console.log(`^3Removed ${args[1]} from mysql_debug^0`);
+        }
+      default:
+        return console.log(`^3Usage: oxmysql add|remove <resource>^0`);
+    }
+  },
+  true
+);
+
+// src/database/index.ts
+var pool;
+var isServerConnected = false;
+var dbVersion = "";
+async function waitForConnection() {
+  if (!isServerConnected) {
+    return await new Promise((resolve) => {
+      (function wait() {
+        if (isServerConnected) {
+          return resolve(true);
+        }
+        setTimeout(wait);
+      })();
+    });
+  }
+}
+function setConnectionPool() {
+  pool = (0, import_promise.createPool)(connectionOptions);
+  pool.on("connection", (connection) => {
+    connection.query(mysql_transaction_isolation_level);
   });
-  pool.query(mysql_transaction_isolation_level, (err) => {
-    if (err)
-      return console.error(`^3Unable to establish a connection to the database!
-^3[${err}]^0`);
-    console.log(`^2Database server connection established!^0`);
-    serverReady = true;
-  });
+}
+setInterval(() => {
+  setDebug();
+}, 1e3);
+setTimeout(async () => {
+  setDebug();
+  setConnectionPool();
+  try {
+    const connection = await pool.getConnection();
+    const [result] = await connection.query("SELECT VERSION() as version");
+    dbVersion = `^5[${result[0].version}]`;
+    connection.release();
+    console.log(`${dbVersion} ^2Database server connection established!^0`);
+    isServerConnected = true;
+  } catch (err) {
+    console.log(
+      `^3Unable to establish a connection to the database (${err.code})!
+^1Error ${err.errno}: ${err.message}^0`
+    );
+  }
 });
 
 // src/utils/parseArguments.ts
-var convertNamedPlaceholders = require_named_placeholders()();
-var parseArguments = (invokingResource, query, parameters, cb) => {
+var parseArguments = (query, parameters) => {
   if (typeof query !== "string")
-    throw new Error(`Query expected a string but received ${typeof query} instead`);
-  if (query.includes(":") && parameters && typeof parameters === "object" && !Array.isArray(parameters) || query.includes("@")) {
-    const placeholders = convertNamedPlaceholders(query, parameters);
-    query = placeholders[0];
-    parameters = placeholders[1];
+    throw new Error(`Expected query to be a string but received ${typeof query} instead.`);
+  if (convertNamedPlaceholders && parameters && typeof parameters === "object" && !Array.isArray(parameters)) {
+    if (query.includes(":") || query.includes("@")) {
+      const placeholders = convertNamedPlaceholders(query, parameters);
+      query = placeholders[0];
+      parameters = placeholders[1];
+    }
   }
-  if (cb && typeof cb !== "function")
-    cb = void 0;
-  if (parameters && typeof parameters === "function") {
-    cb = parameters;
+  if (!parameters || typeof parameters === "function")
     parameters = [];
-  } else if (parameters === null || parameters === void 0)
-    parameters = [];
-  if (!Array.isArray(parameters)) {
+  if (parameters && !Array.isArray(parameters)) {
     let arr = [];
     Object.entries(parameters).forEach((entry) => arr[parseInt(entry[0]) - 1] = entry[1]);
     parameters = arr;
@@ -21583,20 +24833,26 @@ var parseArguments = (invokingResource, query, parameters, cb) => {
       if (parameters.length === 0) {
         for (let i2 = 0; i2 < queryParams.length; i2++)
           parameters[i2] = null;
-        return [query, parameters, cb];
+        return [query, parameters];
       }
       const diff = queryParams.length - parameters.length;
       if (diff > 0) {
         for (let i2 = 0; i2 < diff; i2++)
           parameters[queryParams.length + i2] = null;
       } else if (diff < 0) {
-        throw new Error(`${invokingResource} was unable to execute a query!
-        Expected ${queryParams.length} parameters, but received ${parameters.length}.
-        ${`${query} ${JSON.stringify(parameters)}`}`);
+        throw new Error(`Expected ${queryParams.length} parameters, but received ${parameters.length}.`);
       }
     }
   }
-  return [query, parameters, cb];
+  return [query, parameters];
+};
+
+// src/utils/setCallback.ts
+var setCallback = (parameters, cb) => {
+  if (cb && typeof cb === "function")
+    return cb;
+  if (parameters && typeof parameters === "function")
+    return parameters;
 };
 
 // src/utils/parseResponse.ts
@@ -21619,12 +24875,58 @@ var parseResponse = (type, result) => {
 };
 
 // src/logger/index.ts
-init_config();
+function logError(invokingResource, cb, isPromise, ...args) {
+  const err = `${invokingResource} was unable to execute a query!
+${args.join("\n")}`;
+  if (cb && isPromise)
+    return cb(null, err);
+  console.error(err);
+}
+var profilerStatements = [
+  "SET profiling_history_size = 0",
+  "SET profiling = 0",
+  "SET profiling_history_size = 100",
+  "SET profiling = 1"
+];
+async function runProfiler(connection, invokingResource) {
+  if (!mysql_debug && !mysql_ui)
+    return;
+  if (!mysql_ui && mysql_debug && Array.isArray(mysql_debug) && !mysql_debug.includes(invokingResource))
+    return;
+  for (const statement of profilerStatements)
+    await connection.query(statement);
+  return true;
+}
+async function profileBatchStatements(connection, invokingResource, query, parameters, offset) {
+  const [profiler] = await connection.query(
+    "SELECT FORMAT(SUM(DURATION) * 1000, 4) AS `duration` FROM INFORMATION_SCHEMA.PROFILING GROUP BY QUERY_ID"
+  );
+  for (const statement of profilerStatements)
+    await connection.query(statement);
+  if (profiler.length === 0)
+    return;
+  if (typeof query === "string" && parameters)
+    for (let i2 = 0; i2 < profiler.length; i2++) {
+      logQuery(invokingResource, query, profiler[i2].duration, parameters[offset + i2]);
+    }
+  else if (typeof query === "object")
+    for (let i2 = 0; i2 < profiler.length; i2++) {
+      const transaction = query[offset + i2];
+      if (transaction)
+        logQuery(invokingResource, transaction.query, profiler[i2].duration, transaction.params);
+      else
+        break;
+    }
+}
 var logStorage = {};
 var logQuery = (invokingResource, query, executionTime, parameters) => {
-  if (executionTime >= mysql_slow_query_warning || mysql_debug)
-    console.log(`^3[${mysql_debug ? "DEBUG" : "WARNING"}] ${invokingResource} took ${executionTime}ms to execute a query!
-    ${query} ${JSON.stringify(parameters)}^0`);
+  executionTime = parseFloat(executionTime);
+  if (executionTime >= mysql_slow_query_warning || mysql_debug && (!Array.isArray(mysql_debug) || mysql_debug.includes(invokingResource))) {
+    console.log(
+      `${dbVersion} ^3${invokingResource} took ${executionTime}ms to execute a query!
+${query}${parameters ? ` ${JSON.stringify(parameters)}` : ""}^0`
+    );
+  }
   if (!mysql_ui)
     return;
   if (logStorage[invokingResource] === void 0)
@@ -21636,40 +24938,39 @@ var logQuery = (invokingResource, query, executionTime, parameters) => {
     slow: executionTime >= mysql_slow_query_warning ? true : void 0
   });
 };
-RegisterCommand("mysql", (source2) => {
-  if (!mysql_ui)
-    return;
-  if (source2 < 1) {
-    console.log("^3This command cannot run server side^0");
-    return;
-  }
-  let totalQueries = 0;
-  let totalTime = 0;
-  let slowQueries = 0;
-  let chartData = [
-    {
-      x: 0,
-      y: 0,
-      z: ""
+RegisterCommand(
+  "mysql",
+  (source2) => {
+    if (!mysql_ui)
+      return;
+    if (source2 < 1) {
+      console.log("^3This command cannot run server side^0");
+      return;
     }
-  ];
-  for (const resource in logStorage) {
-    const queries = logStorage[resource];
-    let totalResourceTime = 0;
-    totalQueries += queries.length;
-    totalTime += queries.reduce((totalTime2, query) => totalTime2 += query.executionTime, 0);
-    slowQueries += queries.reduce((slowQueries2, query) => slowQueries2 += query.slow ? 1 : 0, 0);
-    totalResourceTime += queries.reduce((totalResourceTime2, query) => totalResourceTime2 += query.executionTime, 0);
-    chartData.push({ x: queries.length, y: totalResourceTime, z: resource });
-  }
-  emitNet(`oxmysql:openUi`, source2, {
-    resources: Object.keys(logStorage),
-    totalQueries,
-    slowQueries,
-    totalTime,
-    chartData
-  });
-}, true);
+    let totalQueries = 0;
+    let totalTime = 0;
+    let slowQueries = 0;
+    let chartData = { labels: [], data: [] };
+    for (const resource in logStorage) {
+      const queries = logStorage[resource];
+      let totalResourceTime = 0;
+      totalQueries += queries.length;
+      totalTime += queries.reduce((totalTime2, query) => totalTime2 += query.executionTime, 0);
+      slowQueries += queries.reduce((slowQueries2, query) => slowQueries2 += query.slow ? 1 : 0, 0);
+      totalResourceTime += queries.reduce((totalResourceTime2, query) => totalResourceTime2 += query.executionTime, 0);
+      chartData.labels.push(resource);
+      chartData.data.push({ queries: queries.length, time: totalResourceTime });
+    }
+    emitNet(`oxmysql:openUi`, source2, {
+      resources: Object.keys(logStorage),
+      totalQueries,
+      slowQueries,
+      totalTime,
+      chartData
+    });
+  },
+  true
+);
 var sortQueries = (queries, sort) => {
   const sortedQueries = [...queries].sort((a, b) => {
     switch (sort.id) {
@@ -21683,50 +24984,67 @@ var sortQueries = (queries, sort) => {
   });
   return sort.desc ? sortedQueries.reverse() : sortedQueries;
 };
-onNet(`oxmysql:fetchResource`, (data) => {
-  if (typeof data.resource !== "string")
-    return;
-  const sort = data.sortBy ? data.sortBy[0] : false;
-  const startRow = data.pageIndex * 12;
-  const endRow = startRow + 12;
-  const queries = sort ? sortQueries(logStorage[data.resource], sort).slice(startRow, endRow) : logStorage[data.resource].slice(startRow, endRow);
-  const pageCount = Math.ceil(logStorage[data.resource].length / 12);
-  if (!queries)
-    return;
-  emitNet(`oxmysql:loadResource`, source, { queries, pageCount });
-});
-
-// src/utils/scheduleTick.ts
-init_config();
-var scheduleTick = async () => {
-  if (!serverReady) {
-    await new Promise((resolve) => {
-      (function wait() {
-        if (serverReady) {
-          return resolve();
-        }
-        setTimeout(wait);
-      })();
+onNet(
+  `oxmysql:fetchResource`,
+  (data) => {
+    if (typeof data.resource !== "string" || !IsPlayerAceAllowed(source, "command.mysql"))
+      return;
+    const resourceLog = logStorage[data.resource];
+    const sort = data.sortBy && data.sortBy.length > 0 ? data.sortBy[0] : false;
+    const startRow = data.pageIndex * 10;
+    const endRow = startRow + 10;
+    const queries = sort ? sortQueries(logStorage[data.resource], sort).slice(startRow, endRow) : logStorage[data.resource].slice(startRow, endRow);
+    const pageCount = Math.ceil(resourceLog.length / 10);
+    if (!queries)
+      return;
+    let resourceTime = 0;
+    let resourceSlowQueries = 0;
+    const resourceQueriesCount = resourceLog.length;
+    for (let i2 = 0; i2 < resourceQueriesCount; i2++) {
+      const query = resourceLog[i2];
+      resourceTime += query.executionTime;
+      if (query.slow)
+        resourceSlowQueries += 1;
+    }
+    emitNet(`oxmysql:loadResource`, source, {
+      queries,
+      pageCount,
+      resourceQueriesCount,
+      resourceSlowQueries,
+      resourceTime
     });
   }
+);
+
+// src/utils/scheduleTick.ts
+var resourceName = GetCurrentResourceName();
+async function scheduleTick() {
   ScheduleResourceTick(resourceName);
-};
+}
 
 // src/database/rawQuery.ts
-var rawQuery = async (type, invokingResource, query, parameters, cb, throwError) => {
-  await scheduleTick();
-  [query, parameters, cb] = parseArguments(invokingResource, query, parameters, cb);
-  return await new Promise((resolve, reject) => {
-    pool.query(query, parameters, (err, result, _, executionTime) => {
-      if (err)
-        return reject(err);
-      logQuery(invokingResource, query, executionTime, parameters);
-      resolve(cb ? parseResponse(type, result) : null);
-    });
-  }).then(async (result) => {
+var rawQuery = async (type, invokingResource, query, parameters, cb, isPromise) => {
+  cb = setCallback(parameters, cb);
+  try {
+    [query, parameters] = parseArguments(query, parameters);
+  } catch (err) {
+    return logError(invokingResource, cb, isPromise, `Query: ${query}`, err.message);
+  }
+  if (!isServerConnected)
+    await waitForConnection();
+  scheduleTick();
+  const connection = await pool.getConnection();
+  try {
+    const hasProfiler = await runProfiler(connection, invokingResource);
+    const [result] = await connection.query(query, parameters);
+    if (hasProfiler) {
+      const [profiler] = await connection.query("SELECT FORMAT(SUM(DURATION) * 1000, 4) AS `duration` FROM INFORMATION_SCHEMA.PROFILING");
+      if (profiler[0])
+        logQuery(invokingResource, query, profiler[0].duration, parameters);
+    }
     if (cb)
       try {
-        await cb(result);
+        cb(parseResponse(type, result));
       } catch (err) {
         if (typeof err === "string") {
           if (err.includes("SCRIPT ERROR:"))
@@ -21734,10 +25052,8 @@ var rawQuery = async (type, invokingResource, query, parameters, cb, throwError)
           console.log(`^1SCRIPT ERROR in invoking resource ${invokingResource}: ${err}^0`);
         }
       }
-  }).catch((err) => {
-    const error = `${invokingResource} was unable to execute a query!
-${err.message}
-${`${query} ${JSON.stringify(parameters)}`}`;
+  } catch (err) {
+    logError(invokingResource, cb, isPromise, `Query: ${query}`, JSON.stringify(parameters), err.message);
     TriggerEvent("oxmysql:error", {
       query,
       parameters,
@@ -21745,66 +25061,83 @@ ${`${query} ${JSON.stringify(parameters)}`}`;
       err,
       resource: invokingResource
     });
-    if (cb && throwError)
-      return cb(null, error);
-    throw new Error(error);
-  });
+  } finally {
+    connection.release();
+  }
 };
 
 // src/utils/parseTransaction.ts
 var isTransactionQuery = (query) => query.query !== void 0;
-var parseTransaction = (invokingResource, queries, parameters, cb) => {
+var parseTransaction = (queries, parameters) => {
   if (!Array.isArray(queries))
     throw new Error(`Transaction queries must be array, received '${typeof queries}'.`);
-  if (cb && typeof cb !== "function")
-    cb = void 0;
-  if (parameters && typeof parameters === "function")
-    cb = parameters;
-  if (parameters === null || parameters === void 0 || typeof parameters === "function")
+  if (!parameters || typeof parameters === "function")
     parameters = [];
   if (Array.isArray(queries[0])) {
     const transactions2 = queries.map((query) => {
       if (typeof query[1] !== "object")
         throw new Error(`Transaction parameters must be array or object, received '${typeof query[1]}'.`);
-      const [parsedQuery, parsedParameters] = parseArguments(invokingResource, query[0], query[1]);
+      const [parsedQuery, parsedParameters] = parseArguments(query[0], query[1]);
       return { query: parsedQuery, params: parsedParameters };
     });
-    return { transactions: transactions2, cb };
+    return transactions2;
   }
   const transactions = queries.map((query) => {
-    const [parsedQuery, parsedParameters] = parseArguments(invokingResource, isTransactionQuery(query) ? query.query : query, isTransactionQuery(query) ? query.parameters || query.values : parameters || []);
+    const [parsedQuery, parsedParameters] = parseArguments(
+      isTransactionQuery(query) ? query.query : query,
+      isTransactionQuery(query) ? query.parameters || query.values : parameters
+    );
     return { query: parsedQuery, params: parsedParameters };
   });
-  return { transactions, cb };
+  return transactions;
 };
 
 // src/database/rawTransaction.ts
-var transactionError = (queries, parameters) => `${queries.map((query) => `${query.query} ${JSON.stringify(query.params || [])}`).join("\n")}
-${JSON.stringify(parameters)}`;
-var rawTransaction = async (invokingResource, queries, parameters, callback) => {
-  await scheduleTick();
-  const { transactions, cb } = parseTransaction(invokingResource, queries, parameters, callback);
-  const connection = await pool.promise().getConnection();
+var transactionError = (queries, parameters) => {
+  `${queries.map((query) => `${query.query} ${JSON.stringify(query.params || [])}`).join("\n")}
+${JSON.stringify(
+    parameters
+  )}`;
+};
+var rawTransaction = async (invokingResource, queries, parameters, cb, isPromise) => {
+  let transactions;
+  cb = setCallback(parameters, cb);
+  try {
+    transactions = parseTransaction(queries, parameters);
+  } catch (err) {
+    return logError(invokingResource, cb, isPromise, err.message);
+  }
+  if (!isServerConnected)
+    await waitForConnection();
+  scheduleTick();
+  const connection = await pool.getConnection();
   let response = false;
   try {
+    const hasProfiler = await runProfiler(connection, invokingResource);
     await connection.beginTransaction();
-    for (const transaction of transactions) {
-      const [result, fields, executionTime] = await connection.query(transaction.query, transaction.params);
-      logQuery(invokingResource, transaction.query, executionTime, transaction.params);
+    const transactionsLength = transactions.length;
+    for (let i2 = 0; i2 < transactionsLength; i2++) {
+      const transaction = transactions[i2];
+      await connection.query(transaction.query, transaction.params);
+      if (hasProfiler && (i2 > 0 && i2 % 100 === 0 || i2 === transactionsLength - 1)) {
+        await profileBatchStatements(connection, invokingResource, transactions, null, i2 < 100 ? 0 : i2);
+      }
     }
     await connection.commit();
     response = true;
-  } catch (e2) {
-    await connection.rollback();
-    const transactionErrorMessage = e2.sql || transactionError(transactions, parameters);
-    console.error(`${invokingResource} was unable to execute a transaction!
-${e2.message}
-${transactionErrorMessage}^0`);
+  } catch (err) {
+    await connection.rollback().catch(() => {
+    });
+    const transactionErrorMessage = err.sql || transactionError(transactions, parameters);
+    const msg = `${invokingResource} was unable to complete a transaction!
+${transactionErrorMessage}
+${err.message}`;
+    console.error(msg);
     TriggerEvent("oxmysql:transaction-error", {
       query: transactionErrorMessage,
       parameters,
-      message: e2.message,
-      err: e2,
+      message: err.message,
+      err,
       resource: invokingResource
     });
   } finally {
@@ -21824,9 +25157,9 @@ ${transactionErrorMessage}^0`);
 
 // src/utils/parseExecute.ts
 var executeType = (query) => {
+  if (typeof query !== "string")
+    throw new Error(`Expected query to be a string but received ${typeof query} instead.`);
   switch (query.substring(0, query.indexOf(" "))) {
-    case "SELECT":
-      return null;
     case "INSERT":
       return "insert";
     case "UPDATE":
@@ -21834,10 +25167,13 @@ var executeType = (query) => {
     case "DELETE":
       return "update";
     default:
-      throw new Error(`Prepared statements only accept SELECT, INSERT, UPDATE, and DELETE methods.`);
+      return null;
   }
 };
-var parseExecute = (parameters) => {
+var parseExecute = (placeholders, parameters) => {
+  const parametersType = typeof parameters;
+  if (!parameters || parametersType !== "object")
+    return [];
   if (!Array.isArray(parameters)) {
     if (typeof parameters === "object") {
       const arr = [];
@@ -21846,91 +25182,93 @@ var parseExecute = (parameters) => {
     } else
       throw new Error(`Parameters expected an array but received ${typeof parameters} instead`);
   }
-  return parameters;
-};
-var parseValues = (placeholders, parameters) => {
-  if (!Array.isArray(parameters)) {
-    if (typeof parameters === "object") {
+  if (!parameters.every(Array.isArray)) {
+    if (parameters.every((item) => typeof item === "object")) {
       const arr = [];
-      Object.entries(parameters).forEach((entry) => arr[parseInt(entry[0]) - 1] = entry[1]);
+      parameters.forEach((value, index) => {
+        arr[index] = new Array(placeholders);
+        if (!Array.isArray(value)) {
+          Object.entries(value).forEach((entry) => {
+            arr[index][parseInt(entry[0]) - 1] = entry[1];
+          });
+        } else
+          arr[index] = parameters[index];
+        for (let i2 = 0; i2 < placeholders; i2++) {
+          if (arr[index][i2] === void 0)
+            arr[index][i2] = null;
+        }
+      });
       parameters = arr;
     } else
-      throw new Error(`Parameters expected an array but received ${typeof parameters} instead`);
-  } else if (placeholders > parameters.length) {
-    for (let i2 = parameters.length; i2 < placeholders; i2++) {
-      parameters[i2] = null;
-    }
+      parameters = [[...parameters]];
   }
   return parameters;
 };
 
 // src/database/rawExecute.ts
-var rawExecute = async (invokingResource, query, parameters, cb, throwError) => {
-  const type = executeType(query);
-  parameters = parseExecute(parameters);
-  let response = [];
-  if (!parameters.every(Array.isArray))
-    parameters = [[...parameters]];
-  await scheduleTick();
-  return await new Promise((resolve, reject) => {
-    pool.getConnection((err, connection) => {
-      if (err)
-        return reject(err.message);
-      if (parameters.length === 0)
-        return reject(`Query received no parameters.`);
-      const placeholders = query.split("?").length - 1;
-      parameters.forEach((values, index) => {
-        const executionTime = process.hrtime();
-        values = parseValues(placeholders, values);
-        connection.execute(query, values, (err2, results) => {
-          if (err2) {
-            connection.release();
-            return reject(err2.message);
-          }
-          if (cb) {
-            if (results.length > 1) {
-              for (const value of results) {
-                response.push(parseResponse(type, value));
-              }
-            } else
-              response.push(parseResponse(type, results));
-          }
-          logQuery(invokingResource, query, process.hrtime(executionTime)[1] / 1e6, values);
-          if (index === parameters.length - 1) {
-            connection.release();
-            if (cb) {
-              if (response.length === 1) {
-                if (type === null) {
-                  if (response[0][0] && Object.keys(response[0][0]).length === 1)
-                    resolve(Object.values(response[0][0])[0]);
-                  else
-                    resolve(response[0][0]);
-                } else {
-                  resolve(response[0]);
-                }
-              } else {
-                resolve(response);
-              }
-            }
-          }
-        });
-      });
-    });
-  }).then(async (response2) => {
-    if (cb)
-      try {
-        await cb(response2);
-      } catch (err) {
-        if (typeof err === "string") {
-          if (err.includes("SCRIPT ERROR:"))
-            return console.log(err);
-          console.log(`^1SCRIPT ERROR in invoking resource ${invokingResource}: ${err}^0`);
+var rawExecute = async (invokingResource, query, parameters, cb, isPromise, unpack) => {
+  cb = setCallback(parameters, cb);
+  let type;
+  let placeholders;
+  try {
+    type = executeType(query);
+    placeholders = query.split("?").length - 1;
+    parameters = parseExecute(placeholders, parameters);
+  } catch (err) {
+    return logError(invokingResource, cb, isPromise, query, err.message);
+  }
+  if (!isServerConnected)
+    await waitForConnection();
+  scheduleTick();
+  const connection = await pool.getConnection();
+  try {
+    const hasProfiler = await runProfiler(connection, invokingResource);
+    const parametersLength = parameters.length == 0 ? 1 : parameters.length;
+    const response = [];
+    for (let index = 0; index < parametersLength; index++) {
+      const values = parameters[index];
+      if (values && placeholders > values.length) {
+        for (let i2 = values.length; i2 < placeholders; i2++) {
+          values[i2] = null;
         }
       }
-  }).catch((err) => {
-    const error = `${invokingResource} was unable to execute a query!
-${err}
-${`${query}`}`;
+      const [result] = await connection.execute(query, values);
+      if (cb) {
+        if (Array.isArray(result) && result.length > 1) {
+          for (const value of result) {
+            response.push(unpack ? parseResponse(type, value) : value);
+          }
+        } else
+          response.push(unpack ? parseResponse(type, result) : result);
+      }
+      if (hasProfiler && (index > 0 && index % 100 === 0 || index === parametersLength - 1)) {
+        await profileBatchStatements(connection, invokingResource, query, parameters, index < 100 ? 0 : index);
+      }
+    }
+    if (!cb)
+      return;
+    try {
+      if (response.length === 1) {
+        if (unpack && type === null) {
+          if (response[0][0] && Object.keys(response[0][0]).length === 1) {
+            cb(Object.values(response[0][0])[0]);
+          } else
+            cb(response[0][0]);
+        } else {
+          cb(response[0]);
+        }
+      } else {
+        cb(response);
+      }
+    } catch (err) {
+      if (typeof err === "string") {
+        if (err.includes("SCRIPT ERROR:"))
+          return console.log(err);
+        console.log(`^1SCRIPT ERROR in invoking resource ${invokingResource}: ${err}^0`);
+      }
+    }
+  } catch (err) {
+    logError(invokingResource, cb, isPromise, `Query: ${query}`, err.message);
     TriggerEvent("oxmysql:error", {
       query,
       parameters,
@@ -21938,35 +25276,44 @@ ${`${query}`}`;
       err,
       resource: invokingResource
     });
-    if (cb && throwError)
-      return cb(null, error);
-    throw new Error(error);
-  });
+  } finally {
+    connection.release();
+  }
 };
 
 // src/index.ts
 Promise.resolve().then(() => init_update());
 var MySQL = {};
-MySQL.query = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawQuery(null, invokingResource, query, parameters, cb, throwError);
+MySQL.isReady = () => {
+  return isServerConnected;
 };
-MySQL.single = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawQuery("single", invokingResource, query, parameters, cb, throwError);
+MySQL.awaitConnection = async () => {
+  await waitForConnection();
+  return true;
 };
-MySQL.scalar = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawQuery("scalar", invokingResource, query, parameters, cb, throwError);
+MySQL.query = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawQuery(null, invokingResource, query, parameters, cb, isPromise);
 };
-MySQL.update = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawQuery("update", invokingResource, query, parameters, cb, throwError);
+MySQL.single = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawQuery("single", invokingResource, query, parameters, cb, isPromise);
 };
-MySQL.insert = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawQuery("insert", invokingResource, query, parameters, cb, throwError);
+MySQL.scalar = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawQuery("scalar", invokingResource, query, parameters, cb, isPromise);
 };
-MySQL.transaction = (queries, parameters, cb, invokingResource = GetInvokingResource()) => {
-  rawTransaction(invokingResource, queries, parameters, cb);
+MySQL.update = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawQuery("update", invokingResource, query, parameters, cb, isPromise);
 };
-MySQL.prepare = (query, parameters, cb, invokingResource = GetInvokingResource(), throwError) => {
-  rawExecute(invokingResource, query, parameters, cb, throwError);
+MySQL.insert = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawQuery("insert", invokingResource, query, parameters, cb, isPromise);
+};
+MySQL.transaction = (queries, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawTransaction(invokingResource, queries, parameters, cb, isPromise);
+};
+MySQL.prepare = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawExecute(invokingResource, query, parameters, cb, isPromise, true);
+};
+MySQL.rawExecute = (query, parameters, cb, invokingResource = GetInvokingResource(), isPromise) => {
+  rawExecute(invokingResource, query, parameters, cb, isPromise);
 };
 MySQL.execute = MySQL.query;
 MySQL.fetch = MySQL.query;
@@ -21974,20 +25321,30 @@ function provide(name, cb, sync) {
   on(`__cfx_export_ghmattimysql_${name}`, (setCb) => setCb(cb));
   on(`__cfx_export_ghmattimysql_${name}Sync`, (setCb) => setCb(sync));
 }
-provide("store", (query, cb) => {
-  cb(query);
-}, (query) => {
-  return query;
-});
+provide(
+  "store",
+  (query, cb) => {
+    cb(query);
+  },
+  (query) => {
+    return query;
+  }
+);
 for (const key in MySQL) {
   global.exports(key, MySQL[key]);
   const exp = (query, parameters, invokingResource = GetInvokingResource()) => {
     return new Promise((resolve, reject) => {
-      MySQL[key](query, parameters, (result, err) => {
-        if (err)
-          return reject(new Error(err));
-        resolve(result);
-      }, invokingResource, true);
+      MySQL[key](
+        query,
+        parameters,
+        (result, err) => {
+          if (err)
+            return reject(new Error(err));
+          resolve(result);
+        },
+        invokingResource,
+        true
+      );
     });
   };
   global.exports(`${key}_async`, exp);
@@ -21998,3 +25355,22 @@ for (const key in MySQL) {
 /*! fetch-blob. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
 /*! formdata-polyfill. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
 /*! node-domexception. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
+/**
+ * @license
+ * Copyright 2009 The Closure Library Authors
+ * Copyright 2020 Daniel Wirtz / The long.js Authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */

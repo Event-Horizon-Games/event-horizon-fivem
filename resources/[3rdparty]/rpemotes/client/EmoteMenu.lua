@@ -1,3 +1,9 @@
+--- RPEmotes by TayMcKenzieNZ, Mathu_lmn and MadsL, maintained by TayMcKenzieNZ ---
+--- Download OFFICIAL version and updates ONLY at https://github.com/TayMcKenzieNZ/rpemotes ---
+--- RPEmotes is FREE and ALWAYS will be. STOP PAYING SCAMMY FUCKERS FOR SOMEONE ELSE'S WORK!!! ---
+
+
+
 local rightPosition = { x = 1450, y = 100 }
 local leftPosition = { x = 0, y = 100 }
 local menuPosition = { x = 0, y = 200 }
@@ -29,16 +35,6 @@ end
 _menuPool = NativeUI.CreatePool()
 mainMenu = NativeUI.CreateMenu(Config.MenuTitle or "", "", menuPosition["x"], menuPosition["y"], Menuthing, Menuthing)
 _menuPool:Add(mainMenu)
-
-function ShowNotification(text)
-    if Config.NotificationsAsChatMessage then
-        TriggerEvent("chat:addMessage", { color = { 255, 255, 255 }, args = { tostring(text) } })
-    else
-        BeginTextCommandThefeedPost("STRING")
-        AddTextComponentSubstringPlayerName(text)
-        EndTextCommandThefeedPostTicker(false, false)
-    end
-end
 
 local EmoteTable = {}
 local FavEmoteTable = {}
@@ -199,12 +195,12 @@ function AddEmoteMenu(menu)
         favmenu.OnItemSelect = function(sender, item, index)
             if FavEmoteTable[index] == Config.Languages[lang]['rfavorite'] then
                 FavoriteEmote = ""
-                ShowNotification(Config.Languages[lang]['rfavorite'], 2000)
+                SimpleNotify(Config.Languages[lang]['rfavorite'])
                 return
             end
             if Config.FavKeybindEnabled then
                 FavoriteEmote = FavEmoteTable[index]
-                ShowNotification("~o~" .. firstToUpper(FavoriteEmote) .. Config.Languages[lang]['newsetemote'])
+                SimpleNotify("~o~" .. firstToUpper(FavoriteEmote) .. Config.Languages[lang]['newsetemote'])
             end
         end
     end
@@ -341,14 +337,14 @@ if Config.Search then
                     if data == Config.Languages[lang]['sharedanceemotes'] then return end
                     if data == Config.Languages[lang]['rfavorite'] then
                         FavoriteEmote = ""
-                        ShowNotification(Config.Languages[lang]['rfavorite'], 2000)
+                        SimpleNotify(Config.Languages[lang]['rfavorite'])
                         return
                     end
 
                     if favEnabled and IsControlPressed(0, 21) then
                         if data.table ~= "Shared" then
                             FavoriteEmote = data.name
-                            ShowNotification("~o~" .. firstToUpper(data.name) .. Config.Languages[lang]['newsetemote'])
+                            SimpleNotify("~o~" .. firstToUpper(data.name) .. Config.Languages[lang]['newsetemote'])
                         else
                             SimpleNotify(Config.Languages[lang]['searchcantsetfav'])
                         end
@@ -476,17 +472,21 @@ end
 function AddInfoMenu(menu)
 
     -- if not UpdateAvailable then
-        infomenu = _menuPool:AddSubMenu(menu, Config.Languages[lang]['infoupdate'], "~h~~y~Huge Thank You ❤️~h~~y~", "",
+        infomenu = _menuPool:AddSubMenu(menu, Config.Languages[lang]['infoupdate'], "~h~~y~The RPEmotes Team & Collaborators~h~~y~", "",
             Menuthing, Menuthing)
     -- else
     --     infomenu = _menuPool:AddSubMenu(menu, Config.Languages[lang]['infoupdateav'],
     --         Config.Languages[lang]['infoupdateavtext'], "", Menuthing, Menuthing)
     -- end
  
-    infomenu:AddItem(NativeUI.CreateItem("Join the <font color=\"#00ceff\">Discord 💬</font>",
-        "Join our official discord! 💬 <font color=\"#00ceff\">https://discord.gg/sw3NwDq6C8</font>"))
-    infomenu:AddItem(NativeUI.CreateItem("<font color=\"#FF25B1\">TayMcKenzieNZ 🇳🇿</font>",
-        "<font color=\"#FF25B1\">TayMcKenzieNZ 🇳🇿</font> Project Manager for RPEmotes"))
+    infomenu:AddItem(NativeUI.CreateItem("Join the <font color=\"#00ceff\"><b>Official Discord 💬<b></font>",
+        "Join our official discord! 💬 <font color=\"#00ceff\"><b>https://discord.gg/sw3NwDq6C8<b></font>"))
+    infomenu:AddItem(NativeUI.CreateItem("Download <font color=\"#FF25B1\"><b>RPEmotes<b></font> from 💾",
+        "Official download link: <font color=\"#00ceff\">http://rpemotes.com</font>"))
+    infomenu:AddItem(NativeUI.CreateItem("Read the <font color=\"#00ceff\"><b>Official Wiki Docs 📖<b></font>",
+        "Check out our official Wiki Docs: <font color=\"#00ceff\">https://docs.rpemotes.com/</font>"))
+    infomenu:AddItem(NativeUI.CreateItem("<font color=\"#FF25B1\"><b>TayMcKenzieNZ 🇳🇿<b></font>",
+        "<font color=\"#FF25B1\">TayMcKenzieNZ 🇳🇿</font> Project Manager for RPEmotes."))
     infomenu:AddItem(NativeUI.CreateItem("Thanks ~o~DullPear 🍐~s~", "~o~DullPear~s~ for the original dpemotes ❤️"))
     infomenu:AddItem(NativeUI.CreateItem("Thanks <b>Kibook 🐩</b>",
         "<b>Kibook</b> for the addition of Animal Emotes 🐩 submenu."))
@@ -513,7 +513,7 @@ function AddInfoMenu(menu)
     infomenu:AddItem(NativeUI.CreateItem("Thanks ~b~Ultrahacx 🧑‍💻~s~",
 	"~b~Ultrahacx~s~ for the custom emotes ☺️."))
     infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#37DA00\">BzZzi 🤭</font>",
-        "<font color=\"#37DA00\">BzZzi</font> for the custom food props 🍩."))
+        "<font color=\"#37DA00\">BzZzi</font> for the custom props 🍩."))
     infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#C40A7D\">Natty3d 🍭</font>",
         "<font color=\"#C40A7D\">Natty3d</font> for the custom lollipop props 🍭."))
     infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#ff61a0\">Amnilka 🇵🇱</font>",
@@ -550,8 +550,19 @@ function AddInfoMenu(menu)
         "<font color=\"#de1846\">Dark Animations</font> for the custom animations 🖤"))
   infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#00FF12\">Brum 🇬🇧</font>",
         "<font color=\"#00FF12\">Brum</font> for the custom props  🇬🇧"))
-
-    infomenu:AddItem(NativeUI.CreateItem("Thanks to the community", "Translations, bug reports and moral support 🌐"))
+  infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#017a05\">Chico 💀</font>",
+        "<font color=\"#017a05\">Chico 💀</font> for fixing persistent walkstyles and moods for QB-Core and ESX."))
+  infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#194ce6\">-EcLiPsE- ✌🏻</font>",
+        "<font color=\"#194ce6\">-EcLiPsE- ✌🏻 </font> for NPC prop sets and GTA Online biker animations"))
+  infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#3488c8\">MrWitt 🦑️</font>",
+        "<font color=\"#3488c8\">MrWitt 🦑</font> for the custom animations."))
+  infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#ff96b6\">AdoredRose 🌹</font>",
+       "<font color=\"#ff96b6\">AdoredRose 🌹</font> for assistance with adding animations."))
+    infomenu:AddItem(NativeUI.CreateItem("Thanks <font color=\"#ff451d\">DRX Animations 👑</font>",
+        "<font color=\"#ff451d\">DRX Animations 👑</font> for the custom animations"))
+        
+  infomenu:AddItem(NativeUI.CreateItem("<b>Thanks to the community<b>", "Translations, bug reports and moral support 🌐"))
+    
 end
 
 function OpenEmoteMenu()
@@ -579,10 +590,6 @@ function OpenEmoteMenu()
         mainMenu:Visible(true)
         ProcessMenu()
     end
-end
-
-function firstToUpper(str)
-    return (str:gsub("^%l", string.upper))
 end
 
 AddEmoteMenu(mainMenu)
