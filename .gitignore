@@ -6,3 +6,4 @@ node_modules
 targets_interact.txt
 polyzone_created_zones.txt
 logs
+.replxx_history
