@@ -8,9 +8,6 @@ exports['qb-target']:AddTargetModel({'prop_sign_road_01a'}, {
             event = "stopsign:stealStopsign",
             icon = 'fa-regular fa-circle-stop',
             label = 'Steal the stop sign',
-            canInteract = function(entity, distance, data)
-                IsEntityUpright(entity, 45.0)
-            end,
         },
     },
     distance = 5.0,
