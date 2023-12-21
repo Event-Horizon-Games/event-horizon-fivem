@@ -38,16 +38,6 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     distance = 4.0,
 })
 
-
-AddEventHandler('onResourceStop', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then
-        return
-    end
-
-    DeleteEntity(bountyBoard)
-    Citizen.Trace('The resource ' .. resourceName .. ' was stopped. Entities were culled.\n')
-end)
-
 function CreatePedHeadshot()
     local handle = RegisterPedheadshot(PlayerPedId())
     while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
@@ -66,3 +56,15 @@ function CreatePedHeadshot()
     -- Cleanup after yourself!
     UnregisterPedheadshot(handle)
 end
+
+
+
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then
+        return
+    end
+
+    DeleteEntity(bountyBoard)
+    Citizen.Trace('The resource ' .. resourceName .. ' was stopped. Entities were culled.\n')
+end)
