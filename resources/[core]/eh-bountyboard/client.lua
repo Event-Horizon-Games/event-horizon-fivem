@@ -39,22 +39,24 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
 })
 
 function CreatePedHeadshot()
-    local handle = RegisterPedheadshot(PlayerPedId())
-    while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
-        Wait(0)
-    end
-    local txd = GetPedheadshotTxdString(handle)
+    Citizen.CreateThread(function()
+        local handle = RegisterPedheadshot(PlayerPedId())
+        while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
+            Wait(0)
+        end
+        local txd = GetPedheadshotTxdString(handle)
 
-    -- Add the notification text, the more text you add the smaller the font
-    -- size will become (text is forced on 1 line only), so keep this short!
-    SetNotificationTextEntry("STRING")
-    AddTextComponentSubstringPlayerName("Headshot")
+        -- Add the notification text, the more text you add the smaller the font
+        -- size will become (text is forced on 1 line only), so keep this short!
+        SetNotificationTextEntry("STRING")
+        AddTextComponentSubstringPlayerName("Headshot")
 
-    -- Draw the notification
-    DrawNotificationAward(txd, txd, 200, 0, "FM_GEN_UNLOCK")
+        -- Draw the notification
+        DrawNotificationAward(txd, txd, 200, 0, "FM_GEN_UNLOCK")
 
-    -- Cleanup after yourself!
-    UnregisterPedheadshot(handle)
+        -- Cleanup after yourself!
+        UnregisterPedheadshot(handle)
+    end)
 end
 
 
