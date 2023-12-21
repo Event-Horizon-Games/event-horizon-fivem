@@ -15,6 +15,14 @@ end
 local bountyBoard = CreateObject(boardModel, vector3(-1807.2, -126.16, 77.79), true, true, false)
 SetEntityHeading(bountyBoard, 49.85)
 
+local boardBlip = AddBlipForCoord(-1807.2, -126.16, 77.79)
+SetBlipSprite(boardBlip, 160)
+SetBlipDisplay(boardBlip, 4)
+SetBlipScale(boardBlip, 1)
+BeginTextCommandSetBlipName("STRING")
+AddTextComponentString("Bounty Board")
+EndTextCommandSetBlipName(boardBlip)
+
 exports['qb-target']:AddTargetEntity(bountyBoard, {
     options = {
         {
@@ -39,3 +47,22 @@ AddEventHandler('onResourceStop', function(resourceName)
     DeleteEntity(bountyBoard)
     Citizen.Trace('The resource ' .. resourceName .. ' was stopped. Entities were culled.\n')
 end)
+
+function CreatePedHeadshot()
+    local handle = RegisterPedheadshot(PlayerPedId())
+    while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
+        Wait(0)
+    end
+    local txd = GetPedheadshotTxdString(handle)
+
+    -- Add the notification text, the more text you add the smaller the font
+    -- size will become (text is forced on 1 line only), so keep this short!
+    SetNotificationTextEntry("STRING")
+    AddTextComponentSubstringPlayerName("Headshot")
+
+    -- Draw the notification
+    DrawNotificationAward(txd, txd, 200, 0, "FM_GEN_UNLOCK")
+
+    -- Cleanup after yourself!
+    UnregisterPedheadshot(handle)
+end
