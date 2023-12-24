@@ -1,6 +1,7 @@
 ---@diagnostic disable: missing-parameter, param-type-mismatch
 
 local boardModel = 'h4_prop_h4_board_01a'
+local targetPed
 
 if not HasModelLoaded(boardModel) then
     -- If the model isnt loaded we request the loading of the model and wait that the model is loaded
@@ -57,6 +58,13 @@ function CreatePedHeadshot()
         -- Cleanup after yourself!
         UnregisterPedheadshot(handle)
     end)
+end
+
+function SpawnTargetPed()
+    targetPed = CreatePed(28, GetHashKey('a_m_m_business_01'), 0.0, 0.0, 0.0, 0.0, true, true)
+    FreezeEntityPosition(targetPed, true)
+
+    AddBlipForEntity(targetPed)
 end
 
 
