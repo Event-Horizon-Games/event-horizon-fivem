@@ -14,10 +14,26 @@ cd /d "path-to-project-repository"
 
 :: this path is the default FXServer location. 
 :: Ensure that if you changed where FXServer is installed, reflect that location here.
-:: 2372 is Los Santos Tuners
-:: check https://dev.azure.com/Event-Horizon-Games/Fivem/_wiki/wikis/Fivem.wiki/6/Game-build-versions for more information
-"C:\Program Files\fxServer\FXServer.exe" +exec server.cfg +set onesync on +set onesync_population true +set onesync_forceMigration 1 +set onesync_workaround763185 true +set onesync_distanceCullVehicles true +set sv_enforceGameBuild 2372
 ```
 
 4. Replace `path-to-project-repository` with the path to this repository on your local machine.
 5. If you have changed the default install location of **FXServer**, then replace `C:\Program Files\fxServer\FXServer.exe` with that location on your local machine.
+
+## Create a server config file
+This is the critical component that sets all of the starter settings for your server. This file must be manually created as it requires the user to generate API tokens and keys. 
+1. Create a file named `private.cfg` in the root directory of your project and copy in the following code:
+
+```
+#The credentials for the Mysql database connection
+set mysql_connection_string "mysql://<creds>@localhost/fivem_server?charset=utf8mb4"
+
+#Your generated Steam web API token https://steamcommunity.com/dev/apikey
+set steam_webApiKey ""
+
+#The license from Fivem's keymaster
+sv_licenseKey ""
+```
+
+2. Change the Mysql connection string to match the credentials that were used when setting up your Mysql database
+3. Generate or retrieve your Steam Web API token from https://steamcommunity.com/dev/apikey
+4. Generate or retrieve a server key from Keymaster here https://keymaster.fivem.net/
