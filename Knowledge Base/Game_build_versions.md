@@ -15,3 +15,5 @@ Game builds are a very important piece of Fivem that typically is not visibly do
 | 2699 | 1.61/1.63 | mpsum2 | The Criminal Enterprises | July 26, 2022 |
 | 2802 | 1.64 | mpchristmas3 | Los Santos Drug Wars | December 13, 2022 |
 | 2944 | 1.67 | mp2023_01 | San Andreas Mercenaries | June 13, 2023 |
+| 3095 | 1.68 | mp2023_02 | The Chop Shop | December 12, 2023 |
+
