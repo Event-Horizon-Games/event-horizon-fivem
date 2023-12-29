@@ -14,6 +14,7 @@ cd /d "path-to-project-repository"
 
 :: this path is the default FXServer location. 
 :: Ensure that if you changed where FXServer is installed, reflect that location here.
+"C:\Program Files\fxServer\FXServer.exe" +exec server.cfg
 ```
 
 4. Replace `path-to-project-repository` with the path to this repository on your local machine.
