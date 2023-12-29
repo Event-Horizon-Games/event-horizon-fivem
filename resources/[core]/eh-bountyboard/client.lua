@@ -28,7 +28,7 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     options = {
         {
             type = "client",
-            event = "Test:Event",
+            event = "eh-bountyboard:startbounty",
             icon = 'fa-solid fa-person-chalkboard',
             label = 'Browse bounties',
             canInteract = function(entity, distance, data)
@@ -39,9 +39,15 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     distance = 4.0,
 })
 
+RegisterNetEvent("eh-bountyboard:startbounty", function()
+    Citizen.Trace('ran event')
+    SpawnTargetPed()
+    CreatePedHeadshot()
+end)
+
 function CreatePedHeadshot()
     Citizen.CreateThread(function()
-        local handle = RegisterPedheadshot(PlayerPedId())
+        local handle = RegisterPedheadshot(targetPed)
         while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
             Wait(0)
         end
@@ -49,11 +55,11 @@ function CreatePedHeadshot()
 
         -- Add the notification text, the more text you add the smaller the font
         -- size will become (text is forced on 1 line only), so keep this short!
-        SetNotificationTextEntry("STRING")
-        AddTextComponentSubstringPlayerName("Headshot")
+        BeginTextCommandThefeedPost("STRING")
+        AddTextComponentSubstringPlayerName("This is your target. Study it carefully.")
 
         -- Draw the notification
-        DrawNotificationAward(txd, txd, 200, 0, "FM_GEN_UNLOCK")
+        EndTextCommandThefeedPostAward(txd, txd, 0, 0, "Bounty Target")
 
         -- Cleanup after yourself!
         UnregisterPedheadshot(handle)
@@ -61,10 +67,31 @@ function CreatePedHeadshot()
 end
 
 function SpawnTargetPed()
-    targetPed = CreatePed(28, GetHashKey('a_m_m_business_01'), 0.0, 0.0, 0.0, 0.0, true, true)
+    local targetModel = "a_m_m_business_01"
+    if not HasModelLoaded(targetModel) then
+        -- If the model isnt loaded we request the loading of the model and wait that the model is loaded
+        RequestModel(targetModel)
+
+        while not HasModelLoaded(targetModel) do
+            Citizen.Wait(1)
+        end
+    end
+
+    targetPed = CreatePed(28, GetHashKey(targetModel), 0.0, 0.0, 0.0, 0.0, true, true)
     FreezeEntityPosition(targetPed, true)
 
-    AddBlipForEntity(targetPed)
+    local targetCoords = GetEntityCoords(targetPed)
+
+    local targetBlipExact = AddBlipForCoord(targetCoords)
+    AddTextEntry('MYBLIP', 'Target')
+    BeginTextCommandSetBlipName('MYBLIP')
+    EndTextCommandSetBlipName(targetBlipExact)
+    SetBlipSprite(targetBlipExact, 160)
+    SetBlipColour(targetBlipExact, 61)
+
+    local targetBlipArea = AddBlipForRadius(targetCoords, 100.0)
+    SetBlipColour(targetBlipArea, 61)
+    SetBlipAlpha(targetBlipArea, 40)
 end
 
 
@@ -76,5 +103,6 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 
     DeleteEntity(bountyBoard)
+    DeleteEntity(targetPed)
     Citizen.Trace('The resource ' .. resourceName .. ' was stopped. Entities were culled.\n')
 end)
