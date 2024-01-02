@@ -40,30 +40,35 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
 })
 
 RegisterNetEvent("eh-bountyboard:startbounty", function()
-    Citizen.Trace('ran event')
-    SpawnTargetPed()
-    CreatePedHeadshot()
+    targetPed = SpawnTargetPed()
+    local headshot = CreatePedHeadshot(targetPed)
+    SendNUIMessage({
+        type = 'show-target',
+        picture = headshot
+    })
 end)
 
-function CreatePedHeadshot()
-    Citizen.CreateThread(function()
-        local handle = RegisterPedheadshot(targetPed)
-        while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
-            Wait(0)
-        end
-        local txd = GetPedheadshotTxdString(handle)
+function CreatePedHeadshot(ped)
+    local handle = RegisterPedheadshot(ped)
+    while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
+        Wait(0)
+    end
+    local txd = GetPedheadshotTxdString(handle)
 
-        -- Add the notification text, the more text you add the smaller the font
-        -- size will become (text is forced on 1 line only), so keep this short!
-        BeginTextCommandThefeedPost("STRING")
-        AddTextComponentSubstringPlayerName("This is your target. Study it carefully.")
+    --[[
+    -- Add the notification text, the more text you add the smaller the font
+    -- size will become (text is forced on 1 line only), so keep this short!
+    BeginTextCommandThefeedPost("STRING")
+    AddTextComponentSubstringPlayerName("This is your target. Study it carefully.")
 
-        -- Draw the notification
-        EndTextCommandThefeedPostAward(txd, txd, 0, 0, "Bounty Target")
+    -- Draw the notification
+    EndTextCommandThefeedPostAward(txd, txd, 0, 0, "Bounty Target")
+    ]]
 
-        -- Cleanup after yourself!
-        UnregisterPedheadshot(handle)
-    end)
+    -- Cleanup after yourself!
+    UnregisterPedheadshot(handle)
+
+    return txd
 end
 
 function SpawnTargetPed()
@@ -77,10 +82,10 @@ function SpawnTargetPed()
         end
     end
 
-    targetPed = CreatePed(28, GetHashKey(targetModel), 0.0, 0.0, 0.0, 0.0, true, true)
-    FreezeEntityPosition(targetPed, true)
+    local spawnedPed = CreatePed(28, GetHashKey(targetModel), 0.0, 0.0, 0.0, 0.0, true, true)
+    FreezeEntityPosition(spawnedPed, true)
 
-    local targetCoords = GetEntityCoords(targetPed)
+    local targetCoords = GetEntityCoords(spawnedPed)
 
     local targetBlipExact = AddBlipForCoord(targetCoords)
     AddTextEntry('MYBLIP', 'Target')
@@ -92,6 +97,8 @@ function SpawnTargetPed()
     local targetBlipArea = AddBlipForRadius(targetCoords, 100.0)
     SetBlipColour(targetBlipArea, 61)
     SetBlipAlpha(targetBlipArea, 40)
+
+    return spawnedPed
 end
 
 
