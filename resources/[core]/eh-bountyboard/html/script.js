@@ -4,6 +4,9 @@ window.addEventListener('message', (event) => {
     if (data.type === 'show-target') {
         showTarget(data.picture);
     }
+    else if (data.type === 'close-target') {
+        closeall();
+    }
 })
 
 
@@ -13,5 +16,21 @@ function showTarget(picture) {
 
     $('body').css('display', 'block')
 
-    $('.all').append(`<img src="${pictureURL}">`);
+    $('.all').append(`
+    <div class="item">
+        <div class="polaroid">
+            <div class="header">Your Target</div>
+            <img src="${pictureURL}">
+            <div class="caption">
+                <p>Name:</p>
+                <p>Habits: Smoker</p>
+            </div>
+        </div>
+    </div>`);
+}
+
+function closeall() {
+    $.post("https://eh-bountyboard:close-headshot");
+    $('.all').empty()
+    $('body').css('display', 'none')
 }

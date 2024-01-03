@@ -48,24 +48,19 @@ RegisterNetEvent("eh-bountyboard:startbounty", function()
     })
 end)
 
+RegisterCommand('closebounty', function()
+    SendNUIMessage({
+        type = 'close-target'
+    })
+end, false)
+
 function CreatePedHeadshot(ped)
     local handle = RegisterPedheadshot(ped)
     while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
         Wait(0)
     end
+
     local txd = GetPedheadshotTxdString(handle)
-
-    --[[
-    -- Add the notification text, the more text you add the smaller the font
-    -- size will become (text is forced on 1 line only), so keep this short!
-    BeginTextCommandThefeedPost("STRING")
-    AddTextComponentSubstringPlayerName("This is your target. Study it carefully.")
-
-    -- Draw the notification
-    EndTextCommandThefeedPostAward(txd, txd, 0, 0, "Bounty Target")
-    ]]
-
-    -- Cleanup after yourself!
     UnregisterPedheadshot(handle)
 
     return txd
@@ -82,8 +77,10 @@ function SpawnTargetPed()
         end
     end
 
-    local spawnedPed = CreatePed(28, GetHashKey(targetModel), 0.0, 0.0, 0.0, 0.0, true, true)
+    local spawnedPed = CreatePed(28, GetHashKey(targetModel), 187.04, -784.54, 47.08, 198.59, true, true)
+    PlaceObjectOnGroundProperly(spawnedPed)
     FreezeEntityPosition(spawnedPed, true)
+    TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_AA_SMOKE', 0, true)
 
     local targetCoords = GetEntityCoords(spawnedPed)
 
