@@ -39,6 +39,13 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     distance = 4.0,
 })
 
+RegisterCommand("reset-hunger", function()
+    local QBCore = exports['qb-core']:GetCoreObject()
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    PlayerData.metadata['hunger'] = 100
+    PlayerData.metadata['thirst'] = 100
+end)
+
 RegisterNetEvent("eh-bountyboard:startbounty", function()
     targetPed = SpawnTargetPed()
     local headshot = CreatePedHeadshot(targetPed)
@@ -46,6 +53,8 @@ RegisterNetEvent("eh-bountyboard:startbounty", function()
         type = 'show-target',
         picture = headshot
     })
+
+    GivePlayerWeapon("WEAPON_SNIPERRIFLE")
 end)
 
 RegisterCommand('closebounty', function()
@@ -96,6 +105,12 @@ function SpawnTargetPed()
     SetBlipAlpha(targetBlipArea, 40)
 
     return spawnedPed
+end
+
+function GivePlayerWeapon(weapon_name)
+    local weaponHash = GetHashKey(weapon_name)
+    --TODO Remember to remove weapon when mission is done
+    GiveWeaponToPed(PlayerPedId(), weaponHash, 20, false, true)
 end
 
 
