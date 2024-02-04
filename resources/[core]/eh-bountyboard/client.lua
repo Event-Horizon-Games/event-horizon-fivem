@@ -1,7 +1,10 @@
 ---@diagnostic disable: missing-parameter, param-type-mismatch
 
 local boardModel = 'h4_prop_h4_board_01a'
+local weaponModel = 'WEAPON_SNIPERRIFLE'
 local targetPed
+local targetBlipExact
+local targetBlipArea
 
 if not HasModelLoaded(boardModel) then
     -- If the model isnt loaded we request the loading of the model and wait that the model is loaded
@@ -39,14 +42,19 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     distance = 4.0,
 })
 
-RegisterCommand("reset-hunger", function()
-    local QBCore = exports['qb-core']:GetCoreObject()
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    PlayerData.metadata['hunger'] = 100
-    PlayerData.metadata['thirst'] = 100
+RegisterNetEvent("eh-bountyboard:startbounty", function()
+    StartBounty()
 end)
 
-RegisterNetEvent("eh-bountyboard:startbounty", function()
+RegisterNetEvent("eh-bountyboard:endbounty", function()
+    EndBounty()
+end)
+
+RegisterCommand('closebounty', function()
+    CloseBountyHeadshot()
+end, false)
+
+function StartBounty()
     targetPed = SpawnTargetPed()
     local headshot = CreatePedHeadshot(targetPed)
     SendNUIMessage({
@@ -54,14 +62,19 @@ RegisterNetEvent("eh-bountyboard:startbounty", function()
         picture = headshot
     })
 
-    GivePlayerWeapon("WEAPON_SNIPERRIFLE")
-end)
+    GivePlayerWeapon(weaponModel)
+    WaitForTargetDeath()
+end
 
-RegisterCommand('closebounty', function()
-    SendNUIMessage({
-        type = 'close-target'
-    })
-end, false)
+function EndBounty()
+    CloseBountyHeadshot()
+    local weaponHash = GetHashKey(weaponModel)
+    RemoveWeaponFromPed(PlayerPedId(), weaponHash)
+    SetPedAmmo(PlayerPedId(), weaponHash, 0)
+    SetAmmoInClip(PlayerPedId(), weaponHash, 0)
+
+    Citizen.Trace('Mission complete.\n')
+end
 
 function CreatePedHeadshot(ped)
     local handle = RegisterPedheadshot(ped)
@@ -93,14 +106,14 @@ function SpawnTargetPed()
 
     local targetCoords = GetEntityCoords(spawnedPed)
 
-    local targetBlipExact = AddBlipForCoord(targetCoords)
+    targetBlipExact = AddBlipForCoord(targetCoords)
     AddTextEntry('MYBLIP', 'Target')
     BeginTextCommandSetBlipName('MYBLIP')
     EndTextCommandSetBlipName(targetBlipExact)
     SetBlipSprite(targetBlipExact, 160)
     SetBlipColour(targetBlipExact, 61)
 
-    local targetBlipArea = AddBlipForRadius(targetCoords, 100.0)
+    targetBlipArea = AddBlipForRadius(targetCoords, 100.0)
     SetBlipColour(targetBlipArea, 61)
     SetBlipAlpha(targetBlipArea, 40)
 
@@ -109,8 +122,32 @@ end
 
 function GivePlayerWeapon(weapon_name)
     local weaponHash = GetHashKey(weapon_name)
-    --TODO Remember to remove weapon when mission is done
     GiveWeaponToPed(PlayerPedId(), weaponHash, 20, false, true)
+end
+
+function WaitForTargetDeath()
+    Citizen.CreateThread(function()
+        while(true) do
+            Wait(0)
+
+            if(IsPedShooting(PlayerPedId()) and not IsPedDeadOrDying(targetPed, true)) then
+                FreezeEntityPosition(targetPed, false)
+            elseif(IsPedDeadOrDying(targetPed, true)) then
+                local killerPedId = GetPedSourceOfDeath(targetPed)
+
+                if (killerPedId == PlayerPedId()) then
+                    EndBounty()
+                    break
+                end
+            end
+        end
+    end)
+end
+
+function CloseBountyHeadshot()
+    SendNUIMessage({
+        type = 'close-target'
+    })
 end
 
 

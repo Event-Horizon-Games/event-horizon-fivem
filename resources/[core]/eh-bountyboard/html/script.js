@@ -11,7 +11,6 @@ window.addEventListener('message', (event) => {
 
 
 function showTarget(picture) {
-    console.log(picture);
     const pictureURL = `https://nui-img/${picture}/${picture}?v=${Date.now()}`;
 
     $('body').css('display', 'block')
