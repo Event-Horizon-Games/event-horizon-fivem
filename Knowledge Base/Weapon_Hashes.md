@@ -6,7 +6,6 @@ GolfClub = 0x440E4788,
 Crowbar = 0x84BD7BFD,
 Pistol = 0x1B06D571,
 CombatPistol = 0x5EF9FEC4,
-APPistol = 0x22D8FE39,
 Pistol50 = 0x99AEEB3B,
 MicroSMG = 0x13532244,
 SMG = 0x2BE6766B,
@@ -55,6 +54,7 @@ Unarmed = 0xA2719263
 | Weapon Name | Spawn Name | Model Hash | Hex Hash |
 | -- | -- | -- | -- |
 | Advanced Rifle | weapon_advancedrifle | 584646201 | 0xAF113F99 |
+| AP Pistol | weapon_appistol | 584646201 | 0x22D8FE39 |
 
     
     "Hash": 584646201,
