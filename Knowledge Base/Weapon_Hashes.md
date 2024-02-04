@@ -57,10 +57,6 @@ Unarmed = 0xA2719263
 | AP Pistol | weapon_appistol | 584646201 | 0x22D8FE39 |
 
     
-    "Hash": 584646201,
-    "Name": "AP Pistol",
-    "SpawnName": "weapon_appistol"
-  },
   {
     "Hash": 3220176749,
     "Name": "Assault Rifle",
