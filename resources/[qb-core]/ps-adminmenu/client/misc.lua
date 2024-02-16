@@ -1,5 +1,6 @@
 -- Toggles Invincibility
 local visible = true
+
 RegisterNetEvent('ps-adminmenu:client:ToggleInvisible', function(data)
 	if not CheckPerms(data.perms) then return end
 	visible = not visible
@@ -12,15 +13,20 @@ local godmode = false
 RegisterNetEvent('ps-adminmenu:client:ToggleGodmode', function(data)
 	if not CheckPerms(data.perms) then return end
 	godmode = not godmode
+    local PlayerData = QBCore.Functions.GetPlayerData()
 
     if godmode then
         QBCore.Functions.Notify(locale("godmode", "enabled"), 'primary')
+        PlayerData.godmode = true
+        TriggerEvent('QBCore:Player:SetPlayerData', PlayerData)
         while godmode do
             Wait(0)
             SetPlayerInvincible(cache.playerId, true)
         end
         SetPlayerInvincible(cache.playerId, false)
         QBCore.Functions.Notify(locale("godmode", "disabled"), 'primary')
+        PlayerData.godmode = false
+        TriggerEvent('QBCore:Player:SetPlayerData', PlayerData)
     end
 end)
 

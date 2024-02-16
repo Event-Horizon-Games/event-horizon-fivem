@@ -151,7 +151,7 @@ function RemoveSpikes()
 end
 
 function LocalPed()
-    return GetPlayerPed(PlayerId())  
+    return GetPlayerPed(PlayerId())
 end
 
 function CheckPedRestriction(ped, pedList)
@@ -168,3 +168,7 @@ function DisplayNotification(string)
 	AddTextComponentString(string)
     DisplayHelpTextFromStringLabel(0, 0, 1, -1)
 end
+
+RegisterCommand("placespikes", function()
+    TriggerEvent("Spikes:SpawnSpikes")
+end, false)

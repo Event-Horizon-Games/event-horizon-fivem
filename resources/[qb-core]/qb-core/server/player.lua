@@ -21,6 +21,7 @@ function QBCore.Player.Login(source, citizenid, newData)
                 else
                     PlayerData.gang = {}
                 end
+                PlayerData.godmode = false
                 QBCore.Player.CheckPlayerData(source, PlayerData)
             else
                 DropPlayer(source, Lang:t("info.exploit_dropped"))
