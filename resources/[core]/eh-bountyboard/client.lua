@@ -31,7 +31,7 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     options = {
         {
             type = "client",
-            event = "eh-bountyboard:startbounty",
+            event = "eh-bountyboard:createbountymenu",
             icon = 'fa-solid fa-person-chalkboard',
             label = 'Browse bounties',
             canInteract = function(entity, distance, data)
@@ -41,6 +41,24 @@ exports['qb-target']:AddTargetEntity(bountyBoard, {
     },
     distance = 4.0,
 })
+
+RegisterNetEvent("eh-bountyboard:createbountymenu", function()
+    exports['qb-menu']:openMenu({
+        {
+            header = 'Available Bounties',
+            icon = 'fas fa-file-invoice-dollar',
+            isMenuHeader = true, -- Set to true to make a nonclickable title
+        },
+        {
+            header = 'Assassanation Mission',
+            txt = 'This bounty has you hunt down and execute a given target. High risk with an equally high reward.',
+            icon = 'fas fa-crosshairs',
+            params = {
+                event = 'eh-bountyboard:startbounty'
+            }
+        },
+    })
+end)
 
 RegisterNetEvent("eh-bountyboard:startbounty", function()
     StartBounty()
