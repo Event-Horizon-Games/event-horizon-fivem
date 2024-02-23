@@ -16,3 +16,9 @@ files {
     'html/script.js',
     'html/style.css',
 }
+
+dependencies {
+    'ps-adminmenu',
+    'qb-core',
+    'qb-menu'
+}
