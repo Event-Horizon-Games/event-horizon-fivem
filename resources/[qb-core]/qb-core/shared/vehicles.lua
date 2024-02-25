@@ -722,6 +722,14 @@ local Vehicles = {
     {['model'] = 'openwheel1',    ['name'] = 'BR8',                           ['brand'] = 'Benefactor',      ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
     {['model'] = 'formula2',      ['name'] = 'R88',                           ['brand'] = 'Ocelot',          ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
     {['model'] = 'formula',       ['name'] = 'PR4',                           ['brand'] = 'Progen',          ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
+    {['model'] = 'nkscout',          ['name'] = 'Police Scout',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'nkbuffalos',          ['name'] = 'Police Buffalo',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'nkgauntlet4',          ['name'] = 'Police Gauntlet',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'nkscout2020',          ['name'] = 'Police Scout 2020',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'nktorrence',          ['name'] = 'Police Torrence',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'police3slick',          ['name'] = 'Police Slick',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'psscout',          ['name'] = 'Police Scout PS',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'umkscout',          ['name'] = 'Police Unmarked Scout',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
 }
 
 for i=1, #Vehicles do

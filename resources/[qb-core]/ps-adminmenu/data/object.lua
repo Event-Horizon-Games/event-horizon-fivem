@@ -20196,4 +20196,12 @@ return {
 	[799622040] = "v_ret_washpow2",
 	[-1261668690] = "v_44_g_kitche_mirror",
 	[1047056850] = "xs_prop_x18_hangar_light_b_l1",
+    [-1286135866] = "nkscout",
+    [332926265] = "nkbuffalos",
+    [-1894413843] = "nkgauntlet4",
+    [1070722609] = "nkscout2020",
+    [1418777743] = "nktorrence",
+    [-1552452598] = "police3slick",
+    [-28940919] = "psscout",
+    [-879194100] = "umkscout"
 }
