@@ -168,6 +168,14 @@ function CloseBountyHeadshot()
     })
 end
 
+function GetTargetModel()
+    local targets = Config.BountyTargetModels
+    local targetNum = #targets
+
+    local randIndex = math.random(targetNum)
+    return targets[randIndex]
+end
+
 
 
 
