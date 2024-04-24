@@ -162,6 +162,8 @@ function WaitForTargetDeath()
     end)
 end
 
+-- TODO Give keys when admin spawning car
+
 function CloseBountyHeadshot()
     SendNUIMessage({
         type = 'close-target'
@@ -176,8 +178,29 @@ function GetTargetModel()
     return targets[randIndex]
 end
 
+function GetTargetLocation()
+    local targets = Config.BountyTargetLocations
+    local targetNum = #targets
 
+    local randIndex = math.random(targetNum)
+    return targets[randIndex]
+end
 
+function GetTargetIdentifier()
+    local targets = Config.BountyTargetIdentifiers
+    local targetNum = #targets
+
+    local randIndex = math.random(targetNum)
+    return targets[randIndex]
+end
+
+function GetBountyMissionType()
+    local targets = Config.BountyMissionTypes
+    local targetNum = #targets
+
+    local randIndex = math.random(targetNum)
+    return targets[randIndex]
+end
 
 AddEventHandler('onResourceStop', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then
