@@ -1,7 +1,7 @@
 fx_version 'cerulean'
 game 'gta5'
 
-author 'Gravity'
+author '919DESIGN & bombcheck'
 version '1.0.0'
 
 ui_page 'html/index.html'
@@ -11,5 +11,5 @@ files {
 }
 
 client_scripts {
-    'client.lua'
+    'client/main.lua',
 }

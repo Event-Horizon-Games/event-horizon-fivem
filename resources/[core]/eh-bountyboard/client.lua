@@ -107,7 +107,7 @@ function CreatePedHeadshot(ped)
 end
 
 function SpawnTargetPed()
-    local targetModel = "a_m_m_business_01"
+    local targetModel = GetTargetModel()
     if not HasModelLoaded(targetModel) then
         -- If the model isnt loaded we request the loading of the model and wait that the model is loaded
         RequestModel(targetModel)
@@ -120,18 +120,19 @@ function SpawnTargetPed()
     local spawnedPed = CreatePed(28, GetHashKey(targetModel), 187.04, -784.54, 47.08, 198.59, true, true)
     PlaceObjectOnGroundProperly(spawnedPed)
     FreezeEntityPosition(spawnedPed, true)
-    TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_AA_SMOKE', 0, true)
+    ApplyPedIdentifier(spawnedPed)
 
     local targetCoords = GetEntityCoords(spawnedPed)
+    local targetCoordsWithOffset = vector3(targetCoords.x + math.random(10, 30), targetCoords.y - math.random(10, 30), targetCoords.z)
 
-    targetBlipExact = AddBlipForCoord(targetCoords)
+    targetBlipExact = AddBlipForCoord(targetCoordsWithOffset)
     AddTextEntry('MYBLIP', 'Target')
     BeginTextCommandSetBlipName('MYBLIP')
     EndTextCommandSetBlipName(targetBlipExact)
     SetBlipSprite(targetBlipExact, 160)
     SetBlipColour(targetBlipExact, 61)
 
-    targetBlipArea = AddBlipForRadius(targetCoords, 100.0)
+    targetBlipArea = AddBlipForRadius(targetCoordsWithOffset, 100.0)
     SetBlipColour(targetBlipArea, 61)
     SetBlipAlpha(targetBlipArea, 40)
 
@@ -139,6 +140,8 @@ function SpawnTargetPed()
 end
 
 function GivePlayerWeapon(weapon_name)
+
+    -- TODO give via qb inventory instead of weapon wheel
     local weaponHash = GetHashKey(weapon_name)
     GiveWeaponToPed(PlayerPedId(), weaponHash, 20, false, true)
 end
@@ -168,6 +171,26 @@ function CloseBountyHeadshot()
     SendNUIMessage({
         type = 'close-target'
     })
+end
+
+function ApplyPedIdentifier(spawnedPed)
+    local randID = GetTargetIdentifier()
+
+    if randID == "smoke" then
+        TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_AA_SMOKE', 0, true)
+    end
+
+    if randID == "drink" then
+        TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_STUPOR', 0, true)
+    end
+
+    if randID == "nails" then
+        TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_STAND_IMPATIENT', 0, true)
+    end
+
+    if randID == "cough" then
+        TaskStartScenarioInPlace(spawnedPed, 'WORLD_HUMAN_DRUG_DEALER_HARD', 0, true)
+    end
 end
 
 function GetTargetModel()

@@ -1,3 +1,11 @@
+-- Hide weapon wheel permanently
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        HideHudComponentThisFrame(19)
+    end
+end)
+
 ---@diagnostic disable: duplicate-doc-field
 
 local spawnedPeds = {}
