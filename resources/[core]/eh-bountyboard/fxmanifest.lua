@@ -8,7 +8,8 @@ version '0.0.1'
 ui_page 'html/index.html'
 
 client_scripts {
-    'client.lua'
+    'client.lua',
+    'config.lua'
 }
 
 files {
@@ -18,7 +19,6 @@ files {
 }
 
 dependencies {
-    'ps-adminmenu',
     'qb-core',
     'qb-menu'
 }

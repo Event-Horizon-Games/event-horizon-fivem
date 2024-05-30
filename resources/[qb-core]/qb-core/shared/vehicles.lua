@@ -752,6 +752,8 @@ local Vehicles = {
     {['model'] = 'psscout',          ['name'] = 'Police Scout PS',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
     {['model'] = 'umkscout',          ['name'] = 'Police Unmarked Scout',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
     {['model'] = 'sahp2stx',          ['name'] = 'Police Buffalo STX',                   ['brand'] = 'Bravado',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'lspdcara',          ['name'] = 'Police Cara-Cara',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
+    {['model'] = 'lspdcara2',          ['name'] = 'Police Unmarked Cara-Cara',                   ['brand'] = 'Vapid',           ['price'] = 100000,  ['categoryLabel'] = 'Emergency',       ['shop'] = 'none'},
 }
 
 for i = 1, #Vehicles do

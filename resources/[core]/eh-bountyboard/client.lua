@@ -94,6 +94,15 @@ function EndBounty()
     Citizen.Trace('Mission complete.\n')
 end
 
+RegisterCommand("holster", function()
+    local hashedWeaponModel = GetHashKey(weaponModel)
+    if GetCurrentPedWeapon(PlayerPedId(), hashedWeaponModel, false) then
+        SetCurrentPedWeapon(PlayerPedId(), GetHashKey("WEAPON_UNARMED"), true)
+    else
+        SetCurrentPedWeapon(PlayerPedId(), hashedWeaponModel, true)
+    end
+end, false)
+
 function CreatePedHeadshot(ped)
     local handle = RegisterPedheadshot(ped)
     while not IsPedheadshotReady(handle) or not IsPedheadshotValid(handle) do
