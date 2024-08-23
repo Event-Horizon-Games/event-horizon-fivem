@@ -1,7 +1,7 @@
 ---@diagnostic disable: missing-parameter, param-type-mismatch
 
 local boardModel = 'h4_prop_h4_board_01a'
-local weaponModel = 'WEAPON_SNIPERRIFLE'
+local weaponModel
 local targetPed
 local targetBlipExact
 local targetBlipArea
@@ -80,6 +80,13 @@ function StartBounty()
         picture = headshot
     })
 
+    local type = GetBountyMissionType()
+    if type == "sniper" then
+        weaponModel = "WEAPON_SNIPERRIFLE"
+    else
+        weaponModel = "WEAPON_SNIPERRIFLE"
+    end
+
     GivePlayerWeapon(weaponModel)
     WaitForTargetDeath()
 end
@@ -148,11 +155,15 @@ function SpawnTargetPed()
     return spawnedPed
 end
 
-function GivePlayerWeapon(weapon_name)
+function GivePlayerWeapon(weapon_type)
 
     -- TODO give via qb inventory instead of weapon wheel
     local weaponHash = GetHashKey(weapon_name)
     GiveWeaponToPed(PlayerPedId(), weaponHash, 20, false, true)
+
+    -- if weapon_type == "sniper" then
+    --     exports['qb-inventory']:AddItem(PlayerPedId(), "", 1, false, false, "cum", true)
+    -- end
 end
 
 function WaitForTargetDeath()
