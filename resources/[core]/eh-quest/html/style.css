@@ -12,16 +12,16 @@ body {
 body {
     display: flex;
     background: transparent;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
     font: 24px/1.4 "RobotoDraft", sans-serif;
     color: #fff;
 }
 
-section {
+#checkbox {
     height: 60%;
     width: 20%;
-    display: flex;
+    display: none;
     flex-direction: column;
     padding: 0.5em;
     align-items: center;
