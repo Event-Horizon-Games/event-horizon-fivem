@@ -6,16 +6,26 @@ RegisterCommand("check", function()
     Check()
 end)
 
+RegisterCommand("title", function(args)
+    SetTitle(args)
+end)
+
 function Start()
     SendNUIMessage({
         action = 'start',
     })
 end
 
-function Check()
+function SetTitle(title)
     SendNUIMessage({
-        action = 'check',
+        action = 'title',
+        value = "This is a title"
     })
 end
 
-exports("stop", stop)
+function Check()
+    SendNUIMessage({
+        action = 'check',
+        value = "Hello this is a goal.",
+    })
+end
