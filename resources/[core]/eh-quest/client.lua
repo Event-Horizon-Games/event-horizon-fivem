@@ -29,3 +29,10 @@ function Check()
         value = "Hello this is a goal.",
     })
 end
+
+function AddItem()
+    SendNUIMessage({
+        action = 'add',
+        value = "Hello this is a goal.",
+    })
+end

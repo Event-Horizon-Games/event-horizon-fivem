@@ -11,6 +11,9 @@ $(document).ready(function () {
         else if (data.action == 'title') {
             SetTitle(data.value);
         }
+        else if (data.action == 'add') {
+            AddItem(data.value);
+        }
     });
 });
 
