@@ -1,6 +1,6 @@
 $(document).ready(function () {
     window.addEventListener('message', function (event) {
-        let data = event.data
+        let data = event.data;
         if (data.action == 'start') {
             document.getElementById("checkbox").style.display = "flex";
         }
@@ -16,6 +16,8 @@ $(document).ready(function () {
         }
     });
 });
+
+//TODO figure out a way to keep track of created items for reference later
 
 function SetTitle(_title) {
     var title = document.getElementById("checkboxtitle");
