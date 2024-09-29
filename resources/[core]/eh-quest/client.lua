@@ -2,8 +2,8 @@ RegisterCommand("start", function()
     Start()
 end)
 
-RegisterCommand("check", function()
-    Check()
+RegisterCommand("complete", function()
+    Complete()
 end)
 
 RegisterCommand("title", function(source, args, raw)
@@ -37,5 +37,11 @@ function AddItem(text)
     SendNUIMessage({
         action = 'add',
         value = text,
+    })
+end
+
+function Complete()
+    SendNUIMessage({
+        action = 'complete',
     })
 end

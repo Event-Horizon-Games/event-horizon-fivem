@@ -1,12 +1,14 @@
+var itemCount = 1;
+var itemStack = [];
+
 $(document).ready(function () {
     window.addEventListener('message', function (event) {
         let data = event.data;
         if (data.action == 'start') {
             document.getElementById("checkbox").style.display = "flex";
         }
-        else if (data.action == 'check') {
-            AddItem(data.value);
-            document.getElementById("test").checked = true;
+        else if (data.action == 'complete') {
+            CompleteQuest();
         }
         else if (data.action == 'title') {
             SetTitle(data.value);
@@ -17,8 +19,6 @@ $(document).ready(function () {
     });
 });
 
-//TODO figure out a way to keep track of created items for reference later
-
 function SetTitle(_title) {
     var title = document.getElementById("checkboxtitle");
 
@@ -26,15 +26,17 @@ function SetTitle(_title) {
 }
 
 function AddItem(content) {
+    const thisId = itemCount;
     const checkBox = document.getElementById("checkbox");
 
     //create input element
     var inputElement = document.createElement("input");
-    inputElement.setAttribute("id", "test");
+    inputElement.setAttribute("id", `input-${thisId}`);
     inputElement.setAttribute("type", "checkbox");
 
     //create the label for the input element
     var labelElement = document.createElement("label");
+    labelElement.setAttribute("id", `label-${thisId}`);
     labelElement.setAttribute("for", "test");
     labelElement.setAttribute("type", "checkbox");
     labelElement.innerHTML =
@@ -46,4 +48,17 @@ function AddItem(content) {
 
     checkBox.appendChild(inputElement);
     checkBox.appendChild(labelElement);
+
+    StoreQuest(thisId);
+    itemCount++;
+}
+
+function StoreQuest(_id) {
+    itemStack.push(_id);
+}
+
+function CompleteQuest() {
+    const htmlId = itemStack.shift();
+
+    document.getElementById(`input-${htmlId}`).checked = true;
 }
