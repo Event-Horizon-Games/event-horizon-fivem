@@ -5,25 +5,25 @@
 -- Blip for thing to steal
 -- Dropoff point
 
-exports['qb-target']:AddBoxZone("eh-taken-mission-start", vector3(487.29, -993.99, 30.69), 0.6, 0.6,
-    {
-        name = "eh-taken-mission-start",
-        heading = 358.0,
-        debugPoly = true,
-        minZ = 30.69,
-        maxZ = 31.1,
-    }, {
-    options = {
-        {
-            type = "client",
-            event = "eh-taken:start-mission",
-            icon = 'fa-solid fa-fingerprint',
-            label = 'Start hostage mission',
-            targeticon = 'fas fa-example',
-        }
-    },
-    distance = 2.0,
+exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.97, 29.03), 5, 5, {
+    name = "eh-taken:start-point",
+    heading = 299,
+    debugPoly = false,
+    minZ = 10,
+    maxZ = 60
 })
+
+AddEventHandler('bt-polyzone:enter', function(name)
+    if name == "eh-taken:start-point" then
+        exports['eh-notify']:StartPersistentNotify('eh-taken:mission-start','info', 'Start Mission', 'Press [E] to start mission.')
+    end
+end)
+
+AddEventHandler('bt-polyzone:exit', function(name)
+    if name == "eh-taken:start-point" then
+        exports['eh-notify']:StopPersistentNotify('eh-taken:mission-start')
+    end
+end)
 
 RegisterNetEvent('eh-taken:start-mission', function()
     -- Play hostage phone call
