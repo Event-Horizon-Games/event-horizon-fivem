@@ -5,6 +5,9 @@
 -- Blip for thing to steal
 -- Dropoff point
 
+-- TODO add polytarget for one of the chairs
+-- Event will wait 5 seconds then ring phone and start the mission
+
 exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.97, 29.03), 5, 5, {
     name = "eh-taken:start-point",
     heading = 299,
@@ -14,6 +17,9 @@ exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.
 })
 
 AddEventHandler('bt-polyzone:enter', function(name)
+    -- Quest to take a seat
+
+    if ispla
     if name == "eh-taken:start-point" then
         exports['eh-notify']:StartPersistentNotify('eh-taken:mission-start','info', 'Start Mission', 'Press [E] to start mission.')
     end
@@ -32,4 +38,5 @@ RegisterNetEvent('eh-taken:start-mission', function()
     -- Add Blip to the thing to steal with a waypoint
 
     -- Add quest to get in car, then head to steal point
+    
 end)
