@@ -14,7 +14,7 @@ $(document).ready(function () {
             SetTitle(data.value);
         }
         else if (data.action == 'add') {
-            AddItem(data.value);
+            AddItem(data.id, data.content);
         }
     });
 });
@@ -25,18 +25,17 @@ function SetTitle(_title) {
     title.innerText = _title;
 }
 
-function AddItem(content) {
-    const thisId = itemCount;
+function AddItem(id, content) {
     const checkBox = document.getElementById("checkbox");
 
     //create input element
     var inputElement = document.createElement("input");
-    inputElement.setAttribute("id", `input-${thisId}`);
+    inputElement.setAttribute("id", `input-${id}`);
     inputElement.setAttribute("type", "checkbox");
 
     //create the label for the input element
     var labelElement = document.createElement("label");
-    labelElement.setAttribute("id", `label-${thisId}`);
+    labelElement.setAttribute("id", `label-${id}`);
     labelElement.setAttribute("for", "test");
     labelElement.setAttribute("type", "checkbox");
     labelElement.innerHTML =

@@ -34,9 +34,12 @@ function Check()
 end
 
 function AddItem(text)
+    local itemId = CreateItemId(text)
+
     SendNUIMessage({
         action = 'add',
-        value = text,
+        id = itemId,
+        content = text,
     })
 end
 
@@ -44,4 +47,9 @@ function Complete()
     SendNUIMessage({
         action = 'complete',
     })
+end
+
+function CreateItemId(content)
+    local sub = string.sub(content, 1, 10)
+    return string.gsub(sub, " ", "-")
 end
