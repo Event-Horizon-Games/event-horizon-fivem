@@ -1,6 +1,3 @@
-var itemCount = 1;
-var itemStack = [];
-
 $(document).ready(function () {
     window.addEventListener('message', function (event) {
         let data = event.data;
@@ -8,13 +5,16 @@ $(document).ready(function () {
             document.getElementById("checkbox").style.display = "flex";
         }
         else if (data.action == 'complete') {
-            CompleteQuest();
+            CompleteItem(data.itemId);
         }
         else if (data.action == 'title') {
             SetTitle(data.value);
         }
         else if (data.action == 'add') {
             AddItem(data.id, data.content);
+        }
+        else if (data.action == 'close') {
+
         }
     });
 });
@@ -47,17 +47,13 @@ function AddItem(id, content) {
 
     checkBox.appendChild(inputElement);
     checkBox.appendChild(labelElement);
-
-    StoreQuest(thisId);
-    itemCount++;
 }
 
-function StoreQuest(_id) {
-    itemStack.push(_id);
+function CompleteItem(itemId) {
+    document.getElementById(`input-${itemId}`).checked = true;
 }
 
-function CompleteQuest() {
-    const htmlId = itemStack.shift();
-
-    document.getElementById(`input-${htmlId}`).checked = true;
+function Close() {
+    const check = document.getElementById(`checkbox`);
+    check.remove();
 }

@@ -1,5 +1,3 @@
---TODO Create pzone at a phone in the cafe with a mission prompt
-
 --LOCATIONS:
 -- Payphone near cafe
 -- Blip for thing to steal
@@ -19,7 +17,7 @@ exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.
 AddEventHandler('bt-polyzone:enter', function(name)
     -- Quest to take a seat
 
-    if ispla
+
     if name == "eh-taken:start-point" then
         exports['eh-notify']:StartPersistentNotify('eh-taken:mission-start','info', 'Start Mission', 'Press [E] to start mission.')
     end
@@ -35,8 +33,20 @@ RegisterNetEvent('eh-taken:start-mission', function()
     -- Play hostage phone call
     TriggerEvent('InteractSound_CL:PlayOnOne', 'witcher3_quest_complete', 0.9)
 
+    exports['eh-quest']:SetTitle("Drive to the meet")
+    local seatId = exports['eh-quest']:AddItem("Sit in the driver's seat")
+
+    while true do
+        Citizen.Wait(0)
+
+        if IsPedInAnyVehicle(PlayerPedId(), false) then
+            exports['eh-quest']:Complete()
+            break
+        end
+    end
+
     -- Add Blip to the thing to steal with a waypoint
 
     -- Add quest to get in car, then head to steal point
-    
+
 end)

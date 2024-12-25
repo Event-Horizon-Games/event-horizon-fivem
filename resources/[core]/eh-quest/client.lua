@@ -1,24 +1,10 @@
-RegisterCommand("start", function()
-    Start()
-end)
-
-RegisterCommand("complete", function()
-    Complete()
-end)
-
-RegisterCommand("title", function(source, args, raw)
-    SetTitle(args)
-end)
-
-RegisterCommand("additem", function (source, args, raw)
-    AddItem(args)
-end)
-
 function Start()
     SendNUIMessage({
         action = 'start',
     })
 end
+
+exports("Start", Start)
 
 function SetTitle(title)
     SendNUIMessage({
@@ -27,11 +13,7 @@ function SetTitle(title)
     })
 end
 
-function Check()
-    SendNUIMessage({
-        action = 'check',
-    })
-end
+exports("SetTitle", SetTitle)
 
 function AddItem(text)
     local itemId = CreateItemId(text)
@@ -41,13 +23,28 @@ function AddItem(text)
         id = itemId,
         content = text,
     })
+
+    return itemId
 end
 
-function Complete()
+exports("AddItem", AddItem)
+
+function Complete(id)
     SendNUIMessage({
         action = 'complete',
+        itemId = id
     })
 end
+
+exports("Complete", Complete)
+
+function CloseQuest()
+    SendNUIMessage({
+        action = 'close'
+    })
+end
+
+exports("CloseQuest", CloseQuest)
 
 function CreateItemId(content)
     local sub = string.sub(content, 1, 10)
