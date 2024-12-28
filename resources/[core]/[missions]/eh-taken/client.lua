@@ -1,11 +1,3 @@
---LOCATIONS:
--- Payphone near cafe
--- Blip for thing to steal
--- Dropoff point
-
--- TODO add polytarget for one of the chairs
--- Event will wait 5 seconds then ring phone and start the mission
-
 --Coords
 -- Car spawn: -828.47, -758.38, 22.68, 268.3
 -- Meetup -694.82, -631.42, 24.92, 320.49
@@ -24,6 +16,8 @@ exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.
     maxZ = 60
 })
 
+
+--[[
 exports['qb-target']:AddTargetModel(Config.Peds, {
 	options = {
 		{
@@ -44,6 +38,7 @@ exports['qb-target']:AddTargetModel(Config.Peds, {
 	},
 	distance = 2.5,
 })
+]]
 
 AddEventHandler('bt-polyzone:enter', function(name)
     if name == "eh-taken:start-point" then
@@ -73,15 +68,11 @@ RegisterNetEvent('eh-taken:start-mission', function()
         Citizen.Wait(0)
 
         if IsPedInAnyVehicle(PlayerPedId(), false) then
-            exports['eh-quest']:Complete()
+            exports['eh-quest']:Complete(seatId)
+            -- Task to drive to the info guy
             break
         end
     end
-
-    -- Add Blip to the thing to steal with a waypoint
-
-    -- Add quest to get in car, then head to steal point
-
 end)
 
 function ListenForMissionStart()
