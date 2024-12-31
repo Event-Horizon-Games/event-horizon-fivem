@@ -57,10 +57,18 @@ end)
 
 RegisterNetEvent('eh-taken:start-mission', function()
     exports['eh-quest']:SetTitle("So it begins")
-    local seatId = exports['eh-quest']:AddItem("Take a seat")
+    local callId = exports['eh-quest']:AddItem("Listen to the call")
 
     -- Play hostage phone call
     TriggerEvent('InteractSound_CL:PlayOnOne', 'witcher3_quest_complete', 0.9)
+
+    -- Wait for the call to end
+    Citizen.Wait(30000)
+    exports['eh-quest']:Complete(callId)
+
+    local missionVehicle = SpawnMissionVehicle()
+    local vehicleBlip = AddBlipForEntity(missionVehicle)
+    local vehicleWaypoint = SetNewWaypoint(-828.47, -758.38)
 
     local seatId = exports['eh-quest']:AddItem("Sit in the drivers seat")
 
@@ -69,11 +77,15 @@ RegisterNetEvent('eh-taken:start-mission', function()
 
         if IsPedInAnyVehicle(PlayerPedId(), false) then
             exports['eh-quest']:Complete(seatId)
-            -- Task to drive to the info guy
+            PickupQuestGuy()
             break
         end
     end
 end)
+
+function PickupQuestGuy()
+
+end
 
 function ListenForMissionStart()
     while isInMissionStartZone do
@@ -83,4 +95,8 @@ function ListenForMissionStart()
             isOnMission = true
         end
     end
+end
+
+function SpawnMissionVehicle()
+    return CreateVehicle("Deity", -828.47, -758.38, 22.68, 268.3, true, true)
 end
