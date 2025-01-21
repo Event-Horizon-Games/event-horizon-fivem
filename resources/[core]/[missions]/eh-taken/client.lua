@@ -8,6 +8,8 @@
 local isInMissionStartZone = false
 local isOnMission = false
 
+local questPedBlip
+
 exports['eh-polyzone']:AddBoxZone("eh-taken:start-point", vector3(-853.54, -591.97, 29.03), 5, 5, {
     name = "eh-taken:start-point",
     heading = 299,
@@ -60,6 +62,7 @@ RegisterNetEvent('eh-taken:start-mission', function()
     local callId = exports['eh-quest']:AddItem("Listen to the call")
 
     -- Play hostage phone call
+    -- TODO record the audio
     TriggerEvent('InteractSound_CL:PlayOnOne', 'witcher3_quest_complete', 0.9)
 
     -- Wait for the call to end
@@ -77,6 +80,8 @@ RegisterNetEvent('eh-taken:start-mission', function()
 
         if IsPedInAnyVehicle(PlayerPedId(), false) then
             exports['eh-quest']:Complete(seatId)
+            DeleteWaypoint()
+            RemoveBlip(vehicleBlip)
             PickupQuestGuy()
             break
         end
@@ -84,7 +89,34 @@ RegisterNetEvent('eh-taken:start-mission', function()
 end)
 
 function PickupQuestGuy()
+    local questGiverPed = SpawnPed('a_f_y_femaleagent', {-694.82, -631.42, 24.92, 320.49})
+    TaskStartScenarioInPlace(questGiverPed, "WORLD_HUMAN_GUARD_STAND", 0, true)
+    questPedBlip = AddBlipForEntity(questGiverPed)
+    SetNewWaypoint(-694.82, -631.42)
 
+    exports['qb-target']:AddTargetModel("a_f_y_femaleagent", {
+        options = {
+            {
+                event = "eh-taken:questpedinteract",
+                icon = "fas fa-hands",
+                label = "Grab data",
+            },
+        },
+        distance = 2.5,
+    })
+end
+
+RegisterNetEvent("eh-taken:questpedinteract", function()
+    DeleteWaypoint()
+    RemoveBlip(questPedBlip)
+
+    DiscoverBody()
+end)
+
+function DiscoverBody()
+    local wifePed = SpawnPed('a_f_y_femaleagent', {1714.51, -1472.33, 112.52, 320.49})
+    TaskStartScenarioInPlace(wifePed, "WORLD_HUMAN_BUM_SLUMPED", 0, true)
+    wifeLocationBlip = AddBlipForEntity(wifePed)
 end
 
 function ListenForMissionStart()
