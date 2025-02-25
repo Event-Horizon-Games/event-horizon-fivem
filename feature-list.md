@@ -28,6 +28,7 @@ seems like clearly the best open source full feature phone
 - [radio](https://forum.cfx.re/t/free-basic-radio-system-stg-qb-esx-qbox/5302414)
 - [Lore Images](https://forum.cfx.re/t/free-1300-fivem-lore-friendly-optimized-inventory-images/5220858)
 - [Binoculars](https://forum.cfx.re/t/free-binoculars-system-esx-qb-core-qbx-custom/5298553)
+- [Megaphone](https://forum.cfx.re/t/free-megaphone-script/5049366)
 
 ## Notifications
 
@@ -56,10 +57,15 @@ seems like clearly the best open source full feature phone
 
 - [Gruppe 6 Security](https://forum.cfx.re/t/release-the-security-pack/5301860)
 - [Karuma Widebody](https://forum.cfx.re/t/free-kuruma-widebody/5302420)
+- [Police Scout](https://forum.cfx.re/t/free-lore-friendly-police-scout-2020-callsign-system/5295098)
+- [Hotdog Truck](https://forum.cfx.re/t/standalone-free-jakes-hotdog-van/5222792)
+- [Helicopter](https://forum.cfx.re/t/free-police-helicopter-supervolito/5219443)
+- [Unmarked buffalo](https://forum.cfx.re/t/free-unmarked-buffalo-4-police-vehicle/5198223)
 
 ## Dev tools
 
 - [Dolu Tool](https://forum.cfx.re/t/dolu-tool-mlo-debugging-object-spawner-more/5000677)
+- [Vehicle Handling UI](https://forum.cfx.re/t/free-fivem-vehicle-handling-editor/5307285)
 
 ## Misc
 
