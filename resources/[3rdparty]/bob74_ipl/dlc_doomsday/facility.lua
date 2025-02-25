@@ -57,7 +57,7 @@ DoomsdayFacility = {
     },
     Walls = {
         SetColor = function(color, refresh)
-            SetInteriorPropColor(DoomsdayFacility.interiorId, "set_int_02_shell", color)
+            SetInteriorEntitySetColor(DoomsdayFacility.interiorId, "set_int_02_shell", color)
 
             if refresh then
                 RefreshInterior(DoomsdayFacility.interiorId)
@@ -104,7 +104,7 @@ DoomsdayFacility = {
             DoomsdayFacility.Lounge.Clear(false)
 
             SetIplPropState(DoomsdayFacility.interiorId, lounge, true, refresh)
-            SetInteriorPropColor(DoomsdayFacility.interiorId, lounge, color)
+            SetInteriorEntitySetColor(DoomsdayFacility.interiorId, lounge, color)
         end,
         Clear = function(refresh)
             SetIplPropState(DoomsdayFacility.interiorId, {
@@ -124,7 +124,7 @@ DoomsdayFacility = {
             DoomsdayFacility.Sleeping.Clear(false)
 
             SetIplPropState(DoomsdayFacility.interiorId, sleep, true, refresh)
-            SetInteriorPropColor(DoomsdayFacility.interiorId, sleep, color)
+            SetInteriorEntitySetColor(DoomsdayFacility.interiorId, sleep, color)
         end,
         Clear = function(refresh)
             SetIplPropState(DoomsdayFacility.interiorId, {
@@ -143,7 +143,7 @@ DoomsdayFacility = {
             DoomsdayFacility.Security.Clear(false)
 
             SetIplPropState(DoomsdayFacility.interiorId, security, true, refresh)
-            SetInteriorPropColor(DoomsdayFacility.interiorId, security, color)
+            SetInteriorEntitySetColor(DoomsdayFacility.interiorId, security, color)
         end,
         Clear = function(refresh)
             SetIplPropState(DoomsdayFacility.interiorId, {
@@ -160,7 +160,7 @@ DoomsdayFacility = {
             DoomsdayFacility.Cannon.Clear(false)
 
             SetIplPropState(DoomsdayFacility.interiorId, cannon, true, refresh)
-            SetInteriorPropColor(DoomsdayFacility.interiorId, cannon, color)
+            SetInteriorEntitySetColor(DoomsdayFacility.interiorId, cannon, color)
         end,
         Clear = function(refresh)
             SetIplPropState(DoomsdayFacility.interiorId, {
@@ -182,13 +182,13 @@ DoomsdayFacility = {
 
                         RequestModel(model)
                         while not HasModelLoaded(model) do
-                            Citizen.Wait(0)
+                            Wait(0)
                         end
 
                         local privacyGlass = CreateObject(model, 367.99, 4827.745, -59.0, false, false, false)
 
                         SetEntityAsMissionEntity(privacyGlass, true, 0)
-                        SetEntityCollision_2(privacyGlass, false, 0)
+                        SetEntityCompletelyDisableCollision(privacyGlass, false, 0)
                         SetEntityInvincible(privacyGlass, true)
                         SetEntityAlpha(privacyGlass, 254, false)
                     end
@@ -211,7 +211,7 @@ DoomsdayFacility = {
                         if handle == 0 then
                             RequestModel(DoomsdayFacility.PrivacyGlass.controlModelHash)
                             while not HasModelLoaded(DoomsdayFacility.PrivacyGlass.controlModelHash) do
-                                Citizen.Wait(0)
+                                Wait(0)
                             end
 
                             local privacyGlass = CreateObjectNoOffset(DoomsdayFacility.PrivacyGlass.controlModelHash, DoomsdayFacility.PrivacyGlass.Bedroom.Control.position.x, DoomsdayFacility.PrivacyGlass.Bedroom.Control.position.y, DoomsdayFacility.PrivacyGlass.Bedroom.Control.position.z, false, false, false)
@@ -269,13 +269,13 @@ DoomsdayFacility = {
                             if entityToAttach ~= 0 then
                                 RequestModel(glass.modelHash)
                                 while not HasModelLoaded(glass.modelHash) do
-                                    Citizen.Wait(0)
+                                    Wait(0)
                                 end
 
                                 local privacyGlass = CreateObject(glass.modelHash, glass.entityPos.x, glass.entityPos.y, glass.entityPos.z, false, false, false)
 
                                 SetEntityAsMissionEntity(privacyGlass, true, false)
-                                SetEntityCollision_2(privacyGlass, false, 0)
+                                SetEntityCompletelyDisableCollision(privacyGlass, false, 0)
                                 SetEntityInvincible(privacyGlass, true)
                                 SetEntityAlpha(privacyGlass, 254, false)
                                 AttachEntityToEntity(privacyGlass, entityToAttach, -1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 2, 1)
@@ -301,7 +301,7 @@ DoomsdayFacility = {
                         if handle == 0 then
                             RequestModel(DoomsdayFacility.PrivacyGlass.controlModelHash)
                             while not HasModelLoaded(DoomsdayFacility.PrivacyGlass.controlModelHash) do
-                                Citizen.Wait(0)
+                                Wait(0)
                             end
 
                             local privacyGlass = CreateObjectNoOffset(DoomsdayFacility.PrivacyGlass.controlModelHash, DoomsdayFacility.PrivacyGlass.Lounge.Control.position.x, DoomsdayFacility.PrivacyGlass.Lounge.Control.position.y, DoomsdayFacility.PrivacyGlass.Lounge.Control.position.z, false, false, false)
@@ -366,7 +366,7 @@ DoomsdayFacility = {
             submarine = "set_int_02_trophy_sub",
 
             SetColor = function(color, refresh)
-                SetInteriorPropColor(DoomsdayFacility.interiorId, "set_int_02_trophy_sub", color)
+                SetInteriorEntitySetColor(DoomsdayFacility.interiorId, "set_int_02_trophy_sub", color)
 
                 if refresh then
                     RefreshInterior(DoomsdayFacility.interiorId)

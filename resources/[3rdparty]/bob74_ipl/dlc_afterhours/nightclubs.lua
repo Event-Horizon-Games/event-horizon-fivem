@@ -259,7 +259,7 @@ AfterHoursNightclubs = {
 
             Enable = function(trophy, state, color, refresh)
                 SetIplPropState(AfterHoursNightclubs.interiorId, trophy, state, refresh)
-                SetInteriorPropColor(AfterHoursNightclubs.interiorId, trophy, color)
+                SetInteriorEntitySetColor(AfterHoursNightclubs.interiorId, trophy, color)
             end
         },
         DryIce = {
@@ -287,11 +287,11 @@ AfterHoursNightclubs = {
                 if state then
                     RequestNamedPtfxAsset("scr_ba_club")
                     while not HasNamedPtfxAssetLoaded("scr_ba_club") do
-                        Citizen.Wait(0)
+                        Wait(0)
                     end
 
                     for key, emitter in pairs(AfterHoursNightclubs.Interior.DryIce.Emitters) do
-                        UseParticleFxAssetNextCall("scr_ba_club")
+                        UseParticleFxAsset("scr_ba_club")
                         StartParticleFxLoopedAtCoord("scr_ba_club_smoke_machine", emitter.pos.x, emitter.pos.y, emitter.pos.z, emitter.rot.x, emitter.rot.y, emitter.rot.z, AfterHoursNightclubs.Interior.DryIce.scale, false, false, false, true)
                     end
                 else

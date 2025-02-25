@@ -35,11 +35,17 @@ Global = {
         isInsideApartment5 = false,
         isInsideApartment6 = false
     },
+    Security = {
+        isInsideOffice1 = false,
+        isInsideOffice2 = false,
+        isInsideOffice3 = false,
+        isInsideOffice4 = false
+    },
 
     -- Set all interiors variables to false
     -- The loop inside 'interiorIdObserver' will set them to true
     ResetInteriorVariables = function()
-        for _, parentKey in pairs{"Biker", "FinanceOffices", "HighLife"} do
+        for _, parentKey in pairs{"Biker", "FinanceOffices", "HighLife", "Security"} do
             local t = Global[parentKey]
 
             for key in pairs(t) do
@@ -97,12 +103,12 @@ function SetIplPropState(interiorId, props, state, refresh)
             end
         else
             if state then
-                if not IsInteriorPropEnabled(interiorId, props) then
-                    EnableInteriorProp(interiorId, props)
+                if not IsInteriorEntitySetActive(interiorId, props) then
+                    ActivateInteriorEntitySet(interiorId, props)
                 end
             else
-                if IsInteriorPropEnabled(interiorId, props) then
-                    DisableInteriorProp(interiorId, props)
+                if IsInteriorEntitySetActive(interiorId, props) then
+                    DeactivateInteriorEntitySet(interiorId, props)
                 end
             end
         end
@@ -138,7 +144,7 @@ function DrawEmptyRect(name, model)
     local renderId = CreateNamedRenderTargetForModel(name, model)
 
     while not IsNamedRendertargetRegistered(name) do
-        Citizen.Wait(step)
+        Wait(step)
 
         currentTime = currentTime + step
 
@@ -167,15 +173,15 @@ function SetupScaleform(movieId, scaleformFunction, parameters)
             local p = parameters["p" .. tostring(i)]
 
             if p.type == "bool" then
-                PushScaleformMovieMethodParameterBool(p.value)
+                ScaleformMovieMethodAddParamBool(p.value)
             elseif p.type == "int" then
-                PushScaleformMovieMethodParameterInt(p.value)
+                ScaleformMovieMethodAddParamInt(p.value)
             elseif p.type == "float" then
-                PushScaleformMovieMethodParameterFloat(p.value)
+                ScaleformMovieMethodAddParamFloat(p.value)
             elseif p.type == "string" then
-                PushScaleformMovieMethodParameterString(p.value)
+                ScaleformMovieMethodAddParamTextureNameString(p.value)
             elseif p.type == "buttonName" then
-                PushScaleformMovieMethodParameterButtonName(p.value)
+                ScaleformMovieMethodAddParamPlayerNameString(p.value)
             end
         end
     end
@@ -189,9 +195,9 @@ function LoadStreamedTextureDict(texturesDict)
     local timeout = 5 * 1000
     local currentTime = 0
 
-    RequestStreamedTextureDict(texturesDict, 0)
+    RequestStreamedTextureDict(texturesDict, false)
     while not HasStreamedTextureDictLoaded(texturesDict) do
-        Citizen.Wait(step)
+        Wait(step)
 
         currentTime = currentTime + step
 
@@ -210,7 +216,7 @@ function LoadScaleform(scaleform)
     local handle = RequestScaleformMovie(scaleform)
 
     while not HasScaleformMovieLoaded(handle) do
-        Citizen.Wait(step)
+        Wait(step)
 
         currentTime = currentTime + step
 
@@ -229,7 +235,7 @@ function GetPedheadshot(ped)
     local pedheadshot = RegisterPedheadshot(ped)
 
     while not IsPedheadshotReady(pedheadshot) do
-        Citizen.Wait(step)
+        Wait(step)
 
         currentTime = currentTime + step
 
@@ -251,10 +257,10 @@ function GetPedheadshotTexture(ped)
         local IsTextureDictLoaded = LoadStreamedTextureDict(textureDict)
 
         if not IsTextureDictLoaded then
-            Citizen.Trace("ERROR: GetPedheadshotTexture - Textures dictionnary \"" .. tostring(textureDict) .. "\" cannot be loaded.")
+            print("ERROR: GetPedheadshotTexture - Textures dictionnary \"" .. tostring(textureDict) .. "\" cannot be loaded.")
         end
     else
-        Citizen.Trace("ERROR: GetPedheadshotTexture - PedHeadShot not ready.")
+        print("ERROR: GetPedheadshotTexture - PedHeadShot not ready.")
     end
 
     return textureDict

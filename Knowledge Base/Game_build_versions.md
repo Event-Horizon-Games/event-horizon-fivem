@@ -16,3 +16,5 @@ Game builds are a very important piece of Fivem that typically is not visibly do
 | 2802 | 1.64 | mpchristmas3 | Los Santos Drug Wars | December 13, 2022 | [Notes](https://support.rockstargames.com/articles/12105333167379/GTAV-Title-Update-1-64-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
 | 2944 | 1.67 | mp2023_01 | San Andreas Mercenaries | June 13, 2023 | [Notes](https://support.rockstargames.com/articles/17500669660563/GTAV-Title-Update-1-67-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
 | 3095 | 1.68 | mp2023_02 | The Chop Shop | December 12, 2023 | [Notes](https://support.rockstargames.com/articles/23999650827411/GTAV-Title-Update-1-68-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
+| 3258 | 1.69 | mp2024_01 | Bottom Dollar Bounties | June 25, 2024 | [Notes](https://support.rockstargames.com/articles/30693392257683/GTAV-Title-Update-1-69-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
+| 3407 | 1.70 | mp2024_02 | Agents of Sabotage | December 9, 2024 | [Notes](https://support.rockstargames.com/articles/36252618460307/GTAV-Title-Update-1-70-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |

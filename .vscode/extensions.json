@@ -1,7 +1,5 @@
 {
     "recommendations": [
-        "ms-azure-devops.azure-pipelines",
-        "ms-vscode.azure-account",
         "christian-kohler.path-intellisense",
         "MS-vsliveshare.vsliveshare",
         "eamodio.gitlens",
