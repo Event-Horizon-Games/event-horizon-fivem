@@ -5,7 +5,7 @@ return {
     pauseMapText = 'Cum', -- Text shown above the map when ESC is pressed. If left empty 'FiveM' will appear
 
     characters = {
-        useExternalCharacters = true, -- Whether you have an external character management resource. (If true, disables the character management inside the core)
+        useExternalCharacters = false, -- Whether you have an external character management resource. (If true, disables the character management inside the core)
         enableDeleteButton = true, -- Whether players should be able to delete characters themselves.
         startingApartment = false, -- If set to false, skips apartment choice in the beginning (requires qbx_spawn if true)
 

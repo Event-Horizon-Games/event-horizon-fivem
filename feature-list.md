@@ -2,15 +2,43 @@
 
 ## Framework
 
+### Core
+
 - QBcore
   - No reason not to. Has great documentation and support.
-- QBox? [Qbox](https://github.com/Qbox-project/qbx_core)
+- **[Qbox](https://github.com/Qbox-project/qbx_core)**
   - new but seems to be what best choice is
-- [OXCore](https://github.com/overextended/ox_core)
+- [OXCore](https://github.com/overe-+xtended/ox_core)
 
-## HUD
+### Character Creation
 
-- [OxInventory](https://forum.cfx.re/t/free-ox-inventory-slot-based-inventory-with-metadata/4797345)
+- [Thug Character select](https://forum.cfx.re/t/free-modern-multicharacter-n-multicharacter/5305796)
+- [QBCore Multicharacter](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-multicharacter)
+- [Nopixel Style](https://github.com/P4ScriptsFivem/pappu-multicharacter)
+
+### Character Customize
+
+- [QB Clothing](https://github.com/qbcore-framework/qb-clothing)
+
+### Spawn Select
+
+- [QBX Spawn](https://github.com/Qbox-Project/qbx_spawn)
+- (PAID)[Fry Spawn](https://forum.cfx.re/t/paid-advanced-spawn-selector-qb-qbx-custom/5187639?page=2)
+
+### Housing system
+
+- [ps-housing](https://github.com/Project-Sloth/ps-housing)
+  - looks cool but finnicky, might be  better to use the tried and true qb-core housing and other dependencies
+- [qb-apartments]
+
+### Inventory
+
+- **[OxInventory](https://forum.cfx.re/t/free-ox-inventory-slot-based-inventory-with-metadata/4797345)**
+
+### HUD
+
+- [Afterlife simple HUD](https://forum.cfx.re/t/free-afterlife-hud/5276624)
+- [QBcore HUD](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-hud)
 
 ## Phone
 
@@ -29,6 +57,8 @@ seems like clearly the best open source full feature phone
 - [Lore Images](https://forum.cfx.re/t/free-1300-fivem-lore-friendly-optimized-inventory-images/5220858)
 - [Binoculars](https://forum.cfx.re/t/free-binoculars-system-esx-qb-core-qbx-custom/5298553)
 - [Megaphone](https://forum.cfx.re/t/free-megaphone-script/5049366)
+- [Custom Plates](https://forum.cfx.re/t/free-qb-qbx-esx-mrnewbscustomplate-customizable-plate-changer/5213759)
+- [Sleep on disconnect](https://forum.cfx.re/t/free-sleep-on-disconnect-qbcore/5307671)
 
 ## Notifications
 
@@ -37,6 +67,10 @@ seems like clearly the best open source full feature phone
 - [Garbage](https://forum.cfx.re/t/free-qbox-garbage-job/5306286)
 - [Newspaper Boy](https://forum.cfx.re/t/free-esx-qb-nd-randolio-newspaper-delivery/5217208)
 - [Vineyard](https://forum.cfx.re/t/free-esx-qb-qbx-advanced-vineyard/5280620)
+- [Crafting](https://forum.cfx.re/t/free-advanced-crafting-system-esx-qbcore-qbox/5303991)
+- [Alchemist Multiplayer](https://forum.cfx.re/t/multiplayer-herbal-alchemist-job/5286533)
+- [Trucker Job](https://forum.cfx.re/t/savana-trucker-job-qb-esx-qbox/5298546)
+- [Burgershot](https://forum.cfx.re/t/free-esx-qb-ox-tj-advanced-burgershot-job/5302746)
 
 ## Police
 
@@ -52,6 +86,8 @@ seems like clearly the best open source full feature phone
 - [Pacific Bluffs Resort](https://forum.cfx.re/t/map-free-pacific-bluffs-island-resort/5226856)
 - [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
 - [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
+- [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
+- [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
 
 ## Vehicles
 
@@ -66,6 +102,7 @@ seems like clearly the best open source full feature phone
 
 - [Dolu Tool](https://forum.cfx.re/t/dolu-tool-mlo-debugging-object-spawner-more/5000677)
 - [Vehicle Handling UI](https://forum.cfx.re/t/free-fivem-vehicle-handling-editor/5307285)
+- [Ped Spawner](https://forum.cfx.re/t/free-standalone-ped-spawner-w-ui-v2-0-0/5295982)
 
 ## Misc
 
