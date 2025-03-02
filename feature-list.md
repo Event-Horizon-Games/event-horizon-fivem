@@ -6,7 +6,7 @@
 
 - QBcore
   - No reason not to. Has great documentation and support.
-- **[Qbox](https://github.com/Qbox-project/qbx_core)**
+- [x] [Qbox](https://github.com/Qbox-project/qbx_core)
   - new but seems to be what best choice is
 - [OXCore](https://github.com/overe-+xtended/ox_core)
 
@@ -18,6 +18,7 @@
 
 ### Character Customize
 
+- [Illenium Appearance](https://github.com/iLLeniumStudios/illenium-appearance)
 - [QB Clothing](https://github.com/qbcore-framework/qb-clothing)
 
 ### Spawn Select
@@ -29,16 +30,31 @@
 
 - [ps-housing](https://github.com/Project-Sloth/ps-housing)
   - looks cool but finnicky, might be  better to use the tried and true qb-core housing and other dependencies
+- [qb-housing]
+
+### Apartments
+
 - [qb-apartments]
+  - has many other qb dependencies
+
+### Garages
+
+- [qbx_garages]
+
+### Vehicle customization
+
+- [Bytelabs](https://forum.cfx.re/t/free-bl-customs/5196056)
+- [x] [qbx_customs](https://github.com/Qbox-project/qbx_customs?tab=readme-ov-file)
 
 ### Inventory
 
-- **[OxInventory](https://forum.cfx.re/t/free-ox-inventory-slot-based-inventory-with-metadata/4797345)**
+- [x] [OxInventory](https://forum.cfx.re/t/free-ox-inventory-slot-based-inventory-with-metadata/4797345)
 
 ### HUD
 
-- [Afterlife simple HUD](https://forum.cfx.re/t/free-afterlife-hud/5276624)
+- [x] [Afterlife simple HUD](https://forum.cfx.re/t/free-afterlife-hud/5276624)
 - [QBcore HUD](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-hud)
+- [x] [WX Compass](https://forum.cfx.re/t/free-wx-compass/5210876)
 
 ## Phone
 
@@ -47,18 +63,20 @@ seems like clearly the best open source full feature phone
 
 ## Utility
 
-- [pma voice](https://github.com/AvarianKnight/pma-voice)
-- [screenshot-basic](https://github.com/project-error/screenshot-basic)
-- oxmysql
-- [ox_lib](https://github.com/overextended/ox_lib)
-- [RP Emotes](https://forum.cfx.re/t/free-rpemotes-reborn-a-standalone-emote-system-for-fivem/5219460)
-- [small resources](https://github.com/Qbox-Project/qbx_smallresources)
+- [x] [pma voice](https://github.com/AvarianKnight/pma-voice)
+- [x] [screenshot-basic](https://github.com/project-error/screenshot-basic)
+- [x] oxmysql
+- [x] [ox_lib](https://github.com/overextended/ox_lib)
+- [x] [small resources](https://github.com/Qbox-Project/qbx_smallresources)
 - [radio](https://forum.cfx.re/t/free-basic-radio-system-stg-qb-esx-qbox/5302414)
 - [Lore Images](https://forum.cfx.re/t/free-1300-fivem-lore-friendly-optimized-inventory-images/5220858)
+- [Food Images](https://forum.cfx.re/t/free-55-food-images-d/5221354)
 - [Binoculars](https://forum.cfx.re/t/free-binoculars-system-esx-qb-core-qbx-custom/5298553)
 - [Megaphone](https://forum.cfx.re/t/free-megaphone-script/5049366)
 - [Custom Plates](https://forum.cfx.re/t/free-qb-qbx-esx-mrnewbscustomplate-customizable-plate-changer/5213759)
 - [Sleep on disconnect](https://forum.cfx.re/t/free-sleep-on-disconnect-qbcore/5307671)
+- [Questionnaire UI](https://forum.cfx.re/t/free-ap-questionnaire-highly-configurable-questionnaire-ui/5301195)
+- [Boombox](https://forum.cfx.re/t/free-boombox-music-speaker-radio-yt-player-fivem/5166688)
 
 ## Notifications
 
@@ -87,23 +105,40 @@ seems like clearly the best open source full feature phone
 - [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
 - [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
 - [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
-- [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
+- [x] [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
+- [ ] [Pier Aquarium](https://forum.cfx.re/t/map-free-los-santos-aquarium/5219666)
+- [ ] [Locksmith Shop](https://forum.cfx.re/t/free-locksmith-mlo/5309829)
+- [ ] [Chinatown Village](https://forum.cfx.re/t/free-mlo-chinatown-asian-village-by-grizmowe/5056057)
 
 ## Vehicles
 
 - [Gruppe 6 Security](https://forum.cfx.re/t/release-the-security-pack/5301860)
-- [Karuma Widebody](https://forum.cfx.re/t/free-kuruma-widebody/5302420)
-- [Police Scout](https://forum.cfx.re/t/free-lore-friendly-police-scout-2020-callsign-system/5295098)
+- [x] [Karuma Widebody](https://forum.cfx.re/t/free-kuruma-widebody/5302420)
+- [x] [Police Scout](https://forum.cfx.re/t/free-lore-friendly-police-scout-2020-callsign-system/5295098)
 - [Hotdog Truck](https://forum.cfx.re/t/standalone-free-jakes-hotdog-van/5222792)
 - [Helicopter](https://forum.cfx.re/t/free-police-helicopter-supervolito/5219443)
 - [Unmarked buffalo](https://forum.cfx.re/t/free-unmarked-buffalo-4-police-vehicle/5198223)
 
 ## Dev tools
 
-- [Dolu Tool](https://forum.cfx.re/t/dolu-tool-mlo-debugging-object-spawner-more/5000677)
+- [x] [Dolu Tool](https://forum.cfx.re/t/dolu-tool-mlo-debugging-object-spawner-more/5000677)
 - [Vehicle Handling UI](https://forum.cfx.re/t/free-fivem-vehicle-handling-editor/5307285)
 - [Ped Spawner](https://forum.cfx.re/t/free-standalone-ped-spawner-w-ui-v2-0-0/5295982)
 
-## Misc
+### Chat
+
+- [x] [cc-chat]
+
+### Emotes
+
+- [dpemotes](https://forum.cfx.re/t/dpemotes-1-7-390-emotes-walkingstyles-keybinding-dances-expressions-and-shared-emotes/843105)
+- [rpemotes-reborn](https://forum.cfx.re/t/free-rpemotes-reborn-a-standalone-emote-system-for-fivem/5219460)
+- [scully-emotemenu](https://forum.cfx.re/t/free-emote-menu-v2-over-1-000-emotes-with-many-features/4959268)
+
+### Misc
 
 - [Usable computers](https://forum.cfx.re/t/free-computers-usable-computers-with-attention-to-detail/5224167)
+- [Loading screen](https://forum.cfx.re/t/release-free-opensource-loading-screen-bebikdev/5137039)
+- [Pause Menu](https://forum.cfx.re/t/free-esx-qbcore-qbox-pause-menu/5308661)
+- [Police handheld radar](https://forum.cfx.re/t/props-police-radar/5299005)
+- [NUI Books](https://github.com/Gigachad-Money-Maker/gmm-books?tab=readme-ov-file)

@@ -6877,5 +6877,29 @@
         "type": "CAR",
         "dlc": "TitleUpdate",
         "manufacturer": "Truffade"
+    },
+    {
+        "hash": 1070722609,
+        "name": "nkscout2020",
+        "class": "EMERGENCY",
+        "displayName": "Police Scout",
+        "type": "SUV",
+        "manufacturer": "Vapid"
+    },
+    {
+        "hash": 402398156,
+        "name": "nkscout2020um",
+        "class": "EMERGENCY",
+        "displayName": "Unmarked Police Scout",
+        "type": "SUV",
+        "manufacturer": "Vapid"
+    },
+    {
+        "hash": -2123989474,
+        "name": "gk_kurumawb",
+        "class": "SPORT",
+        "displayName": "Karuma Widebody",
+        "type": "CAR",
+        "manufacturer": "Kuruma"
     }
 ]

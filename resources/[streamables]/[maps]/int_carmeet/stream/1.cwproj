@@ -1,0 +1,17 @@
+<CodeWalkerProject>
+  <Name>New CodeWalker Project</Name>
+  <Version value="1" />
+  <YmapFilenames>
+    <Item>d:\servernamewithoutspaces\cfx-server-data-master\resources\tuner\stream\tr_int_placement_tr_interior_1_tuner_car_meet_milo_.ymap</Item>
+    <Item>d:\servernamewithoutspaces\cfx-server-data-master\resources\tuner\stream\carmeet_milo_.ymap</Item>
+  </YmapFilenames>
+  <YtypFilenames>
+    <Item>d:\servernamewithoutspaces\cfx-server-data-master\resources\tuner\stream\tr_dlc_int_02_tr.ytyp</Item>
+  </YtypFilenames>
+  <YbnFilenames />
+  <YndFilenames />
+  <YnvFilenames />
+  <TrainsFilenames />
+  <ScenarioFilenames />
+  <AudioRelFilenames />
+</CodeWalkerProject>
