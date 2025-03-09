@@ -78,7 +78,7 @@ const Minimap = () => {
           />
         ) : (
           <div style={{marginBottom: '1vw',marginRight: '1.3vw'}} className={classes.minimap}>
-            <div className={classes.top}>
+            {/* <div className={classes.top}>
               <div className={classes.location}>
                 <img src={diricon} alt="" />
                 <p>{compass.direction}</p>
@@ -87,7 +87,7 @@ const Minimap = () => {
                 <p>{compass.streetname}</p>
                 <img src={mapicon} alt="" />
               </div>
-            </div>
+            </div> */}
 
             <div
               style={{

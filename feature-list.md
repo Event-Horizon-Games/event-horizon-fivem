@@ -142,3 +142,4 @@ seems like clearly the best open source full feature phone
 - [Pause Menu](https://forum.cfx.re/t/free-esx-qbcore-qbox-pause-menu/5308661)
 - [Police handheld radar](https://forum.cfx.re/t/props-police-radar/5299005)
 - [NUI Books](https://github.com/Gigachad-Money-Maker/gmm-books?tab=readme-ov-file)
+- [PCB Minigame](https://forum.cfx.re/t/pcb-block-minigame/5311135)
