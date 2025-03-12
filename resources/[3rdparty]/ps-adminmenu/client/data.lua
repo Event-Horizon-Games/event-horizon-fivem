@@ -1,20 +1,20 @@
 local PedList = require "data.ped"
 
--- Returns a list of vehicles from exports.qbx_core:GetVehiclesByName()
+-- Returns a list of vehicles from QBCore.Shared.Vehicles
 local function GetVehicles()
     local vehicles = {}
 
-    for _, v in pairs(exports.qbx_core:GetVehiclesByName()) do
+    for _, v in pairs(QBCore.Shared.Vehicles) do
         vehicles[#vehicles + 1] = { label = v.name, value = v.model }
     end
 
     return vehicles
 end
 
--- Returns a list of items from exports.ox_inventory:Items()
+-- Returns a list of items from QBCore.Shared.Items
 local function GetItems()
     local items = {}
-    local ItemsData = exports.ox_inventory:Items()
+    local ItemsData = QBCore.Shared.Items
 
     if Config.Inventory == "ox_inventory" then
         ItemsData = exports.ox_inventory:Items()
@@ -27,11 +27,11 @@ local function GetItems()
     return items
 end
 
--- Returns a list of jobs from exports.qbx_core:GetJobs()
+-- Returns a list of jobs from QBCore.Shared.Jobs
 local function GetJobs()
     local jobs = {}
 
-    for name, v in pairs(exports.qbx_core:GetJobs()) do
+    for name, v in pairs(QBCore.Shared.Jobs) do
         local gradeDataList = {}
 
         for grade, gradeData in pairs(v.grades) do
@@ -44,11 +44,11 @@ local function GetJobs()
     return jobs
 end
 
--- Returns a list of gangs from exports.qbx_core:GetGangs()
+-- Returns a list of gangs from QBCore.Shared.Gangs
 local function GetGangs()
     local gangs = {}
 
-    for name, v in pairs(exports.qbx_core:GetGangs()) do
+    for name, v in pairs(QBCore.Shared.Gangs) do
         local gradeDataList = {}
 
         for grade, gradeData in pairs(v.grades) do
@@ -65,7 +65,7 @@ end
 local function GetLocations()
     local locations = {}
 
-    for name, v in pairs(exports.qbx_core:GetLocations()) do
+    for name, v in pairs(QBCore.Shared.Locations) do
         locations[#locations + 1] = { label = name, value = v }
     end
 

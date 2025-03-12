@@ -92,22 +92,19 @@ seems like clearly the best open source full feature phone
 
 ## Police
 
-- [Wraith Radar](https://forum.cfx.re/t/release-wraith-ars-2x-police-radar-and-plate-reader-v1-3-1/1058277)
+- [Wraith](https://forum.cfx.re/t/release-wraith-ars-2x-police-radar-and-plate-reader-v1-3-1/1058277)
 - [Ambulance System](https://forum.cfx.re/t/free-advanced-ambulance-system-nd-ox-qbx/5302795/8)
-- [MDT](https://github.com/ND-Framework/ND_MDT)
-- [PS Dispatch](https://github.com/Project-Sloth/ps-dispatch)
-- [PD Badge](https://forum.cfx.re/t/free-qb-pd-badge/5311911)
 
 ## Map MLOs
 
 - [Cayo Perico](https://forum.cfx.re/t/the-cayo-perico-island-available-for-fivem/1897446)
-- [x] [Race Track at the docks](https://forum.cfx.re/t/free-map-race-track-at-the-port-of-los-santos/5303303)
+- [Race Track at the docks](https://forum.cfx.re/t/free-map-race-track-at-the-port-of-los-santos/5303303)
 - [Hassaric Map Pack](https://forum.cfx.re/t/mlo-all-hassaric-s-maps-for-free/4776406)
-- [x] [Forum Car Park](https://forum.cfx.re/t/free-forum-drive-car-park-thug-car-park/5301866)
-- [x] [Pacific Bluffs Resort](https://forum.cfx.re/t/map-free-pacific-bluffs-island-resort/5226856)
+- [Forum Car Park](https://forum.cfx.re/t/free-forum-drive-car-park-thug-car-park/5301866)
+- [Pacific Bluffs Resort](https://forum.cfx.re/t/map-free-pacific-bluffs-island-resort/5226856)
 - [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
 - [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
-- [x] [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
+- [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
 - [x] [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
 - [ ] [Pier Aquarium](https://forum.cfx.re/t/map-free-los-santos-aquarium/5219666)
 - [ ] [Locksmith Shop](https://forum.cfx.re/t/free-locksmith-mlo/5309829)
@@ -121,8 +118,6 @@ seems like clearly the best open source full feature phone
 - [Hotdog Truck](https://forum.cfx.re/t/standalone-free-jakes-hotdog-van/5222792)
 - [Helicopter](https://forum.cfx.re/t/free-police-helicopter-supervolito/5219443)
 - [Unmarked buffalo](https://forum.cfx.re/t/free-unmarked-buffalo-4-police-vehicle/5198223)
-- [Police Crown Vic](https://forum.cfx.re/t/free-lore-friendly-police-stanier-callsign-system/5292680)
-- [Bucket Utility Truck](https://forum.cfx.re/t/vehicle-script-functional-utility-vehicle/5311914)
 
 ## Dev tools
 

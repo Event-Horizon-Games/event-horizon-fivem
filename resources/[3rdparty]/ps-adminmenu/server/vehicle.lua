@@ -1,7 +1,7 @@
 -- Admin Car
 RegisterNetEvent('ps-adminmenu:server:SaveCar', function(mods, vehicle, _, plate)
     local src = source
-    local Player = exports.qbx_core:GetPlayer(src)
+    local Player = QBCore.Functions.GetPlayer(src)
     local result = MySQL.query.await('SELECT plate FROM player_vehicles WHERE plate = ?', { plate })
 
     if result[1] == nil then
@@ -28,7 +28,7 @@ RegisterNetEvent("ps-adminmenu:server:givecar", function(data, selectedData)
 
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(source, data.perms) then
-        exports.qbx_core:Notify(src, locale("no_perms"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("no_perms"), "error", 5000)
         return
     end
 
@@ -42,7 +42,7 @@ RegisterNetEvent("ps-adminmenu:server:givecar", function(data, selectedData)
     local tsrc = selectedData['Player'].value
     local plate = selectedData['Plate (Optional)'] and selectedData['Plate (Optional)'].value or vehicleData.plate
     local garage = selectedData['Garage (Optional)'] and selectedData['Garage (Optional)'].value or Config.DefaultGarage
-    local Player = exports.qbx_core:GetPlayer(tsrc)
+    local Player = QBCore.Functions.GetPlayer(tsrc)
 
     if plate and #plate < 1 then
         plate = vehicleData.plate
@@ -53,17 +53,17 @@ RegisterNetEvent("ps-adminmenu:server:givecar", function(data, selectedData)
     end
 
     if plate:len() > 8 then
-        exports.qbx_core:Notify(src, locale("plate_max"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("plate_max"), "error", 5000)
         return
     end
 
     if not Player then
-        exports.qbx_core:Notify(src, locale("not_online"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("not_online"), "error", 5000)
         return
     end
 
     if CheckAlreadyPlate(plate) then
-        exports.qbx_core:Notify(src, locale("givecar.error.plates_alreadyused", plate:upper()), "error", 5000)
+        QBCore.Functions.Notify(src, locale("givecar.error.plates_alreadyused", plate:upper()), "error", 5000)
         return
     end
 
@@ -80,10 +80,10 @@ RegisterNetEvent("ps-adminmenu:server:givecar", function(data, selectedData)
             1
         })
 
-    exports.qbx_core:Notify(src,
-        locale("givecar.success.source", exports.qbx_core:GetVehiclesByName()[vehmodel].name,
+    QBCore.Functions.Notify(src,
+        locale("givecar.success.source", QBCore.Shared.Vehicles[vehmodel].name,
             ("%s %s"):format(Player.PlayerData.charinfo.firstname, Player.PlayerData.charinfo.lastname)), "success", 5000)
-    exports.qbx_core:Notify(Player.PlayerData.source, locale("givecar.success.target", plate:upper(), garage), "success",
+    QBCore.Functions.Notify(Player.PlayerData.source, locale("givecar.success.target", plate:upper(), garage), "success",
         5000)
 end)
 
@@ -93,7 +93,7 @@ RegisterNetEvent("ps-adminmenu:server:SetVehicleState", function(data, selectedD
 
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(source, data.perms) then
-        exports.qbx_core:Notify(src, locale("no_perms"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("no_perms"), "error", 5000)
         return
     end
 
@@ -101,18 +101,18 @@ RegisterNetEvent("ps-adminmenu:server:SetVehicleState", function(data, selectedD
     local state = tonumber(selectedData['State'].value)
 
     if plate:len() > 8 then
-        exports.qbx_core:Notify(src, locale("plate_max"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("plate_max"), "error", 5000)
         return
     end
 
     if not CheckAlreadyPlate(plate) then
-        exports.qbx_core:Notify(src, locale("plate_doesnt_exist"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("plate_doesnt_exist"), "error", 5000)
         return
     end
 
     MySQL.update('UPDATE player_vehicles SET state = ?, depotprice = ? WHERE plate = ?', { state, 0, plate })
 
-    exports.qbx_core:Notify(src, locale("state_changed"), "success", 5000)
+    QBCore.Functions.Notify(src, locale("state_changed"), "success", 5000)
 end)
 
 -- Change Plate
@@ -140,12 +140,12 @@ RegisterNetEvent('ps-adminmenu:server:FixVehFor', function(data, selectedData)
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
     local playerId = selectedData['Player'].value
-    local Player = exports.qbx_core:GetPlayer(tonumber(playerId))
+    local Player = QBCore.Functions.GetPlayer(tonumber(playerId))
     if Player then
         local name = Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname
         TriggerClientEvent('iens:repaira', Player.PlayerData.source)
         TriggerClientEvent('vehiclemod:client:fixEverything', Player.PlayerData.source)
-        exports.qbx_core:Notify(src, locale("veh_fixed", name), 'success', 7500)
+        QBCore.Functions.Notify(src, locale("veh_fixed", name), 'success', 7500)
     else
         TriggerClientEvent('QBCore:Notify', src, locale("not_online"), "error")
     end

@@ -411,7 +411,7 @@ end
 local function openMenu(allowedMenus)
     previousSkinData = json.encode(skinData)
     creatingCharacter = true
-    PlayerData = exports.qbx_core:GetPlayerData()
+    PlayerData = QBCore.Functions.GetPlayerData()
     local trackerMeta = PlayerData.metadata["tracker"]
     local translations = {}
     for k in pairs(Lang.fallback and Lang.fallback.phrases or Lang.phrases) do
@@ -947,7 +947,7 @@ end
 local function reloadSkin(health)
     local model
 
-    local gender = exports.qbx_core:GetPlayerData().charinfo.gender
+    local gender = QBCore.Functions.GetPlayerData().charinfo.gender
     local maxhealth = GetEntityMaxHealth(PlayerPedId())
 
     if gender == 1 then -- Gender is ONE for FEMALE
@@ -977,8 +977,8 @@ exports('IsCreatingCharacter', function()
 end)
 local function getOutfits(gradeLevel, data)
     local gender = "male"
-    if exports.qbx_core:GetPlayerData().charinfo.gender == 1 then gender = "female" end
-    exports.qbx_core:TriggerCallback('qb-clothing:server:getOutfits', function(result)
+    if QBCore.Functions.GetPlayerData().charinfo.gender == 1 then gender = "female" end
+    QBCore.Functions.TriggerCallback('qb-clothing:server:getOutfits', function(result)
         openMenu({
             {menu = "roomOutfits", label = Lang:t("outfits.roomOutfits"), selected = true, outfits = data[gender][gradeLevel]},
             {menu = "myOutfits", label = Lang:t("outfits.myOutfits"), selected = false, outfits = result},
@@ -992,7 +992,7 @@ exports('getOutfits',getOutfits)
 
 RegisterNetEvent('onResourceStart', function(resourceName)
     if (GetCurrentResourceName() ~= resourceName) then return end
-    PlayerData = exports.qbx_core:GetPlayerData()
+    PlayerData = QBCore.Functions.GetPlayerData()
 end)
 
 RegisterNetEvent('QBCore:Client:UpdateObject', function()
@@ -1015,7 +1015,7 @@ RegisterNetEvent('qb-clothing:client:reloadOutfits', function(myOutfits)
     })
 end)
 RegisterNetEvent('qb-clothes:client:CreateFirstCharacter', function()
-    exports.qbx_core:GetPlayerData(function(pData)
+    QBCore.Functions.GetPlayerData(function(pData)
         local skin = "mp_m_freemode_01"
         openMenu({
             {menu = "character", label = Lang:t("menu.features"), selected = true},
@@ -1267,13 +1267,13 @@ RegisterNetEvent('qb-clothing:client:loadOutfit', function(oData)
 
     -- Accessory
     if data["accessory"] ~= nil then
-        if exports.qbx_core:GetPlayerData().metadata["tracker"] then
+        if QBCore.Functions.GetPlayerData().metadata["tracker"] then
             SetPedComponentVariation(ped, 7, 13, 0, 0)
         else
             SetPedComponentVariation(ped, 7, data["accessory"].item, data["accessory"].texture, 0)
         end
     else
-        if exports.qbx_core:GetPlayerData().metadata["tracker"] then
+        if QBCore.Functions.GetPlayerData().metadata["tracker"] then
             SetPedComponentVariation(ped, 7, 13, 0, 0)
         else
             SetPedComponentVariation(ped, 7, -1, 0, 2)
@@ -1318,11 +1318,11 @@ RegisterNetEvent('qb-clothing:client:loadOutfit', function(oData)
     end
 
     if oData.outfitName ~= nil then
-        exports.qbx_core:Notify("You have chosen "..oData.outfitName.."! Press Confirm to confirm outfit.")
+        QBCore.Functions.Notify("You have chosen "..oData.outfitName.."! Press Confirm to confirm outfit.")
     end
 end)
 RegisterNetEvent("qb-clothing:client:adjustfacewear", function(type)
-    if exports.qbx_core:GetPlayerData().metadata["ishandcuffed"] then return end
+    if QBCore.Functions.GetPlayerData().metadata["ishandcuffed"] then return end
     removeWear = not removeWear
     local AnimSet = "mp_masks@on_foot"
     local AnimationOn = "put_on_mask"
@@ -1438,9 +1438,9 @@ RegisterNetEvent("qb-clothing:client:adjustfacewear", function(type)
 end)
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     TriggerServerEvent("qb-clothes:loadPlayerSkin")
-    PlayerData = exports.qbx_core:GetPlayerData()
+    PlayerData = QBCore.Functions.GetPlayerData()
     loadStores()
---    exports.qbx_core:GetJobs() = exports['qb-jobs']:AddJobs()
+--    QBCore.Shared.Jobs = exports['qb-jobs']:AddJobs()
 end)
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     PlayerData.job = JobInfo
@@ -1449,7 +1449,7 @@ RegisterNetEvent('QBCore:Client:OnGangUpdate', function(GangInfo)
     PlayerData.gang = GangInfo
 end)
 RegisterNetEvent('qb-clothing:client:openOutfitMenu', function()
-    exports.qbx_core:TriggerCallback('qb-clothing:server:getOutfits', function(result)
+    QBCore.Functions.TriggerCallback('qb-clothing:server:getOutfits', function(result)
         openMenu({
             {menu = "myOutfits", label = Lang:t("outfits.myOutfits"), selected = true, outfits = result},
         })
@@ -1486,7 +1486,7 @@ RegisterNUICallback('rotateLeft', function(_, cb)
     cb('ok')
 end)
 RegisterNUICallback('TrackerError', function(_, cb)
-    exports.qbx_core:Notify(Lang:t("notify.error_bracelet"), "error")
+    QBCore.Functions.Notify(Lang:t("notify.error_bracelet"), "error")
     cb('ok')
 end)
 RegisterNUICallback('saveOutfit', function(data, cb)
@@ -1563,11 +1563,11 @@ RegisterNUICallback('updateSkinOnInput', function(data, cb)
 end)
 RegisterNUICallback('removeOutfit', function(data, cb)
     TriggerServerEvent('qb-clothing:server:removeOutfit', data.outfitName, data.outfitId)
-    exports.qbx_core:Notify(Lang:t('notify.info_deleteOutfit', {outfit = data.outfitName}))
+    QBCore.Functions.Notify(Lang:t('notify.info_deleteOutfit', {outfit = data.outfitName}))
     cb('ok')
 end)
 RegisterNUICallback('setCurrentPed', function(data, cb)
-    local playerData = exports.qbx_core:GetPlayerData()
+    local playerData = QBCore.Functions.GetPlayerData()
     if playerData.charinfo.gender == 0 then
         cb(Config.ManPlayerModels[data.ped])
         ChangeToSkinNoUpdate(Config.ManPlayerModels[data.ped])
@@ -1767,7 +1767,7 @@ function loadStores()
                     end
                 else
                     inZone = false
-                    lib.hideTextUI()
+                    exports['qb-core']:HideText()
                 end
             end)
                     if PlayerData.gang and PlayerData.gang.name or (not QBCore.Shared.QBJobsStatus and PlayerData.job.name) then
@@ -1783,7 +1783,7 @@ function loadStores()
                                 end
                             else
                                 inZone = false
-                                lib.hideTextUI()
+                                exports['qb-core']:HideText()
                             end
                         end)
                     end

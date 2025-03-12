@@ -11,8 +11,8 @@ RegisterNetEvent('ps-adminmenu:server:BanPlayer', function(data, selectedData)
     local timeTable = os.date('*t', banTime)
 
     MySQL.insert('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        { GetPlayerName(player), exports.qbx_core:GetIdentifier(player, 'license'), exports.qbx_core:GetIdentifier(
-            player, 'discord'), exports.qbx_core:GetIdentifier(player, 'ip'), reason, banTime, GetPlayerName(source) })
+        { GetPlayerName(player), QBCore.Functions.GetIdentifier(player, 'license'), QBCore.Functions.GetIdentifier(
+            player, 'discord'), QBCore.Functions.GetIdentifier(player, 'ip'), reason, banTime, GetPlayerName(source) })
 
     if time == 2147483647 then
         DropPlayer(player, locale("banned") .. '\n' .. locale("reason") .. reason .. locale("ban_perm"))
@@ -28,7 +28,7 @@ RegisterNetEvent('ps-adminmenu:server:BanPlayer', function(data, selectedData)
             '/' .. timeTable['month'] .. '/' .. timeTable['year'] .. ' ' .. timeTable['hour'] .. ':' .. timeTable['min'])
     end
 
-    exports.qbx_core:Notify(source, locale("playerbanned", player, banTime, reason), 'success', 7500)
+    QBCore.Functions.Notify(source, locale("playerbanned", player, banTime, reason), 'success', 7500)
 end)
 
 -- Warn Player
@@ -36,14 +36,14 @@ RegisterNetEvent('ps-adminmenu:server:WarnPlayer', function(data, selectedData)
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(source, data.perms) then return end
     local targetId = selectedData["Player"].value
-    local target = exports.qbx_core:GetPlayer(targetId)
+    local target = QBCore.Functions.GetPlayer(targetId)
     local reason = selectedData["Reason"].value
-    local sender = exports.qbx_core:GetPlayer(source)
+    local sender = QBCore.Functions.GetPlayer(source)
     local warnId = 'WARN-' .. math.random(1111, 9999)
     if target ~= nil then
-        exports.qbx_core:Notify(target.PlayerData.source,
+        QBCore.Functions.Notify(target.PlayerData.source,
             locale("warned") .. ", for: " .. locale("reason") .. ": " .. reason, 'inform', 10000)
-        exports.qbx_core:Notify(source,
+        QBCore.Functions.Notify(source,
             locale("warngiven") .. GetPlayerName(target.PlayerData.source) .. ", for: " .. reason)
         MySQL.insert('INSERT INTO player_warns (senderIdentifier, targetIdentifier, reason, warnId) VALUES (?, ?, ?, ?)',
             {
@@ -61,11 +61,11 @@ RegisterNetEvent('ps-adminmenu:server:KickPlayer', function(data, selectedData)
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
-    local target = exports.qbx_core:GetPlayer(selectedData["Player"].value)
+    local target = QBCore.Functions.GetPlayer(selectedData["Player"].value)
     local reason = selectedData["Reason"].value
 
     if not target then
-        exports.qbx_core:Notify(src, locale("not_online"), 'error', 7500)
+        QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500)
         return
     end
 
@@ -97,7 +97,7 @@ RegisterNetEvent('ps-adminmenu:server:ReviveRadius', function(data)
     local src = source
     local ped = GetPlayerPed(src)
     local pos = GetEntityCoords(ped)
-    local players = exports.qbx_core:GetPlayers()
+    local players = QBCore.Functions.GetPlayers()
 
     for k, v in pairs(players) do
         local target = GetPlayerPed(v)
@@ -121,11 +121,11 @@ RegisterNetEvent('ps-adminmenu:server:SetBucket', function(data, selectedData)
     local currentBucket = GetPlayerRoutingBucket(player)
 
     if bucket == currentBucket then
-        return exports.qbx_core:Notify(src, locale("target_same_bucket", player), 'error', 7500)
+        return QBCore.Functions.Notify(src, locale("target_same_bucket", player), 'error', 7500)
     end
 
     SetPlayerRoutingBucket(player, bucket)
-    exports.qbx_core:Notify(src, locale("bucket_set_for_target", player, bucket), 'success', 7500)
+    QBCore.Functions.Notify(src, locale("bucket_set_for_target", player, bucket), 'success', 7500)
 end)
 
 -- Get RoutingBucket
@@ -137,7 +137,7 @@ RegisterNetEvent('ps-adminmenu:server:GetBucket', function(data, selectedData)
     local player = selectedData["Player"].value
     local currentBucket = GetPlayerRoutingBucket(player)
 
-    exports.qbx_core:Notify(src, locale("bucket_get", player, currentBucket), 'success', 7500)
+    QBCore.Functions.Notify(src, locale("bucket_get", player, currentBucket), 'success', 7500)
 end)
 
 -- Give Money
@@ -148,14 +148,14 @@ RegisterNetEvent('ps-adminmenu:server:GiveMoney', function(data, selectedData)
     local src = source
     local target, amount, moneyType = selectedData["Player"].value, selectedData["Amount"].value,
         selectedData["Type"].value
-    local Player = exports.qbx_core:GetPlayer(tonumber(target))
+    local Player = QBCore.Functions.GetPlayer(tonumber(target))
 
     if Player == nil then
-        return exports.qbx_core:Notify(src, locale("not_online"), 'error', 7500)
+        return QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500)
     end
 
     Player.Functions.AddMoney(tostring(moneyType), tonumber(amount))
-    exports.qbx_core:Notify(src,
+    QBCore.Functions.Notify(src,
         locale((moneyType == "crypto" and "give_money_crypto" or "give_money"), tonumber(amount),
             Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname), "success")
 end)
@@ -167,12 +167,12 @@ RegisterNetEvent('ps-adminmenu:server:GiveMoneyAll', function(data, selectedData
 
     local src = source
     local amount, moneyType = selectedData["Amount"].value, selectedData["Type"].value
-    local players = exports.qbx_core:GetPlayers()
+    local players = QBCore.Functions.GetPlayers()
 
     for _, v in pairs(players) do
-        local Player = exports.qbx_core:GetPlayer(tonumber(v))
+        local Player = QBCore.Functions.GetPlayer(tonumber(v))
         Player.Functions.AddMoney(tostring(moneyType), tonumber(amount))
-        exports.qbx_core:Notify(src,
+        QBCore.Functions.Notify(src,
             locale((moneyType == "crypto" and "give_money_all_crypto" or "give_money_all"), tonumber(amount)), "success")
     end
 end)
@@ -185,19 +185,19 @@ RegisterNetEvent('ps-adminmenu:server:TakeMoney', function(data, selectedData)
     local src = source
     local target, amount, moneyType = selectedData["Player"].value, selectedData["Amount"].value,
         selectedData["Type"].value
-    local Player = exports.qbx_core:GetPlayer(tonumber(target))
+    local Player = QBCore.Functions.GetPlayer(tonumber(target))
 
     if Player == nil then
-        return exports.qbx_core:Notify(src, locale("not_online"), 'error', 7500)
+        return QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500)
     end
 
     if Player.PlayerData.money[moneyType] >= tonumber(amount) then
         Player.Functions.RemoveMoney(moneyType, tonumber(amount), "state-fees")
     else
-        exports.qbx_core:Notify(src, locale("not_enough_money"), "primary")
+        QBCore.Functions.Notify(src, locale("not_enough_money"), "primary")
     end
 
-    exports.qbx_core:Notify(src,
+    QBCore.Functions.Notify(src,
         locale((moneyType == "crypto" and "take_money_crypto" or "take_money"), tonumber(amount) .. "$",
             Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname), "success")
 end)
@@ -230,7 +230,7 @@ RegisterNetEvent('ps-adminmenu:server:CuffPlayer', function(data, selectedData)
     local target = selectedData["Player"].value
 
     TriggerClientEvent('ps-adminmenu:client:ToggleCuffs', target)
-    exports.qbx_core:Notify(source, locale("toggled_cuffs"), 'success')
+    QBCore.Functions.Notify(source, locale("toggled_cuffs"), 'success')
 end)
 
 -- Give Clothing Menu
@@ -242,7 +242,7 @@ RegisterNetEvent('ps-adminmenu:server:ClothingMenu', function(data, selectedData
     local target = tonumber(selectedData["Player"].value)
 
     if target == nil then
-        return exports.qbx_core:Notify(src, locale("not_online"), 'error', 7500)
+        return QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500)
     end
 
     if target == src then
@@ -257,16 +257,16 @@ RegisterNetEvent("ps-adminmenu:server:setPed", function(data, selectedData)
     local src = source
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(source, data.perms) then
-        exports.qbx_core:Notify(src, locale("no_perms"), "error", 5000)
+        QBCore.Functions.Notify(src, locale("no_perms"), "error", 5000)
         return
     end
 
     local ped = selectedData["Ped Models"].label
     local tsrc = selectedData["Player"].value
-    local Player = exports.qbx_core:GetPlayer(tsrc)
+    local Player = QBCore.Functions.GetPlayer(tsrc)
 
     if not Player then
-        exports.qbx_core:Notify(locale("not_online"), "error", 5000)
+        QBCore.Functions.Notify(locale("not_online"), "error", 5000)
         return
     end
 
