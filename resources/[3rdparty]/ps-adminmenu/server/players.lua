@@ -4,7 +4,7 @@ local function getVehicles(cid)
     local vehicles = {}
 
     for k, v in pairs(result) do
-        local vehicleData = QBCore.Shared.Vehicles[v.vehicle]
+        local vehicleData = exports.qbx_core:GetVehiclesByName()[v.vehicle]
 
         if vehicleData then
             vehicles[#vehicles + 1] = {
@@ -26,7 +26,7 @@ end
 
 local function getPlayers()
     local players = {}
-    local GetPlayers = QBCore.Functions.GetQBPlayers()
+    local GetPlayers = exports.qbx_core:GetQBPlayers()
 
     for k, v in pairs(GetPlayers) do
         local playerData = v.PlayerData
@@ -36,9 +36,9 @@ local function getPlayers()
             id = k,
             name = playerData.charinfo.firstname .. ' ' .. playerData.charinfo.lastname,
             cid = playerData.citizenid,
-            license = QBCore.Functions.GetIdentifier(k, 'license'),
-            discord = QBCore.Functions.GetIdentifier(k, 'discord'),
-            steam = QBCore.Functions.GetIdentifier(k, 'steam'),
+            license = exports.qbx_core:GetIdentifier(k, 'license'),
+            discord = exports.qbx_core:GetIdentifier(k, 'discord'),
+            steam = exports.qbx_core:GetIdentifier(k, 'steam'),
             job = playerData.job.label,
             grade = playerData.job.grade.level,
             dob = playerData.charinfo.birthdate,
@@ -64,9 +64,9 @@ RegisterNetEvent('ps-adminmenu:server:SetJob', function(data, selectedData)
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
     local playerId, Job, Grade = selectedData["Player"].value, selectedData["Job"].value, selectedData["Grade"].value
-    local Player = QBCore.Functions.GetPlayer(playerId)
+    local Player = exports.qbx_core:GetPlayer(playerId)
     local name = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-    local jobInfo = QBCore.Shared.Jobs[Job]
+    local jobInfo = exports.qbx_core:GetJobs()[Job]
     local grade = jobInfo["grades"][selectedData["Grade"].value]
 
     if not jobInfo then
@@ -84,7 +84,7 @@ RegisterNetEvent('ps-adminmenu:server:SetJob', function(data, selectedData)
         exports['qb-phone']:hireUser(tostring(Job), Player.PlayerData.citizenid, tonumber(Grade))
     end
 
-    QBCore.Functions.Notify(src, locale("jobset", name, Job, Grade), 'success', 5000)
+    exports.qbx_core:Notify(src, locale("jobset", name, Job, Grade), 'success', 5000)
 end)
 
 -- Set Gang
@@ -93,9 +93,9 @@ RegisterNetEvent('ps-adminmenu:server:SetGang', function(data, selectedData)
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
     local playerId, Gang, Grade = selectedData["Player"].value, selectedData["Gang"].value, selectedData["Grade"].value
-    local Player = QBCore.Functions.GetPlayer(playerId)
+    local Player = exports.qbx_core:GetPlayer(playerId)
     local name = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-    local GangInfo = QBCore.Shared.Gangs[Gang]
+    local GangInfo = exports.qbx_core:GetGangs()[Gang]
     local grade = GangInfo["grades"][selectedData["Grade"].value]
 
     if not GangInfo then
@@ -109,7 +109,7 @@ RegisterNetEvent('ps-adminmenu:server:SetGang', function(data, selectedData)
     end
 
     Player.Functions.SetGang(tostring(Gang), tonumber(Grade))
-    QBCore.Functions.Notify(src, locale("gangset", name, Gang, Grade), 'success', 5000)
+    exports.qbx_core:Notify(src, locale("gangset", name, Gang, Grade), 'success', 5000)
 end)
 
 -- Set Perms
@@ -119,17 +119,17 @@ RegisterNetEvent("ps-adminmenu:server:SetPerms", function(data, selectedData)
     local src = source
     local rank = selectedData["Permissions"].value
     local targetId = selectedData["Player"].value
-    local tPlayer = QBCore.Functions.GetPlayer(tonumber(targetId))
+    local tPlayer = exports.qbx_core:GetPlayer(tonumber(targetId))
 
     if not tPlayer then
-        QBCore.Functions.Notify(src, locale("not_online"), "error", 5000)
+        exports.qbx_core:Notify(src, locale("not_online"), "error", 5000)
         return
     end
 
     local name = tPlayer.PlayerData.charinfo.firstname .. ' ' .. tPlayer.PlayerData.charinfo.lastname
 
-    QBCore.Functions.AddPermission(tPlayer.PlayerData.source, tostring(rank))
-    QBCore.Functions.Notify(tPlayer.PlayerData.source, locale("player_perms", name, rank), 'success', 5000)
+    exports.qbx_core:AddPermission(tPlayer.PlayerData.source, tostring(rank))
+    exports.qbx_core:Notify(tPlayer.PlayerData.source, locale("player_perms", name, rank), 'success', 5000)
 end)
 
 -- Remove Stress
@@ -138,14 +138,14 @@ RegisterNetEvent("ps-adminmenu:server:RemoveStress", function(data, selectedData
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
     local targetId = selectedData['Player (Optional)'] and tonumber(selectedData['Player (Optional)'].value) or src
-    local tPlayer = QBCore.Functions.GetPlayer(tonumber(targetId))
+    local tPlayer = exports.qbx_core:GetPlayer(tonumber(targetId))
 
     if not tPlayer then
-        QBCore.Functions.Notify(src, locale("not_online"), "error", 5000)
+        exports.qbx_core:Notify(src, locale("not_online"), "error", 5000)
         return
     end
 
     TriggerClientEvent('ps-adminmenu:client:removeStress', targetId)
 
-    QBCore.Functions.Notify(tPlayer.PlayerData.source, locale("removed_stress_player"), 'success', 5000)
+    exports.qbx_core:Notify(tPlayer.PlayerData.source, locale("removed_stress_player"), 'success', 5000)
 end)

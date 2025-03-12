@@ -4,7 +4,7 @@ PlayerData = {}
 -- Functions
 local function setupMenu()
 	Wait(500)
-	PlayerData = QBCore.Functions.GetPlayerData()
+	PlayerData = exports.qbx_core:GetPlayerData()
 	local resources = lib.callback.await('ps-adminmenu:callback:GetResources', false)
 	local commands = lib.callback.await('ps-adminmenu:callback:GetCommands', false)
 	GetData()

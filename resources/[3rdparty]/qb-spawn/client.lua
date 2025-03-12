@@ -35,7 +35,7 @@ RegisterNetEvent('qb-spawn:client:openUI', function(value)
     DoScreenFadeOut(250)
     Wait(1000)
     DoScreenFadeIn(250)
-    QBCore.Functions.GetPlayerData(function(PlayerData)
+    exports.qbx_core:GetPlayerData(function(PlayerData)
         cam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", PlayerData.position.x, PlayerData.position.y, PlayerData.position.z + camZPlus1, -85.00, 0.00, 0.00, 100.00, false, 0)
         SetCamActive(cam, true)
         RenderScriptCams(true, false, 1, true, true)
@@ -50,7 +50,7 @@ end)
 
 RegisterNetEvent('qb-spawn:client:setupSpawns', function(cData, new, apps)
     if not new then
-        QBCore.Functions.TriggerCallback('qb-spawn:server:getOwnedHouses', function(houses)
+        exports.qbx_core:TriggerCallback('qb-spawn:server:getOwnedHouses', function(houses)
             local myHouses = {}
             if houses ~= nil then
                 for i = 1, (#houses), 1 do
@@ -114,7 +114,7 @@ RegisterNUICallback('setCam', function(data, cb)
     if DoesCamExist(cam) then DestroyCam(cam, true) end
     if DoesCamExist(cam2) then DestroyCam(cam2, true) end
     if type == "current" then
-        QBCore.Functions.GetPlayerData(function(PlayerData)
+        exports.qbx_core:GetPlayerData(function(PlayerData)
             SetCam(PlayerData.position)
         end)
     elseif type == "house" then
@@ -168,11 +168,11 @@ RegisterNUICallback('spawnplayer', function(data, cb)
     local location = tostring(data.spawnloc)
     local type = tostring(data.typeLoc)
     local ped = PlayerPedId()
-    local PlayerData = QBCore.Functions.GetPlayerData()
+    local PlayerData = exports.qbx_core:GetPlayerData()
     local insideMeta = PlayerData.metadata["inside"]
     if type == "current" then
         PreSpawnPlayer()
-        QBCore.Functions.GetPlayerData(function(pd)
+        exports.qbx_core:GetPlayerData(function(pd)
             ped = PlayerPedId()
             SetEntityCoords(ped, pd.position.x, pd.position.y, pd.position.z)
             SetEntityHeading(ped, pd.position.a)

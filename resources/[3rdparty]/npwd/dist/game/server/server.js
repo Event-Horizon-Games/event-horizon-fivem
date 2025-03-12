@@ -51183,7 +51183,7 @@ var _DarkchatDB = class {
                           message,
                           user_identifier           AS identifier,
                           UNIX_TIMESTAMP(createdAt) AS createdAt,
-                          is_image                  AS isImage 
+                          is_image                  AS isImage
                    FROM npwd_darkchat_messages
                    WHERE npwd_darkchat_messages.channel_id = ?`;
     const [results] = await DbInterface._rawExec(query, [channelId]);
@@ -51224,7 +51224,7 @@ var _DarkchatDB = class {
                           message,
                           user_identifier           AS identifier,
                           UNIX_TIMESTAMP(createdAt) AS createdAt,
-                          is_image                  AS isImage 
+                          is_image                  AS isImage
                    FROM npwd_darkchat_messages
                    WHERE channel_id = ?
                      AND id = ?`;
@@ -51449,7 +51449,7 @@ var QBCoreFramework = class {
     on("onServerResourceStart", async (resource) => {
       const QBCore = global.exports["qb-core"].GetCoreObject();
       if (resource === GetCurrentResourceName()) {
-        const onlinePlayers = QBCore.Functions.GetQBPlayers();
+        const onlinePlayers = exports.qbx_core:GetQBPlayers();
         for (const player of onlinePlayers) {
           await player_service_default.handleNewPlayerEvent({
             source: player.PlayerData.source,
@@ -51497,7 +51497,7 @@ var QBXFramework = class {
     on("onServerResourceStart", async (resource) => {
       const QBCore = global.exports["qb-core"].GetCoreObject();
       if (resource === GetCurrentResourceName()) {
-        const onlinePlayers = QBCore.Functions.GetQBPlayers();
+        const onlinePlayers = exports.qbx_core:GetQBPlayers();
         for (const player of onlinePlayers) {
           await player_service_default.handleNewPlayerEvent({
             source: player.PlayerData.source,

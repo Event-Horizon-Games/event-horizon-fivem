@@ -12,11 +12,11 @@ QBCore, PlayerData, isLoggedIn = nil, nil, false
 
 -- QB core parts
 QBCore = exports[framework]:GetCoreObject()
-PlayerData = QBCore.Functions.GetPlayerData()
+PlayerData = exports.qbx_core:GetPlayerData()
 isLoggedIn = false
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    PlayerData = QBCore.Functions.GetPlayerData()
+    PlayerData = exports.qbx_core:GetPlayerData()
     isLoggedIn = true
 end)
 
@@ -34,7 +34,7 @@ end)
 AddEventHandler('onResourceStart', function(resource)
     if resource == GetCurrentResourceName() then
         Wait(200)
-        PlayerData = QBCore.Functions.GetPlayerData()
+        PlayerData = exports.qbx_core:GetPlayerData()
         isLoggedIn = true
     end
 end)

@@ -5,10 +5,10 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventory', function(data, selectedDa
 
     local src = source
     local player = selectedData["Player"].value
-    local Player = QBCore.Functions.GetPlayer(player)
+    local Player = exports.qbx_core:GetPlayer(player)
 
     if not Player then
-        return QBCore.Functions.Notify(source, locale("not_online"), 'error', 7500)
+        return exports.qbx_core:Notify(source, locale("not_online"), 'error', 7500)
     end
 
     if Config.Inventory == 'ox_inventory' then
@@ -17,7 +17,7 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventory', function(data, selectedDa
         exports[Config.Inventory]:ClearInventory(player, nil)
     end
 
-    QBCore.Functions.Notify(src,
+    exports.qbx_core:Notify(src,
         locale("invcleared", Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname),
         'success', 7500)
 end)
@@ -29,7 +29,7 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventoryOffline', function(data, sel
 
     local src = source
     local citizenId = selectedData["Citizen ID"].value
-    local Player = QBCore.Functions.GetPlayerByCitizenId(citizenId)
+    local Player = exports.qbx_core:GetPlayerByCitizenId(citizenId)
 
     if Player then
         if Config.Inventory == 'ox_inventory' then
@@ -37,7 +37,7 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventoryOffline', function(data, sel
         else
             exports[Config.Inventory]:ClearInventory(Player.PlayerData.source, nil)
         end
-        QBCore.Functions.Notify(src,
+        exports.qbx_core:Notify(src,
             locale("invcleared", Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname),
             'success', 7500)
     else
@@ -46,9 +46,9 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventoryOffline', function(data, sel
                 if result and result[1] then
                     MySQL.Async.execute("UPDATE players SET inventory = '{}' WHERE citizenid = @citizenid",
                         { ['@citizenid'] = citizenId })
-                    QBCore.Functions.Notify(src, "Player's inventory cleared", 'success', 7500)
+                    exports.qbx_core:Notify(src, "Player's inventory cleared", 'success', 7500)
                 else
-                    QBCore.Functions.Notify(src, locale("player_not_found"), 'error', 7500)
+                    exports.qbx_core:Notify(src, locale("player_not_found"), 'error', 7500)
                 end
             end)
     end
@@ -77,15 +77,15 @@ RegisterNetEvent('ps-adminmenu:server:GiveItem', function(data, selectedData)
     local target = selectedData["Player"].value
     local item = selectedData["Item"].value
     local amount = selectedData["Amount"].value
-    local Player = QBCore.Functions.GetPlayer(target)
+    local Player = exports.qbx_core:GetPlayer(target)
 
     if not item or not amount then return end
     if not Player then
-        return QBCore.Functions.Notify(source, locale("not_online"), 'error', 7500)
+        return exports.qbx_core:Notify(source, locale("not_online"), 'error', 7500)
     end
 
     Player.Functions.AddItem(item, amount)
-    QBCore.Functions.Notify(source,
+    exports.qbx_core:Notify(source,
         locale("give_item", tonumber(amount) .. " " .. item,
             Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname), "success", 7500)
 end)
@@ -97,13 +97,13 @@ RegisterNetEvent('ps-adminmenu:server:GiveItemAll', function(data, selectedData)
 
     local item = selectedData["Item"].value
     local amount = selectedData["Amount"].value
-    local players = QBCore.Functions.GetPlayers()
+    local players = exports.qbx_core:GetPlayers()
 
     if not item or not amount then return end
 
     for _, id in pairs(players) do
-        local Player = QBCore.Functions.GetPlayer(id)
+        local Player = exports.qbx_core:GetPlayer(id)
         Player.Functions.AddItem(item, amount)
-        QBCore.Functions.Notify(source, locale("give_item_all", amount .. " " .. item), "success", 7500)
+        exports.qbx_core:Notify(source, locale("give_item_all", amount .. " " .. item), "success", 7500)
     end
 end)

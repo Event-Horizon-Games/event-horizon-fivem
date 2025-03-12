@@ -5,12 +5,12 @@ RegisterNetEvent('ps-adminmenu:server:sendMessageServer', function(message, citi
     if not CheckPerms(source, 'mod') then return end
 
     local time = os.time() * 1000
-    local players = QBCore.Functions.GetPlayers()
+    local players = exports.qbx_core:GetPlayers()
 
     for i = 1, #players, 1 do
         local player = players[i]
-            if QBCore.Functions.IsOptin(player) then
-                QBCore.Functions.Notify(player, locale("new_staffchat", 'inform', 7500))
+            if exports.qbx_core:IsOptin(player) then
+                exports.qbx_core:Notify(player, locale("new_staffchat", 'inform', 7500))
             end
         end
 

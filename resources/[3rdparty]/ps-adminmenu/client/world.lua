@@ -30,14 +30,14 @@ RegisterNetEvent('ps-adminmenu:client:copyToClipboard', function(data, selectedD
         local x = QBCore.Shared.Round(coords.x, 2)
         local y = QBCore.Shared.Round(coords.y, 2)
         string = "vector2(".. x ..", ".. y ..")"
-        QBCore.Functions.Notify(locale("copy_vector2"), 'success')
+        exports.qbx_core:Notify(locale("copy_vector2"), 'success')
     elseif dropdown == 'vector3' then
         local coords = GetEntityCoords(ped)
         local x = QBCore.Shared.Round(coords.x, 2)
         local y = QBCore.Shared.Round(coords.y, 2)
         local z = QBCore.Shared.Round(coords.z, 2)
         string = "vector3(".. x ..", ".. y ..", ".. z ..")"
-        QBCore.Functions.Notify(locale("copy_vector3"), 'success')
+        exports.qbx_core:Notify(locale("copy_vector3"), 'success')
     elseif dropdown == 'vector4' then
         local coords = GetEntityCoords(ped)
         local x = QBCore.Shared.Round(coords.x, 2)
@@ -46,14 +46,14 @@ RegisterNetEvent('ps-adminmenu:client:copyToClipboard', function(data, selectedD
         local heading = GetEntityHeading(ped)
         local h = QBCore.Shared.Round(heading, 2)
         string = "vector4(".. x ..", ".. y ..", ".. z ..", ".. h ..")"
-        QBCore.Functions.Notify(locale("copy_vector4"), 'success')
+        exports.qbx_core:Notify(locale("copy_vector4"), 'success')
     elseif dropdown == 'heading' then
         local heading = GetEntityHeading(ped)
         local h = QBCore.Shared.Round(heading, 2)
         string = h
-        QBCore.Functions.Notify(locale("copy_heading"), 'success')
-    elseif string == nil then 
-        QBCore.Functions.Notify(locale("empty_input"), 'error')
+        exports.qbx_core:Notify(locale("copy_heading"), 'success')
+    elseif string == nil then
+        exports.qbx_core:Notify(locale("empty_input"), 'error')
     end
 
     lib.setClipboard(string)

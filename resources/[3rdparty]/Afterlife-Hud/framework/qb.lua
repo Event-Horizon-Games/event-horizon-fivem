@@ -4,7 +4,7 @@ local QBCore = exports['qb-core']:GetCoreObject()
 PlayerLoaded = false
 
 RegisterNetEvent("QBCore:Client:OnPlayerLoaded", function()
-    local playerdata = QBCore.Functions.GetPlayerData()
+    local playerdata = exports.qbx_core:GetPlayerData()
 
     Playerstatus.Stress = playerdata.metadata.stress
     Playerstatus.Hunger = playerdata.metadata.hunger
@@ -21,12 +21,12 @@ end)
 
 AddEventHandler('onResourceStart', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end
-    local playerdata = QBCore.Functions.GetPlayerData()
+    local playerdata = exports.qbx_core:GetPlayerData()
     if playerdata then
         Playerstatus.Stress = playerdata.metadata.stress
         Playerstatus.Hunger = playerdata.metadata.hunger
         Playerstatus.Thirst = playerdata.metadata.thirst
-        
+
         Wait(1000)
 
         local response = LoadHud()

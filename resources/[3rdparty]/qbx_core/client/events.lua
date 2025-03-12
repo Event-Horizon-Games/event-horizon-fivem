@@ -153,7 +153,7 @@ end)
 
 -- Other stuff
 
----@see client/functions.lua:QBCore.Functions.Notify
+---@see client/functions.lua:exports.qbx_core:Notify
 RegisterNetEvent('QBCore:Notify', function(text, notifyType, duration, subTitle, notifyPosition, notifyStyle, notifyIcon, notifyIconColor)
     Notify(text, notifyType, duration, subTitle, notifyPosition, notifyStyle, notifyIcon, notifyIconColor)
 end)

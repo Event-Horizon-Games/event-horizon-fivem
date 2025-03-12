@@ -428,7 +428,7 @@ else
 
     ---@deprecated use lib.getClosestPed from ox_lib
     ---Returns the closest ped
-    ---Use QBCore.Functions.GetClosestPlayer if wanting to ignore non-player peds
+    ---Use exports.qbx_core:GetClosestPlayer if wanting to ignore non-player peds
     ---@param coords? vector3 uses player position if not set
     ---@param ignoreList? integer[]
     ---@return integer closestPed or -1

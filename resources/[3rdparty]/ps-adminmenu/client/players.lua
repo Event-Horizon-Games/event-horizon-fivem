@@ -26,12 +26,12 @@ local function ToggleBlipsAndNames(isBlips)
         ShowBlips = not ShowBlips
         NetCheck1 = ShowBlips
         local message = ShowBlips and "blips_activated" or "blips_deactivated"
-        QBCore.Functions.Notify(locale(message), ShowBlips and "success" or "error")
+        exports.qbx_core:Notify(locale(message), ShowBlips and "success" or "error")
     else
         ShowNames = not ShowNames
         NetCheck2 = ShowNames
         local message = ShowNames and "names_activated" or "names_deactivated"
-        QBCore.Functions.Notify(locale(message), ShowNames and "success" or "error")
+        exports.qbx_core:Notify(locale(message), ShowNames and "success" or "error")
     end
     if not ShowNames or not ShowBlips then
         removeNameAndBlips()

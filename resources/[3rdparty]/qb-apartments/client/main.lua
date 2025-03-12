@@ -115,7 +115,7 @@ local function RegisterApartmentEntranceZone(apartmentID, apartmentData)
         if isPointInside and not InApartment then
             exports['qb-core']:DrawText(Lang:t('text.options'), 'left')
         else
-            exports['qb-core']:HideText()
+            lib.hideTextUI()
         end
         IsInsideEntranceZone = isPointInside
     end)
@@ -203,7 +203,7 @@ local function RegisterInApartmentZone(targetKey, coords, heading, text)
         if isPointInside and text then
             exports['qb-core']:DrawText(text, 'left')
         else
-            exports['qb-core']:HideText()
+            lib.hideTextUI()
         end
 
         if targetKey == 'entrancePos' then
@@ -386,9 +386,9 @@ local function EnterApartment(house, apartmentId, new)
     TriggerServerEvent('InteractSound_SV:PlayOnSource', 'houses_door_open', 0.1)
     openHouseAnim()
     Wait(250)
-    QBCore.Functions.TriggerCallback('apartments:GetApartmentOffset', function(offset)
+    exports.qbx_core:TriggerCallback('apartments:GetApartmentOffset', function(offset)
         if offset == nil or offset == 0 then
-            QBCore.Functions.TriggerCallback('apartments:GetApartmentOffsetNewOffset', function(newoffset)
+            exports.qbx_core:TriggerCallback('apartments:GetApartmentOffsetNewOffset', function(newoffset)
                 if newoffset > 230 then
                     newoffset = 210
                 end
@@ -481,7 +481,7 @@ local function SetClosestApartment()
     end
     if current ~= ClosestHouse and LocalPlayer.state.isLoggedIn and not InApartment then
         ClosestHouse = current
-        QBCore.Functions.TriggerCallback('apartments:IsOwner', function(result)
+        exports.qbx_core:TriggerCallback('apartments:IsOwner', function(result)
             IsOwned = result
             DeleteApartmentsEntranceTargets()
             DeleteInApartmentTargets()
@@ -490,9 +490,9 @@ local function SetClosestApartment()
 end
 
 function MenuOwners()
-    QBCore.Functions.TriggerCallback('apartments:GetAvailableApartments', function(apartments)
+    exports.qbx_core:TriggerCallback('apartments:GetAvailableApartments', function(apartments)
         if next(apartments) == nil then
-            QBCore.Functions.Notify(Lang:t('error.nobody_home'), 'error', 3500)
+            exports.qbx_core:Notify(Lang:t('error.nobody_home'), 'error', 3500)
             CloseMenuFull()
         else
             local apartmentMenu = {
@@ -571,7 +571,7 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
 end)
 
 RegisterNetEvent('apartments:client:setupSpawnUI', function(cData)
-    QBCore.Functions.TriggerCallback('apartments:GetOwnedApartment', function(result)
+    exports.qbx_core:TriggerCallback('apartments:GetOwnedApartment', function(result)
         if result then
             TriggerEvent('qb-spawn:client:setupSpawns', cData, false, nil)
             TriggerEvent('qb-spawn:client:openUI', true)
@@ -594,7 +594,7 @@ RegisterNetEvent('apartments:client:SpawnInApartment', function(apartmentId, apa
     if RangDoorbell ~= nil then
         local doorbelldist = #(pos - vector3(Apartments.Locations[RangDoorbell].coords.enter.x, Apartments.Locations[RangDoorbell].coords.enter.y, Apartments.Locations[RangDoorbell].coords.enter.z))
         if doorbelldist > 5 then
-            QBCore.Functions.Notify(Lang:t('error.to_far_from_door'))
+            exports.qbx_core:Notify(Lang:t('error.to_far_from_door'))
             return
         end
     end
@@ -642,7 +642,7 @@ end)
 RegisterNetEvent('apartments:client:RingDoor', function(player, _)
     CurrentDoorBell = player
     TriggerServerEvent('InteractSound_SV:PlayOnSource', 'doorbell', 0.1)
-    QBCore.Functions.Notify(Lang:t('info.at_the_door'))
+    exports.qbx_core:Notify(Lang:t('info.at_the_door'))
 end)
 
 RegisterNetEvent('apartments:client:DoorbellMenu', function()
@@ -650,7 +650,7 @@ RegisterNetEvent('apartments:client:DoorbellMenu', function()
 end)
 
 RegisterNetEvent('apartments:client:EnterApartment', function()
-    QBCore.Functions.TriggerCallback('apartments:GetOwnedApartment', function(result)
+    exports.qbx_core:TriggerCallback('apartments:GetOwnedApartment', function(result)
         if result ~= nil then
             EnterApartment(ClosestHouse, result.name)
         end
@@ -660,7 +660,7 @@ end)
 RegisterNetEvent('apartments:client:UpdateApartment', function()
     local apartmentType = ClosestHouse
     local apartmentLabel = Apartments.Locations[ClosestHouse].label
-    QBCore.Functions.TriggerCallback('apartments:GetOwnedApartment', function(result)
+    exports.qbx_core:TriggerCallback('apartments:GetOwnedApartment', function(result)
         if result == nil then
             TriggerServerEvent("apartments:server:CreateApartment", apartmentType, apartmentLabel, false)
         else
@@ -676,7 +676,7 @@ end)
 
 RegisterNetEvent('apartments:client:OpenDoor', function()
     if CurrentDoorBell == 0 then
-        QBCore.Functions.Notify(Lang:t('error.nobody_at_door'))
+        exports.qbx_core:Notify(Lang:t('error.nobody_at_door'))
         return
     end
     TriggerServerEvent('apartments:server:OpenDoor', CurrentDoorBell, CurrentApartment, ClosestHouse)
@@ -745,7 +745,7 @@ else
                     sleep = 0
                     if IsControlJustPressed(0, 38) then
                         OpenEntranceMenu()
-                        exports['qb-core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
             elseif InApartment then
@@ -756,28 +756,28 @@ else
                 if IsInsideExitZone then
                     if IsControlJustPressed(0, 38) then
                         OpenExitMenu()
-                        exports['qb-core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
 
                 if IsInsideStashZone then
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent('apartments:client:OpenStash')
-                        exports['qb-core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
 
                 if IsInsideOutfitsZone then
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent('apartments:client:ChangeOutfit')
-                        exports['qb-core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
 
                 if IsInsideLogoutZone then
                     if IsControlJustPressed(0, 38) then
                         TriggerEvent('apartments:client:Logout')
-                        exports['qb-core']:HideText()
+                        lib.hideTextUI()
                     end
                 end
             end

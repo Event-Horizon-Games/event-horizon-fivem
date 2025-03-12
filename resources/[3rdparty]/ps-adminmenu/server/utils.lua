@@ -1,10 +1,10 @@
 local function noPerms(source)
-    QBCore.Functions.Notify(source, "You are not Admin or God.", 'error')
+    exports.qbx_core:Notify(source, "You are not Admin or God.", 'error')
 end
 
 --- @param perms string
 function CheckPerms(source, perms)
-    local hasPerms = QBCore.Functions.HasPermission(source, perms)
+    local hasPerms = exports.qbx_core:HasPermission(source, perms)
     if not hasPerms then
         return noPerms(source)
     end
@@ -72,5 +72,5 @@ function CheckRoutingbucket(source, target)
     if sourceBucket == targetBucket then return end
 
     SetPlayerRoutingBucket(source, targetBucket)
-    QBCore.Functions.Notify(source, locale("bucket_set", targetBucket), 'error', 7500)
+    exports.qbx_core:Notify(source, locale("bucket_set", targetBucket), 'error', 7500)
 end
