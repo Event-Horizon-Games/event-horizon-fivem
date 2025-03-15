@@ -23,73 +23,46 @@ local IsInsideLogoutZone = false
 -- polyzone integration
 
 local function OpenEntranceMenu()
-    local headerMenu = {}
 
-    if IsOwned then
-        headerMenu[#headerMenu + 1] = {
-            header = Lang:t('text.enter'),
-            params = {
+    lib.registerContext({
+        id = 'apartments_entrance',
+        title = 'Apartment entrance',
+        options = {
+            {
+                title = Lang:t('text.enter'),
                 event = 'apartments:client:EnterApartment',
-                args = {}
-            }
-        }
-    elseif not IsOwned then
-        headerMenu[#headerMenu + 1] = {
-            header = Lang:t('text.move_here'),
-            params = {
+            },
+            {
+                title = Lang:t('text.move_here'),
                 event = 'apartments:client:UpdateApartment',
-                args = {}
+            },
+            {
+                title = Lang:t('text.ring_doorbell'),
+                event = 'apartments:client:DoorbellMenu'
             }
         }
-    end
+    })
 
-    headerMenu[#headerMenu + 1] = {
-        header = Lang:t('text.ring_doorbell'),
-        params = {
-            event = 'apartments:client:DoorbellMenu',
-            args = {}
-        }
-    }
-
-    headerMenu[#headerMenu + 1] = {
-        header = Lang:t('text.close_menu'),
-        txt = '',
-        params = {
-            event = 'qb-menu:client:closeMenu'
-        }
-    }
-
-    exports['qb-menu']:openMenu(headerMenu)
+    lib.showContext('apartments_entrance')
 end
 
 local function OpenExitMenu()
-    local headerMenu = {}
-
-    headerMenu[#headerMenu + 1] = {
-        header = Lang:t('text.open_door'),
-        params = {
-            event = 'apartments:client:OpenDoor',
-            args = {}
+    lib.registerContext({
+        id = 'apartments_exit',
+        title = 'Apartment exit door',
+        options = {
+            {
+                title = Lang:t('text.open_door'),
+                event = 'apartments:client:OpenDoor',
+            },
+            {
+                title = Lang:t('text.leave'),
+                event = 'apartments:client:LeaveApartment',
+            }
         }
-    }
+    })
 
-    headerMenu[#headerMenu + 1] = {
-        header = Lang:t('text.leave'),
-        params = {
-            event = 'apartments:client:LeaveApartment',
-            args = {}
-        }
-    }
-
-    headerMenu[#headerMenu + 1] = {
-        header = Lang:t('text.close_menu'),
-        txt = '',
-        params = {
-            event = 'qb-menu:client:closeMenu'
-        }
-    }
-
-    exports['qb-menu']:openMenu(headerMenu)
+    lib.showContext('apartments_exit')
 end
 
 -- exterior entrance (polyzone)
@@ -496,35 +469,22 @@ function MenuOwners()
             CloseMenuFull()
         else
             local apartmentMenu = {
-                {
-                    header = Lang:t('text.tennants'),
-                    isMenuHeader = true
-                }
+                id = "apartment_tennants_menu",
+                title = Lang:t('text.tennants'),
+                options = {}
             }
 
             for k, v in pairs(apartments) do
-                apartmentMenu[#apartmentMenu + 1] = {
-                    header = v,
-                    txt = '',
-                    params = {
-                        event = 'apartments:client:RingMenu',
-                        args = {
-                            apartmentId = k
-                        }
+                apartmentMenu.options[#apartmentMenu.options + 1] = {
+                    title = v,
+                    event = 'apartments:client:RingMenu',
+                    args = {
+                        apartmentId = k
                     }
-
                 }
             end
 
-            apartmentMenu[#apartmentMenu + 1] = {
-                header = Lang:t('text.close_menu'),
-                txt = '',
-                params = {
-                    event = 'qb-menu:client:closeMenu'
-                }
-
-            }
-            exports['qb-menu']:openMenu(apartmentMenu)
+            lib.showContext("apartment_tennants_menu")
         end
     end, ClosestHouse)
 end

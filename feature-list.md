@@ -12,19 +12,20 @@
 
 ### Character Creation
 
-- [Thug Character select](https://forum.cfx.re/t/free-modern-multicharacter-n-multicharacter/5305796)
-- [QBCore Multicharacter](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-multicharacter)
-- [Nopixel Style](https://github.com/P4ScriptsFivem/pappu-multicharacter)
+- [] [Thug Character select](https://forum.cfx.re/t/free-modern-multicharacter-n-multicharacter/5305796)
+- [x] [QBCore Multicharacter](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-multicharacter)
+- [] [Nopixel Style](https://github.com/P4ScriptsFivem/pappu-multicharacter)
 
 ### Character Customize
 
 - [Illenium Appearance](https://github.com/iLLeniumStudios/illenium-appearance)
-- [QB Clothing](https://github.com/qbcore-framework/qb-clothing)
+- [x] [QB Clothing](https://github.com/qbcore-framework/qb-clothing)
 
 ### Spawn Select
 
-- [QBX Spawn](https://github.com/Qbox-Project/qbx_spawn)
-- (PAID)[Fry Spawn](https://forum.cfx.re/t/paid-advanced-spawn-selector-qb-qbx-custom/5187639?page=2)
+- [x] [QB Spawn](https://github.com/qbcore-framework/qb-spawn)
+- [] [QBX Spawn](https://github.com/Qbox-Project/qbx_spawn)
+- [] (PAID)[Fry Spawn](https://forum.cfx.re/t/paid-advanced-spawn-selector-qb-qbx-custom/5187639?page=2)
 
 ### Housing system
 
@@ -58,7 +59,7 @@
 
 ## Phone
 
-[NPWD](https://projecterror.dev/docs/)
+- [x] [NPWD](https://projecterror.dev/docs/)
 seems like clearly the best open source full feature phone
 
 ## Utility
@@ -89,6 +90,7 @@ seems like clearly the best open source full feature phone
 - [Alchemist Multiplayer](https://forum.cfx.re/t/multiplayer-herbal-alchemist-job/5286533)
 - [Trucker Job](https://forum.cfx.re/t/savana-trucker-job-qb-esx-qbox/5298546)
 - [Burgershot](https://forum.cfx.re/t/free-esx-qb-ox-tj-advanced-burgershot-job/5302746)
+- [Farming System](https://forum.cfx.re/t/free-farming-system-esx-qb/5312859)
 
 ## Police
 
@@ -105,13 +107,14 @@ seems like clearly the best open source full feature phone
 - [Hassaric Map Pack](https://forum.cfx.re/t/mlo-all-hassaric-s-maps-for-free/4776406)
 - [x] [Forum Car Park](https://forum.cfx.re/t/free-forum-drive-car-park-thug-car-park/5301866)
 - [x] [Pacific Bluffs Resort](https://forum.cfx.re/t/map-free-pacific-bluffs-island-resort/5226856)
-- [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
+- [x] [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
 - [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
 - [x] [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
 - [x] [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
 - [ ] [Pier Aquarium](https://forum.cfx.re/t/map-free-los-santos-aquarium/5219666)
 - [ ] [Locksmith Shop](https://forum.cfx.re/t/free-locksmith-mlo/5309829)
 - [ ] [Chinatown Village](https://forum.cfx.re/t/free-mlo-chinatown-asian-village-by-grizmowe/5056057)
+- [ ] [Pillbox Parking](https://forum.cfx.re/t/free-maps-pillbox-parking/5312736)
 
 ## Vehicles
 
@@ -123,6 +126,7 @@ seems like clearly the best open source full feature phone
 - [Unmarked buffalo](https://forum.cfx.re/t/free-unmarked-buffalo-4-police-vehicle/5198223)
 - [Police Crown Vic](https://forum.cfx.re/t/free-lore-friendly-police-stanier-callsign-system/5292680)
 - [Bucket Utility Truck](https://forum.cfx.re/t/vehicle-script-functional-utility-vehicle/5311914)
+- [Police Large SUV](https://forum.cfx.re/t/free-police-brute-regent-callsign-system-lore-friendly/5312488)
 
 ## Dev tools
 
@@ -137,7 +141,7 @@ seems like clearly the best open source full feature phone
 ### Emotes
 
 - [dpemotes](https://forum.cfx.re/t/dpemotes-1-7-390-emotes-walkingstyles-keybinding-dances-expressions-and-shared-emotes/843105)
-- [rpemotes-reborn](https://forum.cfx.re/t/free-rpemotes-reborn-a-standalone-emote-system-for-fivem/5219460)
+- [x] [rpemotes-reborn](https://forum.cfx.re/t/free-rpemotes-reborn-a-standalone-emote-system-for-fivem/5219460)
 - [scully-emotemenu](https://forum.cfx.re/t/free-emote-menu-v2-over-1-000-emotes-with-many-features/4959268)
 
 ### Misc
@@ -148,3 +152,4 @@ seems like clearly the best open source full feature phone
 - [Police handheld radar](https://forum.cfx.re/t/props-police-radar/5299005)
 - [NUI Books](https://github.com/Gigachad-Money-Maker/gmm-books?tab=readme-ov-file)
 - [PCB Minigame](https://forum.cfx.re/t/pcb-block-minigame/5311135)
+- [Campfire](https://forum.cfx.re/t/free-campfire/5312960)

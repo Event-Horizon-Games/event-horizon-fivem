@@ -6,6 +6,7 @@ description 'Provides players with an apartment on server join'
 version '2.2.1'
 
 shared_scripts {
+    '@ox_lib/init.lua',
     'config.lua',
     '@qb-core/shared/locale.lua',
     'locales/en.lua',

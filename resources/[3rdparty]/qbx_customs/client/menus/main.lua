@@ -122,6 +122,7 @@ menu.onClose = function()
         position = 'left-center',
     })
     TriggerServerEvent('qbx_customs:server:saveVehicleProps')
+    lib.hideTextUI()
 end
 
 lib.callback.register('qbx_customs:client:vehicleProps', function()
