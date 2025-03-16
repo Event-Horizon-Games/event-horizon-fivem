@@ -35,7 +35,7 @@
 
 ### Apartments
 
-- [qb-apartments]
+- [x] [qb-apartments]
   - has many other qb dependencies
 
 ### Garages
@@ -56,6 +56,7 @@
 - [x] [Afterlife simple HUD](https://forum.cfx.re/t/free-afterlife-hud/5276624)
 - [QBcore HUD](https://docs.qbcore.org/qbcore-documentation/qbcore-resources/qb-hud)
 - [x] [WX Compass](https://forum.cfx.re/t/free-wx-compass/5210876)
+- [ ] [Vehicle Door Controls](https://forum.cfx.re/t/free-bl-advanced-vehiclemenu/5231757)
 
 ## Phone
 
@@ -78,6 +79,7 @@ seems like clearly the best open source full feature phone
 - [Sleep on disconnect](https://forum.cfx.re/t/free-sleep-on-disconnect-qbcore/5307671)
 - [Questionnaire UI](https://forum.cfx.re/t/free-ap-questionnaire-highly-configurable-questionnaire-ui/5301195)
 - [Boombox](https://forum.cfx.re/t/free-boombox-music-speaker-radio-yt-player-fivem/5166688)
+- [LC Fuel System](https://forum.cfx.re/t/free-lc-fuel-gas-diesel-electric-more/5312954)
 
 ## Notifications
 
@@ -153,3 +155,4 @@ seems like clearly the best open source full feature phone
 - [NUI Books](https://github.com/Gigachad-Money-Maker/gmm-books?tab=readme-ov-file)
 - [PCB Minigame](https://forum.cfx.re/t/pcb-block-minigame/5311135)
 - [Campfire](https://forum.cfx.re/t/free-campfire/5312960)
+- [GTA Online Style Garages](https://forum.cfx.re/t/free-advanced-garage-system-esx-qb-qbox/5313031)
