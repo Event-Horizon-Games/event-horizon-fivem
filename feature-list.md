@@ -80,12 +80,14 @@ seems like clearly the best open source full feature phone
 - [Questionnaire UI](https://forum.cfx.re/t/free-ap-questionnaire-highly-configurable-questionnaire-ui/5301195)
 - [Boombox](https://forum.cfx.re/t/free-boombox-music-speaker-radio-yt-player-fivem/5166688)
 - [LC Fuel System](https://forum.cfx.re/t/free-lc-fuel-gas-diesel-electric-more/5312954)
+- [Flood Script](https://github.com/Praryo/pyrp_floods/tree/main)
+- [Blackout Script](https://github.com/Kurosar/qb-blackout)
 
 ## Notifications
 
 ## Jobs
 
-- [Garbage](https://forum.cfx.re/t/free-qbox-garbage-job/5306286)
+- [Garbage](https://github.com/DiogoGramunha/yoda-garbage)
 - [Newspaper Boy](https://forum.cfx.re/t/free-esx-qb-nd-randolio-newspaper-delivery/5217208)
 - [Vineyard](https://forum.cfx.re/t/free-esx-qb-qbx-advanced-vineyard/5280620)
 - [Crafting](https://forum.cfx.re/t/free-advanced-crafting-system-esx-qbcore-qbox/5303991)
@@ -93,6 +95,7 @@ seems like clearly the best open source full feature phone
 - [Trucker Job](https://forum.cfx.re/t/savana-trucker-job-qb-esx-qbox/5298546)
 - [Burgershot](https://forum.cfx.re/t/free-esx-qb-ox-tj-advanced-burgershot-job/5302746)
 - [Farming System](https://forum.cfx.re/t/free-farming-system-esx-qb/5312859)
+- [Cemetery Robbery](https://forum.cfx.re/t/free-yoda-cemetery-robbery-ox-lib/5263364)
 
 ## Police
 
@@ -110,13 +113,14 @@ seems like clearly the best open source full feature phone
 - [x] [Forum Car Park](https://forum.cfx.re/t/free-forum-drive-car-park-thug-car-park/5301866)
 - [x] [Pacific Bluffs Resort](https://forum.cfx.re/t/map-free-pacific-bluffs-island-resort/5226856)
 - [x] [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
-- [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
+- [x] [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
 - [x] [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
 - [x] [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
 - [ ] [Pier Aquarium](https://forum.cfx.re/t/map-free-los-santos-aquarium/5219666)
 - [ ] [Locksmith Shop](https://forum.cfx.re/t/free-locksmith-mlo/5309829)
 - [ ] [Chinatown Village](https://forum.cfx.re/t/free-mlo-chinatown-asian-village-by-grizmowe/5056057)
 - [ ] [Pillbox Parking](https://forum.cfx.re/t/free-maps-pillbox-parking/5312736)
+- [ ] [Barracuda Cafe](https://forum.cfx.re/t/mlo-barracuda-cafe-bar-restaurant/5163973)
 
 ## Vehicles
 
