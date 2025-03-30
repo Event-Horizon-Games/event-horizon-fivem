@@ -32,6 +32,7 @@
 - [ps-housing](https://github.com/Project-Sloth/ps-housing)
   - looks cool but finnicky, might be  better to use the tried and true qb-core housing and other dependencies
 - [qb-housing]
+- [open-source](https://forum.cfx.re/t/housing-script/5315796)
 
 ### Apartments
 
@@ -60,8 +61,10 @@
 
 ## Phone
 
-- [x] [NPWD](https://projecterror.dev/docs/)
-seems like clearly the best open source full feature phone
+- [] [NPWD](https://projecterror.dev/docs/)
+  - seems like clearly the best open source full feature phone
+- [] [ef-phone](https://github.com/itzsurajig/ef-phone)
+- [] [z-phone](https://github.com/alfaben12/z-phone)
 
 ## Utility
 
@@ -121,6 +124,8 @@ seems like clearly the best open source full feature phone
 - [ ] [Chinatown Village](https://forum.cfx.re/t/free-mlo-chinatown-asian-village-by-grizmowe/5056057)
 - [ ] [Pillbox Parking](https://forum.cfx.re/t/free-maps-pillbox-parking/5312736)
 - [ ] [Barracuda Cafe](https://forum.cfx.re/t/mlo-barracuda-cafe-bar-restaurant/5163973)
+- [ ] [Grapeseed Airfield Office](https://forum.cfx.re/t/free-mlo-mckenzie-hangar-office/5314280)
+- [ ] [Warehouse Garages](https://forum.cfx.re/t/midnight-heist-mechanic-garage-map-free/5316309)
 
 ## Vehicles
 
