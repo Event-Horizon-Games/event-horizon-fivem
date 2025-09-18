@@ -1,3 +1,11 @@
+--[[
+    https://github.com/overextended/ox_lib
+
+    This file is licensed under LGPL-3.0 or higher <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+
+    Copyright © 2025 Linden <https://github.com/thelindat>
+]]
+
 local glm = require 'glm'
 
 ---@class ZoneProperties
@@ -137,6 +145,10 @@ CreateThread(function()
                     if not contains then
                         zone.insideZone = false
                         insideZones[zone.id] = nil
+
+                        if zone.onExit then
+                            exitingZones:push(zone)
+                        end
                     end
                 end
             end

@@ -1,3 +1,11 @@
+--[[
+    https://github.com/overextended/ox_lib
+
+    This file is licensed under LGPL-3.0 or higher <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+
+    Copyright © 2025 Linden <https://github.com/thelindat>
+]]
+
 ---@class PointProperties
 ---@field coords vector3
 ---@field distance number
@@ -33,11 +41,6 @@ end
 
 CreateThread(function()
     while true do
-        if nearbyCount ~= 0 then
-            table.wipe(nearbyPoints)
-            nearbyCount = 0
-        end
-
         local coords = GetEntityCoords(cache.ped)
         local newPoints = lib.grid.getNearbyEntries(coords, function(entry) return entry.remove == removePoint end) --[[@as CPoint[] ]]
         local cellX, cellY = lib.grid.getCellPosition(coords)
@@ -45,7 +48,7 @@ CreateThread(function()
         closestPoint = nil
 
         if cellX ~= cache.lastCellX or cellY ~= cache.lastCellY then
-            for i = 1, #nearbyPoints do
+            for i = 1, nearbyCount do
                 local point = nearbyPoints[i]
 
                 if point.inside then
@@ -64,6 +67,11 @@ CreateThread(function()
             cache.lastCellY = cellY
         end
 
+        if nearbyCount ~= 0 then
+            table.wipe(nearbyPoints)
+            nearbyCount = 0
+        end
+
         for i = 1, #newPoints do
             local point = newPoints[i]
             local distance = #(coords - point.coords)
@@ -78,10 +86,8 @@ CreateThread(function()
                     closestPoint = point
                 end
 
-                if point.nearby then
-                    nearbyCount += 1
-					nearbyPoints[nearbyCount] = point
-				end
+                nearbyCount += 1
+                nearbyPoints[nearbyCount] = point
 
                 if point.onEnter and not point.inside then
                     point.inside = true

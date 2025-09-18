@@ -8,7 +8,7 @@
   - No reason not to. Has great documentation and support.
 - [x] [Qbox](https://github.com/Qbox-project/qbx_core)
   - new but seems to be what best choice is
-- [OXCore](https://github.com/overe-+xtended/ox_core)
+- [OXCore](https://github.com/overextended/ox_core)
 
 ### Character Creation
 
@@ -39,6 +39,11 @@
 - [x] [qb-apartments]
   - has many other qb dependencies
 
+### Banking system
+
+- [] [ox-banking](https://forum.cfx.re/t/free-ox-banking/5277542)
+- [] [ps-banking](https://github.com/Project-Sloth/ps-banking)
+
 ### Garages
 
 - [qbx_garages]
@@ -51,6 +56,7 @@
 ### Inventory
 
 - [x] [OxInventory](https://forum.cfx.re/t/free-ox-inventory-slot-based-inventory-with-metadata/4797345)
+- [ ] [ox-inv redesign](https://forum.cfx.re/t/free-ox-inventory-redesign/5350590)
 
 ### HUD
 
@@ -73,6 +79,7 @@
 - [x] oxmysql
 - [x] [ox_lib](https://github.com/overextended/ox_lib)
 - [x] [small resources](https://github.com/Qbox-Project/qbx_smallresources)
+- [ ] [Prodigy style target](https://forum.cfx.re/t/free-qb-target-prodigy-inspired-2-0-qbcore/5328917)
 - [radio](https://forum.cfx.re/t/free-basic-radio-system-stg-qb-esx-qbox/5302414)
 - [Lore Images](https://forum.cfx.re/t/free-1300-fivem-lore-friendly-optimized-inventory-images/5220858)
 - [Food Images](https://forum.cfx.re/t/free-55-food-images-d/5221354)
@@ -85,6 +92,13 @@
 - [LC Fuel System](https://forum.cfx.re/t/free-lc-fuel-gas-diesel-electric-more/5312954)
 - [Flood Script](https://github.com/Praryo/pyrp_floods/tree/main)
 - [Blackout Script](https://github.com/Kurosar/qb-blackout)
+- [Hacking minigames](https://forum.cfx.re/t/glitch-minigames-standalone/5319159)
+- [Duty System](https://forum.cfx.re/t/qb-esx-yecoyz-advanced-duty/5321646)
+- [Hovering 3d Text](https://forum.cfx.re/t/depthui-holographic-ui-system-free/5322639)
+- [Vehicle Handling](https://forum.cfx.re/t/raptor-realistic-active-power-torque-oversteer-regulation/5324227)
+- [Pause menu handheld](https://forum.cfx.re/t/free-pause-map-ved/5327988)
+- [Kick player by abduction](https://forum.cfx.re/t/free-kick-player-on-cool-way/5334504)
+- [Container System](https://forum.cfx.re/t/free-opensource-qb-qbx-esx-v-containers-place-your-own-storages-anywhere-in-the-map/5337281)
 
 ## Notifications
 
@@ -99,6 +113,19 @@
 - [Burgershot](https://forum.cfx.re/t/free-esx-qb-ox-tj-advanced-burgershot-job/5302746)
 - [Farming System](https://forum.cfx.re/t/free-farming-system-esx-qb/5312859)
 - [Cemetery Robbery](https://forum.cfx.re/t/free-yoda-cemetery-robbery-ox-lib/5263364)
+- [Forging Crime System](https://forum.cfx.re/t/free-esx-qbcore-qbox-fraud-scamming-script/5320714)
+- [ATM Robbery](https://forum.cfx.re/t/free-esx-qbcore-qbox-realistic-atm-robbery/5321844)
+- [Pizza Delivery](https://forum.cfx.re/t/free-esx-pizza-delivery/5323736)
+- [Pawn](https://forum.cfx.re/t/free-mrnewbpawn/5323940)
+- [Money Washing](https://forum.cfx.re/t/esx-qb-qbx-anox-moneywash-interactive-configurable-money-laundering-system-free/5324525)
+- [Bunch of Jobs](https://forum.cfx.re/t/free-qbcore-md-jobs/5324925)
+- [Chop cars](https://forum.cfx.re/t/free-synced-junkyard-script-esx-qb/5329223)
+- [Hunting](https://forum.cfx.re/t/free-esx-qb-qbox-xrb-hunting/5329830)
+- [Food Delivery](https://forum.cfx.re/t/esx-qb-qbx-anox-fooddelivery-rep-based-free/5332044)
+- [Car Delivery](https://forum.cfx.re/t/esx-qb-qbx-anox-cardelivery-advanced-car-delivery-script-free/5331369)
+- [Bus Driver Job](https://forum.cfx.re/t/free-bus-job-level-system/5330668)
+- [Illegal First Aid](https://forum.cfx.re/t/free-qb-illegal-first-aid/5337280)
+- [Treasure Hunting](https://forum.cfx.re/t/free-treasure-hunting/5341839)
 
 ## Police
 
@@ -107,6 +134,8 @@
 - [MDT](https://github.com/ND-Framework/ND_MDT)
 - [PS Dispatch](https://github.com/Project-Sloth/ps-dispatch)
 - [PD Badge](https://forum.cfx.re/t/free-qb-pd-badge/5311911)
+- [Police K9](https://forum.cfx.re/t/free-qb-core-qb-police-k9/5324326)
+- [Live Bodycam](https://forum.cfx.re/t/bbs-live-bodycam-in-game-rendering/5342018)
 
 ## Map MLOs
 
@@ -118,7 +147,7 @@
 - [x] [La Puerta lower fix road](https://forum.cfx.re/t/free-fix-road/5284322)
 - [x] [River playplace](https://forum.cfx.re/t/map-free-los-santos-river-recreation-area/5218260)
 - [x] [Underground Drifttrack](https://forum.cfx.re/t/free-mlo-car-meet-parking-lot-interior/4126159?page=2)
-- [x] [Draw Brige](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
+- [x] [Draw Bridge](https://forum.cfx.re/t/map-script-functional-lift-bridges-at-port/5307670)
 - [ ] [Pier Aquarium](https://forum.cfx.re/t/map-free-los-santos-aquarium/5219666)
 - [ ] [Locksmith Shop](https://forum.cfx.re/t/free-locksmith-mlo/5309829)
 - [ ] [Chinatown Village](https://forum.cfx.re/t/free-mlo-chinatown-asian-village-by-grizmowe/5056057)
@@ -126,24 +155,51 @@
 - [ ] [Barracuda Cafe](https://forum.cfx.re/t/mlo-barracuda-cafe-bar-restaurant/5163973)
 - [ ] [Grapeseed Airfield Office](https://forum.cfx.re/t/free-mlo-mckenzie-hangar-office/5314280)
 - [ ] [Warehouse Garages](https://forum.cfx.re/t/midnight-heist-mechanic-garage-map-free/5316309)
+- [ ] [Union Depository open doors](https://forum.cfx.re/t/opened-union-depository-parking/5316795)
+- [ ] [Digital Den Vinewood](https://forum.cfx.re/t/mlo-digital-den-map/5321588)
+- [ ] [La Puerta Liquor Store](https://forum.cfx.re/t/free-mlo-downtown-liquor-store/5321568)
+- [ ] [Golf Course Apocolypse](https://forum.cfx.re/t/free-club-golf-apocalypse-yamp-free/5323920)
+- [ ] [Benny's Remodel](https://forum.cfx.re/t/free-benny-s-remastered-fivem/5323738)
+- [ ] [Gentry Manor Event](https://forum.cfx.re/t/gentry-manor-event-ymap/5324424)
+- [ ] [Lighthouse Remodel](https://forum.cfx.re/t/free-purple-lighthouse-mlo/5325958)
+- [ ] [Pet Shop](https://forum.cfx.re/t/mlo-petshop-map/5326592)
+- [ ] [Sun Cafe](https://forum.cfx.re/t/sun-cafe-standalone-free/5334322)
+- [ ] [Vagos House](https://forum.cfx.re/t/free-mlo-vagos-house/5336374)
+- [ ] [Drug House](https://forum.cfx.re/t/free-mlo-junkie-block/5335817)
+- [ ] [Richman Firehouse](https://forum.cfx.re/t/station-24-richman/5335202)
+- [ ] [Zancudo Lab](https://forum.cfx.re/t/map-asset-free-black-project-zancudo-facility-beta-restauration/5337488)
+- [ ] [Vinewood House](https://forum.cfx.re/t/free-mlo-vinewood-house-v-1/5338310)
+- [ ] [Cayo Perico loader](https://forum.cfx.re/t/free-cayo-perico-loader-monarch-cayo/5342572)
+- [ ] [Paleto UPS](https://forum.cfx.re/t/free-mlo-postops/5348302)
+- [ ] [Senora Park Signs](https://forum.cfx.re/t/free-usnps-senora-national-park-sign/5348301)
 
 ## Vehicles
 
 - [Gruppe 6 Security](https://forum.cfx.re/t/release-the-security-pack/5301860)
 - [x] [Karuma Widebody](https://forum.cfx.re/t/free-kuruma-widebody/5302420)
 - [x] [Police Scout](https://forum.cfx.re/t/free-lore-friendly-police-scout-2020-callsign-system/5295098)
+- [ ] [Different police scout](https://forum.cfx.re/t/free-police-vapid-scout-2020-callsign-system-lore-friendly/5318964)
+- [ ] [Detective taurus](https://forum.cfx.re/t/vapid-torencer-detective-undercover/5319662)
 - [Hotdog Truck](https://forum.cfx.re/t/standalone-free-jakes-hotdog-van/5222792)
 - [Helicopter](https://forum.cfx.re/t/free-police-helicopter-supervolito/5219443)
 - [Unmarked buffalo](https://forum.cfx.re/t/free-unmarked-buffalo-4-police-vehicle/5198223)
 - [Police Crown Vic](https://forum.cfx.re/t/free-lore-friendly-police-stanier-callsign-system/5292680)
 - [Bucket Utility Truck](https://forum.cfx.re/t/vehicle-script-functional-utility-vehicle/5311914)
 - [Police Large SUV](https://forum.cfx.re/t/free-police-brute-regent-callsign-system-lore-friendly/5312488)
+- [Suburban](https://forum.cfx.re/t/free-police-declasse-alamo-2700lx-callsign-system-lore-friendly/5332049)
+- [Unmarked Jefferson (oldsmobile)](https://forum.cfx.re/t/free-dundreary-jefferson-detective-special/5324927)
+- [Crime Scene Investigation Truck](https://forum.cfx.re/t/free-brute-stockade-evidence-support-unit/5324795)
 
 ## Dev tools
 
 - [x] [Dolu Tool](https://forum.cfx.re/t/dolu-tool-mlo-debugging-object-spawner-more/5000677)
 - [Vehicle Handling UI](https://forum.cfx.re/t/free-fivem-vehicle-handling-editor/5307285)
 - [Ped Spawner](https://forum.cfx.re/t/free-standalone-ped-spawner-w-ui-v2-0-0/5295982)
+- [NPC Convos](https://forum.cfx.re/t/esx-qb-advanced-dialogues/5323939)
+- [Police tape prop](https://forum.cfx.re/t/police-line-prop/5325957)
+- [Car Autopilot](https://forum.cfx.re/t/autopilot-standalone-free-release/5330653)
+- [PED Resizing](https://forum.cfx.re/t/um-ped-scale/5334051)
+- [FPS Optimizer](https://forum.cfx.re/t/release-fps-menu-pro-1-performance-enhancement-tool-real-time-stats-modern-interface-free-download/5337919)
 
 ### Chat
 
@@ -165,3 +221,10 @@
 - [PCB Minigame](https://forum.cfx.re/t/pcb-block-minigame/5311135)
 - [Campfire](https://forum.cfx.re/t/free-campfire/5312960)
 - [GTA Online Style Garages](https://forum.cfx.re/t/free-advanced-garage-system-esx-qb-qbox/5313031)
+- [vegetation renewal](https://forum.cfx.re/t/free-escrow-nature-rebirth-spring-k382/5318963)
+- [Drunk Animation](https://forum.cfx.re/t/free-esx-qb-core-realistic-drunk-effects-fivem-script-fr-en/5321855)
+- [Twitch Chat](https://forum.cfx.re/t/standalone-free-view-twitch-chat-in-game-twitch/5323461)
+- [Flashbang](https://forum.cfx.re/t/free-ox-next-flashbang-the-most-optimized-flashbang-system-for-fivem/5323933)
+- [Teleport Script](https://forum.cfx.re/t/release-free-teleportation-potion-script-esx-qb/5328922)
+- [Emergency Lights](https://forum.cfx.re/t/free-emergency-lights-sirens-els/5337491)
+- [Auto Taxi](https://forum.cfx.re/t/esx-qb-qbx-anox-autotaxi-automated-taxi-system-with-smart-routing-free/5341506)
