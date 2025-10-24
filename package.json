@@ -23,9 +23,9 @@
     "@citizenfx/client": "^2.0.5573-1",
     "@citizenfx/server": "^2.0.5761-1",
     "@overextended/oxmysql": "^1.1.1",
-    "esbuild": "^0.17.19",
+    "esbuild": "^0.25.11",
     "fivem-js": "^1.5.2",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.1",
     "gulp-concat": "^2.6.1",
     "gulp-typescript": "^6.0.0-alpha.1",
     "rimraf": "^5.0.1"
