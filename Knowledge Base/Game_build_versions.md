@@ -18,3 +18,4 @@ Game builds are a very important piece of Fivem that typically is not visibly do
 | 3095 | 1.68 | mp2023_02 | The Chop Shop | December 12, 2023 | [Notes](https://support.rockstargames.com/articles/23999650827411/GTAV-Title-Update-1-68-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
 | 3258 | 1.69 | mp2024_01 | Bottom Dollar Bounties | June 25, 2024 | [Notes](https://support.rockstargames.com/articles/30693392257683/GTAV-Title-Update-1-69-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
 | 3407 | 1.70 | mp2024_02 | Agents of Sabotage | December 9, 2024 | [Notes](https://support.rockstargames.com/articles/36252618460307/GTAV-Title-Update-1-70-Notes-PS5-PS4-Xbox-Series-X-S-Xbox-One-PC) |
+| 3570 | 1.71 | mp2025_01	| Money Fronts | June 17, 2025 | [Notes](https://www.rockstargames.com/newswire/article/513kao973a73ko/gta-online-money-fronts-coming-june-17) |
