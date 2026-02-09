@@ -136,6 +136,7 @@
 - [PD Badge](https://forum.cfx.re/t/free-qb-pd-badge/5311911)
 - [Police K9](https://forum.cfx.re/t/free-qb-core-qb-police-k9/5324326)
 - [Live Bodycam](https://forum.cfx.re/t/bbs-live-bodycam-in-game-rendering/5342018)
+- [Evidence](https://forum.cfx.re/t/free-evidence-script/5357633)
 
 ## Map MLOs
 
@@ -172,6 +173,8 @@
 - [ ] [Cayo Perico loader](https://forum.cfx.re/t/free-cayo-perico-loader-monarch-cayo/5342572)
 - [ ] [Paleto UPS](https://forum.cfx.re/t/free-mlo-postops/5348302)
 - [ ] [Senora Park Signs](https://forum.cfx.re/t/free-usnps-senora-national-park-sign/5348301)
+- [ ] [Darnell Bros](https://forum.cfx.re/t/darnell-bros-mlo/5347594)
+- [ ] [Camping House](https://forum.cfx.re/t/free-mlo-wild-camping-house/5325948)
 
 ## Vehicles
 
@@ -200,6 +203,7 @@
 - [Car Autopilot](https://forum.cfx.re/t/autopilot-standalone-free-release/5330653)
 - [PED Resizing](https://forum.cfx.re/t/um-ped-scale/5334051)
 - [FPS Optimizer](https://forum.cfx.re/t/release-fps-menu-pro-1-performance-enhancement-tool-real-time-stats-modern-interface-free-download/5337919)
+- [Zone Creator](https://forum.cfx.re/t/standalone-zone-creator/5373192)
 
 ### Chat
 

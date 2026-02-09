@@ -32,7 +32,7 @@ CreateThread(function()
 
     -- Other
     Ammunations.LoadDefault()
-    LesterFactory.LoadDefault()
+    --LesterFactory.LoadDefault()
     StripClub.LoadDefault()
     CargoShip.LoadDefault()
 

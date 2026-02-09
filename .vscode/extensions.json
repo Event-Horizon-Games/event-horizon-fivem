@@ -11,7 +11,7 @@
         "DavidAnson.vscode-markdownlint",
         "ritwickdey.LiveServer",
         "sumneko.lua",
-        "fivem-vscode.fivem-vscode"
+        "overextended.cfxlua-vscode"
     ],
 
     "unwantedRecommendations": [

@@ -45,8 +45,8 @@ CreateThread(function()
     RequestIpl("dt1_17_newbill")
 
     -- Lester's factory: 716.84, -962.05, 31.59
-    RequestIpl("id2_14_during_door")
-    RequestIpl("id2_14_during1")
+    --RequestIpl("id2_14_during_door")
+    --RequestIpl("id2_14_during1")
 
     -- Life Invader lobby: -1047.9, -233.0, 39.0
     RequestIpl("facelobby")
