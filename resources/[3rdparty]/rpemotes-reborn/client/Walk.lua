@@ -11,11 +11,30 @@ function WalkMenuStart(name, force)
         ResetWalk()
         return
     end
+    local emoteData = WalkData[name]
+    if not emoteData or type(emoteData) ~= "table" then
+        EmoteChatMessage("'" .. tostring(name) .. "' is not a valid walk")
+        return
+    end
+
+    -- Check ACE permission
+    if not HasEmotePermission(name, EmoteType.WALKS) then
+        EmoteChatMessage("You don't have permission to use this walk")
+        return
+    end
+
+    if Config.AbusableEmotesDisabled and emoteData.abusable then
+        EmoteChatMessage(Translate('abusableemotedisabled'))
+        return
+    end
+
+    local walk = emoteData.anim
+    assert(walk ~= nil)
+    RequestWalking(walk)
+    SetPedMovementClipset(PlayerPedId(), walk, 0.2)
+    RemoveAnimSet(walk)
 
     if Config.PersistentWalk then SetResourceKvp("walkstyle", name) end
-    RequestWalking(name)
-    SetPedMovementClipset(PlayerPedId(), name, 0.2)
-    RemoveAnimSet(name)
 end
 
 function ResetWalk()
@@ -28,8 +47,10 @@ end
 
 function WalksOnCommand()
     local WalksCommand = ""
-    for a in PairsByKeys(RP.Walks) do
-        WalksCommand = WalksCommand .. "" .. string.lower(a) .. ", "
+    for name, data in PairsByKeys(WalkData) do
+        if type(data) == "table" then
+            WalksCommand = WalksCommand .. string.lower(name) .. ", "
+        end
     end
     EmoteChatMessage(WalksCommand)
     EmoteChatMessage("To reset do /walk reset")
@@ -48,50 +69,57 @@ function WalkCommandStart(name)
         return
     end
 
-    if TableHasKey(RP.Walks, name) then
-        local name2 = table.unpack(RP.Walks[name])
-        WalkMenuStart(name2)
-    else
-        EmoteChatMessage("'" .. name .. "' is not a valid walk")
-    end
+    WalkMenuStart(name, true)
 end
 
--- Persistent Walkstyles are stored to KVP. Once the player has spawned, the walkstyle is applied.
-
 if Config.WalkingStylesEnabled and Config.PersistentWalk then
-    -- Function to check if walkstyle is available to prevent exploiting
     local function walkstyleExists(kvp)
-        for _, v in pairs(RP.Walks) do
-            if v[1] == kvp then
-                return true
-            end
+        while not CONVERTED do
+            Wait(0)
         end
-        return false
+        if not kvp or kvp == "" then
+            return false
+        end
+
+        local walkstyle = WalkData[kvp]
+        return walkstyle and type(walkstyle) == "table"
     end
 
-    local function handleWalkstyle()
+    function HandleWalkstyle()
         local kvp = GetResourceKvpString("walkstyle")
-
-        if kvp then
-            if walkstyleExists(kvp) then
-                WalkMenuStart(kvp, true)
-            else
-                ResetPedMovementClipset(PlayerPedId(), 0.0)
-                DeleteResourceKvp("walkstyle")
-            end
+        if not kvp then return end
+        if walkstyleExists(kvp) then
+            WalkMenuStart(kvp, true)
+        else
+            ResetPedMovementClipset(PlayerPedId(), 0.0)
+            DeleteResourceKvp("walkstyle")
         end
     end
 
     AddEventHandler('playerSpawned', function()
         Wait(3000)
-        handleWalkstyle()
+        HandleWalkstyle()
     end)
-    RegisterNetEvent('QBCore:Client:OnPlayerLoaded', handleWalkstyle)
-    RegisterNetEvent('esx:playerLoaded', handleWalkstyle)
+
+    RegisterNetEvent('QBCore:Client:OnPlayerLoaded', HandleWalkstyle)
+    RegisterNetEvent('esx:playerLoaded', HandleWalkstyle)
 
     AddEventHandler('onResourceStart', function(resource)
-        if resource == GetCurrentResourceName() then
-            handleWalkstyle()
+        if resource ~= GetCurrentResourceName() then return end
+        HandleWalkstyle()
+    end)
+
+    -- Monitor for ped changes and re-apply walkstyle
+    CreateThread(function()
+        local currentPed
+        while true do
+            Wait(1000)
+            local newPed = PlayerPedId()
+            if currentPed ~= newPed then
+                currentPed = newPed
+                Wait(500) -- Small delay to ensure ped is fully loaded
+                HandleWalkstyle()
+            end
         end
     end)
 end
@@ -103,15 +131,15 @@ if Config.WalkingStylesEnabled then
     TriggerEvent('chat:addSuggestion', '/walks', 'List available walking styles.')
 end
 
-exports('toggleWalkstyle', function(bool, message)
+CreateExport('toggleWalkstyle', function(bool, message)
     canChange = bool
     if message then
         unable_message = message
     end
 end)
 
-exports('getWalkstyle', function()
+CreateExport('getWalkstyle', function()
     return GetResourceKvpString("walkstyle")
 end)
 
-exports('setWalkstyle', WalkMenuStart)
+CreateExport('setWalkstyle', WalkMenuStart)

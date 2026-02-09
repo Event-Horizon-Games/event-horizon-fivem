@@ -1,4 +1,5 @@
-![image](https://github.com/alberttheprince/rpemotes-reborn/assets/85725579/25b38001-1b50-42ff-b9c9-07046d8be0a1)
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/4c939484-1a0a-4772-afff-bb44aed6ea4a" />
+
 
 Rpemotes-reborn is a community-driven FiveM emote menu allowing players to express themselves in roleplay with custom animations, countless facial expressions, walk styles, and props.
 
@@ -10,27 +11,39 @@ Interested in joining our community? You can find our Discord [here](https://dis
 
 # Features 🛠️
 
-- Emote Preview - View emotes before you use them
+- Emote Preview & Placement - View and place emotes before using them!
 
-- Changeable Banner Font
+- Customizable Banner (Change the image, text, and text color)
 
-- Changeable Banner Colour
+- Emote Search Function 🔎
 
-- Multiple Translations 🌏
+- Community contributed custom animations 🕺
 
-- Search Function 🔎
+- Group emotes: Dance, salute, and more with 2 or more people
 
-- Custom Animations with **permission from the community** 🏃
+- Exit Emotes: Exit out of emotes with smooth transitions
 
-- Persistent Facial Expressions via client KVP 🤪
+- Persistent Facial Expressions and Walkstyles via client KVP 
+
+- Easily convert Menyoo to RPEmotes 🔄
+
+- Hide Adult Emotes 🔞
+
+- Hide Animal Emotes ⛔
 
 - Animal Emotes 🐩
 
-- Shared Dances 🕺💃
+- Shared Particle Effects: emotes with smoke effects, fire, and more 💨
 
-- Persistent Walkstyles via client KVP 🚶‍♂️ - Standalone, QB-Core and ESX support!
+- QB-Core + ESX Framework & KVP Keybinding Support ⚙️
+
+- Support for shared and couple poses/animations 👫
 
 - Persistent Disabling Of Idle Camera via KVP 🎥
+
+- Easy To Understand Configuration File ⚙️
+
+- Props Extractor for anti-cheat scripts 💾
 
 - Crouching 🐞
 
@@ -42,27 +55,10 @@ Interested in joining our community? You can find our Discord [here](https://dis
 
 - Hands up 🙌
 
-- Shared Particle Effects 💨
-
-- QB-Core Framework & SQL Keybinding Support ⚙️
-
-- Further support for shared and couple poses/animations 👫
-
-- Easily convert Menyoo to RPEmotes 🔄
-
-- Hide Adult Emotes 🔞
-
-- Hide Animal Emotes ⛔
-
-- Easy To Understand Configuration File ⚙️
-
-- Exit Emotes 😎
-
 - Working Binoculars 👀
 
 - News Camera 🎤📹
 
-- Props Extractor for anti-cheat scripts 💾
 
 **Available in the following languages:**
 
@@ -72,49 +68,43 @@ Languages can be selected and/or added in the config.lua.
 
 All languages were translated or contributed by the FiveM community, with the odd exception of using Google Translate.
 
+English is the original language and will always be up to date with correct translations. Otherwise, German is currently the only translation which is complete and verified by a native speaker. Other translations might be incomplete or partially lacking in quality. English is used as a fallback for missing translations. Compare your language file to the English one to find and add missing translations.
+
 If you find any incorrect translations or would like to add more languages, please make a pull request with the corrections.
 
-# Header
-
-To edit the header, find the image in the main directory of rpemotes-reborn and edit the image in your program of choice. The image dimensions are 512 x 128.
-
-Do not change the name of the image file.
-
-Example Banner:
-![image](https://github.com/user-attachments/assets/dac5b7e5-4b63-4d10-8d59-3e8502d9913c)
-
-**Note for users of older versions of rpemotes:** Previously, the banner was hosted through a web link on an image hosting website. Due to various image hosting sites dealing with large amounts of traffic from FiveM, they cut off access to FiveM.
 
 # Exports and Documentation
 
 Find our documentation [here](https://rpemotes-reborn.gitbook.io/guide)
 
-When using our emote menu with other scripts, using the `TriggerEvent('animations:client:EmoteCommandStart` won't do anything because the events do not exist. These have simply been replaced with the following exports:
-
-**Note for legacy use of rpemotes:** if you have resources dependent on or currently using exports from rpemotes, rename rpemotes-reborn's folder to rpemotes to maintain functionality. Or, rename all exports from exports["rpemotes"] to exports["rpemotes-reborn"]
+The rpemotes-reborn resource has the following exports:
 
 ```lua
 exports["rpemotes-reborn"]:EmoteCommandStart(emoteName, textureVariation)
 exports["rpemotes-reborn"]:EmoteCancel(forceCancel) – forceCancel is optional
-exports["rpemotes-reborn"]:CanCancelEmote(state)
 exports["rpemotes-reborn"]:IsPlayerCrouched()
 exports["rpemotes-reborn"]:IsPlayerProne()
+exports["rpemotes-reborn"]:StopPlayerProne(force) -- force is optional
+exports["rpemotes-reborn"]:GetPlayerProneType() -- returns the type of prone the player is in, either "onfront" or "onback"
 exports["rpemotes-reborn"]:IsPlayerCrawling()
 exports["rpemotes-reborn"]:IsPlayerPointing()
 exports["rpemotes-reborn"]:IsPlayerInAnim() -- returns current animation name or nil
 exports["rpemotes-reborn"]:IsPlayerInHandsUp()
-exports["rpemotes-reborn"]:toggleWalkstyle(bool, message) -- bool to allow the user to change their walkstyle in the menu or not / message to show the user (optional, default is :"You are unable to change your walking style right now.")"
 exports["rpemotes-reborn"]:toggleBinoculars()
 exports["rpemotes-reborn"]:toggleNewscam()
 exports["rpemotes-reborn"]:getWalkstyle() -- Gets walk style of player, used to detect certain walk. useful for applying effects while doing certain walks like tripping or other "funny" effects.
 exports["rpemotes-reborn"]:setWalkstyle(name, force) -- name = "move_m@alien" or any other, force = optional bool. Lets you set or force a walk style, useful for scripts like retrieving a style before drinking and restoring it after sobering up.
+exports["rpemotes-reborn"]:toggleWalkstyle(bool, message) -- bool to allow the user to change their walkstyle in the menu or not / message to show the user (optional, default is :"You are unable to change your walking style right now.")"
 ```
 
-Having issues with players using emotes when/where they're not supposed to? Use the following where you need. This would be somewhere like if you want to disable emotes in jail or when someone is handcuffed/escorted:
+Having issues with players using emotes when/where they're not supposed to? Use the following where needed. This would be somewhere like if you want to disable emotes in jail or when someone is handcuffed/escorted. We've also added one for blocking emote cancels!
 
 ```lua
-LocalPlayer.state:set('canEmote', false, true) -- stops emoting
-LocalPlayer.state:set('canEmote', true, true) -- allows emoting
+LocalPlayer.state:set('canEmote', false, true) -- Blocks players from emoting
+LocalPlayer.state:set('canEmote', true, true) -- Allows players to emote
+
+LocalPlayer.state:set('canCancel', false, true) -- Blocks players from using emote cancel
+LocalPlayer.state:set('canCancel', true, true) -- Allows players to use emote cancel
 ```
 
 # Menu Keybind 🎛️
@@ -133,23 +123,32 @@ Alternatively, the player base can set their menu keybind to open rpemotes-rebor
 
 `Esc > settings > keybinds > fivem`
 
-- More keybinds are now using key mappings which means that they are now available in your FiveM settings to change (`FavKeybind` and `RagdollKeybind`)
+- More keybinds are now using key mappings which means that they are now available in your FiveM settings to change (`RagdollKeybind`)
 
-# Keybinds and SQL 🎛️
+# Keybinds 🎛️
 
-To use the SQL features, install the latest version of the [oxmysql](https://github.com/overextended/oxmysql) resource and enable the setting in `config.lua`
+To use the features, enable the setting in `config.lua`
 
 ```lua
-SqlKeybinding = false,
+Keybinding = false,
 ```
-
-If you do not want to use the SQL features keep the `oxmysql` region in fxmanifest.lua commented out.
 
 Alternatively, you can use the keybind command that comes with FiveM without having to use SQL, by entering the following into F8:
 
 `bind keyboard "Yourbutton" "e youremote"`. To remove the keybind, type `"unbind keyboard "Yourbutton"`.
 
-# Menu Customization
+# Menu Customization: Header
+
+To edit the header, find the image in the main directory of rpemotes-reborn and edit the image in your program of choice. The image dimensions are 512 x 128.
+
+Do not change the name of the image file.
+
+Example Banner:
+![image](https://github.com/user-attachments/assets/dac5b7e5-4b63-4d10-8d59-3e8502d9913c)
+
+**Note for users of older versions of rpemotes:** Previously, the banner was hosted through a web link on an image hosting website. Due to various image hosting sites dealing with large amounts of traffic from FiveM, they cut off access to FiveM.
+
+# Menu Customization: Title
 
 In the`config.lua` file, server owners can set the MenuTitle or simply leave it blank. Ideally, this should be 11 characters or less without any spaces.
 You can also set the font and decide whether or not you want an outline and MenuPosition. The available fonts are as follows:
@@ -248,7 +247,6 @@ No Idle Cam allows players to disable the idle camera animation on foot and in v
 | G           | Show or hide the instructions                 |
 | BACKSPACE   | Exit the binoculars                           |
 
-<img src="https://forum.cfx.re/uploads/default/original/4X/2/6/3/263b6f2afe148191193fca8c8cc0b9bc666da9e8.jpeg" width="600" height="auto">
 
 # News Camera
 
@@ -260,13 +258,6 @@ No Idle Cam allows players to disable the idle camera animation on foot and in v
 | G         | Show or hide the instructions |
 | BACKSPACE | Exit News Camera              |
 
-<img src="https://forum.cfx.re/uploads/default/optimized/4X/5/4/e/54e47db5ae45f5afa4b84c2ae4858bc9ab0a8187_2_690x388.jpeg" width="600" height="auto">
-
-# Favorite Emote
-
-Players can search for an emote (so long as search is enabled) and press LEFT SHIFT and CAPLOCKS on their keyboard to add it to their 'Favorites'. Pressing CAPLOCKS will toggle the emote.
-
-Alternatively, you can use the 🌟 Favorite menu to find an emote and press enter.
 
 # Exit Emotes
 
@@ -283,9 +274,8 @@ Below is an example of how this would look:
         "sit_phone_phoneputdown_idle_nowork",
         "Sit",
         AnimationOptions = {
-            EmoteLoop = true,
+            onFootFlag = AnimFlag.LOOP,
             ExitEmote = "getup",
-            ExitEmoteType = "Exits"
         }
     },
 ```
@@ -354,6 +344,7 @@ Available output formats:
 
 Command usage example: emoteextract 1
 ```
+
 ![image](https://github.com/user-attachments/assets/6ec6e042-00b7-4be2-8086-1805eb87196c)
 
 # Installation Instructions ⚙️:
@@ -380,9 +371,7 @@ You can put this before your gamebuild enforcement, aka `+set sv_enforceGameBuil
 
 - Qb-Core server owners, set `Framework = 'qb-core'` in the config file, otherwise leave it as false.
 
-- To use the SQL features, install the [oxmysql](https://github.com/overextended/oxmysql) resource then open `keybinds.lua` in RPEmotes. If you do not want to use the SQL features, comment out the `oxmysql` region in fxmanifest.lua.
-
-Alternatively, you can use the keybind command that comes with FiveM without having the SQL, by entering the following into F8:
+- If you do not want to use the Kvp features, you can use the keybind command that comes with FiveM, by entering the following into F8:
 
 `bind keyboard "Yourbutton" "e youremote"`. To remove the keybind, type `"unbind keyboard "Yourbutton"`.
 
@@ -469,59 +458,62 @@ All animation creators have **_specifically_** asked that their content remain f
 **A huge thank you the following people for their amazing contributions to the menu:**
 
 - the FiveM community for using RP and updating rpemotes-reborn!
-- [enzo2991](https://github.com/enzo2991) for creating the ped preview functionality
+### Developers:
 - [The Popcorn RP community](https://discord.gg/popcornroleplay) for putting up with all my emote menu testing and troubleshooting issues with me
+- [Mathu_lmn](https://github.com/Mathu-lmn) for maintaining the menu and adding features
+- [Manason](https://github.com/Manason) for major overhauls, refactors, and improvements of rpemotes-reborn during push to 2.0
+- [CritteRo](CritteRo) for work on shared emotes placement and other refactors and fixes of rpemotes-reborn during push to 2.0
+- [ChristopherM](https://github.com/cm8263) for creation of the emote placement feature and fixes of rpemotes-reborn during push to 2.0
+- [enzo2991](https://github.com/enzo2991) for creating the ped preview functionality, keybind with kvp
 - [DerDevHD](https://forum.cfx.re/t/fixed-remove-prop-after-scenario-animation/5002332/8) for the insight on deleting scenario props.
+- [iSentrie](https://forum.cfx.re/u/isentrie/) for additional code, support, and joining the RPEmotes project
 - [Kibook](https://github.com/kibook) for the addition of the Animal Emotes sub-menu
 - [AvaN0x](https://github.com/AvaN0x) for reformatting and assisting with code, additional features, and figuring out shared particle effects
 - [Mads](https://github.com/MadsLeander) for joining the team as Co-Developer
-- [Mathu_lmn](https://github.com/Mathu-lmn) for joining the team as Co-Developer
 - [Tigerle](https://forum.cfx.re/u/tigerle_studios) for providing the additional code required to make Shared Emotes work to its full extent
-- [SMGMissy](https://jenscreations.tebex.io/) for creating the pride flag props
-- [MissSnowie](https://www.gta5-mods.com/users/MissySnowie) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord and for the motivational and overall moral support
 - [GeekGarage](https://github.com/geekgarage) for their knowledge, time, and dedication, helping to bring new and exciting features to the menu
-- [Smokey](https://www.gta5-mods.com/users/struggleville) for the Explicit Usage Rights Agreement to add free custom animations either publicly available on their discord
-- [BzZzi](https://forum.cfx.re/u/bzzzi/summary) for the Explicit Usage Rights Agreement to add free donuts, croissants and fire torch props
-- [Natty3d](https://forum.cfx.re/u/natty3d/summary) for the Explicit Usage Rights Agreement to add free lollipop props
 - [northsqrd](https://github.com/0sqrd) for adding the search function, Animal Emotes config, mobile phone prop texture variants, and general contributions
-- Crusopaul and Eki for discussing KVP and initializing it to the menu for persistent walk styles
-- [Amnilka](https://www.gta5-mods.com/users/frabi) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord
-- [LittleSpoon](https://discord.gg/safeword) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord
-- [LadyyShamrockk](https://www.gta5-mods.com/users/LadyyShamrockk) For allowing us to include their emotes in rpemotes-reborn
-- [Pupppy](https://discord.gg/rsN35X4s4N) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord
-- [SapphireMods](https://discord.gg/Hf8F4nTyzt) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord
-- [QueenSisters Animations](https://discord.gg/qbPtGwQuep) for the Explicit Usage Rights Agreement to add free custom animations either publicly available or on their discord
-- [Kri's Graphic House](https://discord.gg/JueRG3fCy6) for the custom banners
-- !MWooM#0597 on Discord for the custom banners
-- DurtyFree for his work on particle effects and cataloging GTA-related information [DurtyFree GTA V Dump](https://github.com/DurtyFree/gta-v-data-dumps/blob/master/particleEffectsCompact.json).
-- [BoringNeptune](https://www.gta5-mods.com/users/BoringNeptune) for the custom dance emotes
-- [CMG Mods](https://www.gta5-mods.com/users/-moses-) for the custom emotes
-- [prue 颜](discord.gg/lunyxmods) for being a great friend and providing us with exclusive custom animations
-- [PataMods](https://forum.cfx.re/u/Pata_PataMods) for the custom props
-- [Crowded1337](https://www.gta5-mods.com/users/crowded1337) for the custom Gucci bag. I have removed the Gucci logo to comply with Rockstar Games & TakeTwo Interactive
-- [EnchantedBrownie](https://www.gta5-mods.com/users/EnchantedBrownie) for the custom animations
-- [Copofiscool](https://forum.cfx.re/u/copofiscool/) for adding a toggle to the Favorite Keybinds
-- [iSentrie](https://forum.cfx.re/u/isentrie/) for additional code, support, and joining the RPEmotes project
-- Chocoholic Animations for the custom animations
-- [CrunchyCat](https://www.gta5-mods.com/users/crunchycat) for the custom animations
-- [KayKayMods](https://discord.gg/5bYQVWVaxG) for the custom props
-- [MonkeyWhisper](https://github.com/MonkeyWhisper) and [Project Sloth](https://github.com/Project-Sloth) for the custom props
-- [Brummieee](https://forum.cfx.re/u/brummieee_maps/summary) for the custom props
-- [Dark Animations](https://www.gta5-mods.com/users/Darks%20Animations) for the custom animations.
 - [Chico](https://forum.cfx.re/u/chico) for implementing natives to reapply persistent moods and walk styles for ESX and QB-Core frameworks
-- [-EcLiPsE-](https://www.gta5-mods.com/users/-EcLiPsE-) for allowing me to implement [Improved Prop Sets](https://www.gta5-mods.com/misc/improved-propsets-meta) and [GTA Online Biker Idle Anims](https://www.gta5-mods.com/misc/bike-idle-animations)
-- [MrWitt](https://www.gta5-mods.com/users/MrWitt)for the custom animations
-- [AdoredRose](https://forum.cfx.re/u/adoredrose/summary) for assisting with animations
-- [Vedere](https://discord.gg/XMywAMQ8Ef) for the custom props
-- [DRX Animations](https://www.gta5-mods.com/users/DRX%2DAnimations) for the custom animations
-- [VNSIanims](https://discord.gg/cTNrjYSXXG) for the custom animations
-- [PNWParksFan](https://www.gta5-mods.com/users/PNWParksFan) for the custom props
-- [LSPDFR member Sam](https://www.lcpdfr.com/downloads/gta5mods/misc/23386-lspd-police-badge/) for their Custom LSPD police badge
-- [GTA5Mods user Sladus_Slawonkus](https://www.gta5-mods.com/misc/lspd-police-badge-replace-sladus_slawonkus) for their reskinned LSPD badge
 - [Scully](https://github.com/Scullyy/) for their past work on rpemotes
-- [EP](https://github.com/EpKouhia) for their ice fishing props and emotes, originally used in scully_emotemenu
-- [TayMcKenzieNZ](https://github.com/TayMcKenzieNZ) for their past work maintaining RP Emotes
-- [ESX](https://github.com/esx-framework) for the creation of the translation system
-- [41anims](https://www.gta5-mods.com/users/41anims) for allowing us to use their custom emotes in rpemotes-reborn
-- [corbs](https://www.gta5-mods.com/users/corbs) for allowing us to use their custom emotes and poses in rpemotes-reborn
-- [jaysigx](https://www.gta5-mods.com/misc/improved-umbrella) for allowing us to use their improved umbrella prop
+- Crusopaul and Eki for discussing KVP and initializing it to the menu for persistent walk styles
+
+### Emote & Props Creators:
+- [FalseHopeDesigns](https://falsehopedesigns.tebex.io/) for creation of collisionless props
+- [SMGMissy](https://jenscreations.tebex.io/) for creating the pride flag props
+- [MissSnowie](https://www.gta5-mods.com/users/MissySnowie)
+- [Smokey](https://www.gta5-mods.com/users/struggleville)
+- [BzZzi](https://forum.cfx.re/u/bzzzi/summary)
+- [Natty3d](https://forum.cfx.re/u/natty3d/summary)
+- [Amnilka](https://www.gta5-mods.com/users/frabi)
+- [LittleSpoon](https://discord.gg/safeword)
+- [LadyyShamrockk](https://www.gta5-mods.com/users/LadyyShamrockk)
+- [Pupppy](https://discord.gg/rsN35X4s4N)
+- [SapphireMods](https://discord.gg/Hf8F4nTyzt)
+- [QueenSisters Animations](https://discord.gg/qbPtGwQuep)
+- DurtyFree for his work on particle effects and cataloging GTA-related information [DurtyFree GTA V Dump](https://github.com/DurtyFree/gta-v-data-dumps/blob/master/particleEffectsCompact.json)
+- [BoringNeptune](https://www.gta5-mods.com/users/BoringNeptune)
+- [CMG Mods](https://www.gta5-mods.com/users/-moses-)
+- [prue 颜](discord.gg/lunyxmods)
+- [PataMods](https://forum.cfx.re/u/Pata_PataMods)
+- [Crowded1337](https://www.gta5-mods.com/users/crowded1337)
+- [EnchantedBrownie](https://www.gta5-mods.com/users/EnchantedBrownie)
+- Chocoholic Animations
+- [CrunchyCat](https://www.gta5-mods.com/users/crunchycat)
+- [KayKayMods](https://discord.gg/5bYQVWVaxG)
+- [MonkeyWhisper](https://github.com/MonkeyWhisper) and [Project Sloth](https://github.com/Project-Sloth)
+- [Brummieee](https://forum.cfx.re/u/brummieee_maps/summary)
+- [Dark Animations](https://www.gta5-mods.com/users/Darks%20Animations).
+- [-EcLiPsE-](https://www.gta5-mods.com/users/-EcLiPsE-) for allowing me to implement [Improved Prop Sets](https://www.gta5-mods.com/misc/improved-propsets-meta) and [GTA Online Biker Idle Anims](https://www.gta5-mods.com/misc/bike-idle-animations)
+- [MrWitt](https://www.gta5-mods.com/users/MrWitt)
+- [Vedere](https://discord.gg/XMywAMQ8Ef)
+- [DRX Animations](https://www.gta5-mods.com/users/DRX%2DAnimations)
+- [VNSIanims](https://discord.gg/cTNrjYSXXG)
+- [PNWParksFan](https://www.gta5-mods.com/users/PNWParksFan)
+- [LSPDFR member Sam](https://www.lcpdfr.com/downloads/gta5mods/misc/23386-lspd-police-badge/)
+- [GTA5Mods user Sladus_Slawonkus](https://www.gta5-mods.com/misc/lspd-police-badge-replace-sladus_slawonkus)
+- [EP](https://github.com/EpKouhia)
+- [TayMcKenzieNZ](https://github.com/TayMcKenzieNZ)
+- [41anims](https://www.gta5-mods.com/users/41anims)
+- [corbs](https://www.gta5-mods.com/users/corbs)
+- [jaysigx](https://www.gta5-mods.com/misc/improved-umbrella)
+- [Payzee](https://pazeee.tebex.io/)

@@ -1,145 +1,173 @@
-if Config.SqlKeybinding then
-    local emob1 = ""
-    local emob2 = ""
-    local emob3 = ""
-    local emob4 = ""
-    local emob5 = ""
-    local emob6 = ""
-    local keyb1 = ""
-    local keyb2 = ""
-    local keyb3 = ""
-    local keyb4 = ""
-    local keyb5 = ""
-    local keyb6 = ""
-    local Initialized = false
+CreateThread(function()
+    TriggerEvent('chat:addSuggestion', '/e', Translate('play_emote'),
+        { { name = "emotename",      help = Translate('help_command') },
+            { name = "texturevariation", help = Translate('help_variation') } })
+    TriggerEvent('chat:addSuggestion', '/emote', Translate('play_emote'),
+        { { name = "emotename",      help = Translate('help_command') },
+            { name = "texturevariation", help = Translate('help_variation') } })
+    TriggerEvent('chat:addSuggestion', '/emotemenu', Translate('open_menu_emote'))
+    TriggerEvent('chat:addSuggestion', '/emotes', Translate('show_list_emote'))
+    TriggerEvent('chat:addSuggestion', '/emotecancel', Translate('cancel_emote'))
+end)
 
-    -----------------------------------------------------------------------------------------------------
-    -- Commands / Events --------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------
+RegisterCommand('e', function(source, args, raw) EmoteCommandStart(args) end, false)
+RegisterCommand('emote', function(source, args, raw) EmoteCommandStart(args) end, false)
+RegisterCommand('emotecancel', function() EmoteCancel() end, false)
 
-    CreateThread(function()
-        while true do
-            if NetworkIsPlayerActive(PlayerId()) and not Initialized then
-                if not Initialized then
-                    TriggerServerEvent("rp:ServerKeybindExist")
-                    Wait(5000)
-                end
+if Config.MenuKeybindEnabled then
+    RegisterCommand('emoteui', function() OpenEmoteMenu() end, false)
+    RegisterKeyMapping("emoteui", Translate('register_open_menu'), "keyboard", Config.MenuKeybind)
+end
+
+RegisterCommand('emotemenu', function() OpenEmoteMenu() end, false)
+
+if Config.EnableCancelKeybind then
+    RegisterKeyMapping("emotecancel", Translate('register_cancel_emote'), "keyboard", Config.CancelEmoteKey)
+end
+
+-- BINDING EMOTES TO KEYS
+if Config.Keybinding then
+    for i = 1, #Config.KeybindKeys do
+        local cmd = string.format('emoteSelect%s', i)
+        RegisterCommand(cmd, function()
+            local emote = GetResourceKvpString(string.format('%s_bind_%s', Config.keybindKVP, i))
+            if emote and emote ~= "" then
+                emote = json.decode(emote)
+                RouteEmoteToFunction(emote.emoteName, emote.emoteType)
             end
-
-            if not IsPedSittingInAnyVehicle(PlayerPedId()) then
-                for k, v in pairs(Config.KeybindKeys) do
-                    if IsControlJustReleased(0, v) then
-                        if k == keyb1 then if emob1 ~= "" then EmoteCommandStart(nil, { emob1, 0 }) end end
-                        if k == keyb2 then if emob2 ~= "" then EmoteCommandStart(nil, { emob2, 0 }) end end
-                        if k == keyb3 then if emob3 ~= "" then EmoteCommandStart(nil, { emob3, 0 }) end end
-                        if k == keyb4 then if emob4 ~= "" then EmoteCommandStart(nil, { emob4, 0 }) end end
-                        if k == keyb5 then if emob5 ~= "" then EmoteCommandStart(nil, { emob5, 0 }) end end
-                        if k == keyb6 then if emob6 ~= "" then EmoteCommandStart(nil, { emob6, 0 }) end end
-                        Wait(1000)
-                    end
-                end
-            else
-                Wait(500)
-            end
-            Wait(0)
-        end
-    end)
-
-    RegisterNetEvent("rp:ClientKeybindExist", function(does)
-        if does then
-            TriggerServerEvent("rp:ServerKeybindGrab")
-        else
-            TriggerServerEvent("rp:ServerKeybindCreate")
-        end
-    end)
-
-    RegisterNetEvent("rp:ClientKeybindGet", function(k1, e1, k2, e2, k3, e3, k4, e4, k5, e5, k6, e6)
-        keyb1 = k1
-        emob1 = e1
-        keyb2 = k2
-        emob2 = e2
-        keyb3 = k3
-        emob3 = e3
-        keyb4 = k4
-        emob4 = e4
-        keyb5 = k5
-        emob5 = e5
-        keyb6 = k6
-        emob6 = e6
-        Initialized = true
-    end)
-
-    RegisterNetEvent("rp:ClientKeybindGetOne", function(key, e)
-        SimpleNotify(Translate('boundto', e, FirstToUpper(key)))
-        if key == "num4" then
-            emob1 = e
-            keyb1 = "num4"
-        elseif key == "num5" then
-            emob2 = e
-            keyb2 = "num5"
-        elseif key == "num6" then
-            emob3 = e
-            keyb3 = "num6"
-        elseif key == "num7" then
-            emob4 = e
-            keyb4 = "num7"
-        elseif key == "num8" then
-            emob5 = e
-            keyb5 = "num8"
-        elseif key == "num9" then
-            emob6 = e
-            keyb6 = "num9"
-        end
-    end)
-
-    -----------------------------------------------------------------------------------------------------
-    ------ Functions and stuff --------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------
-
-    function EmoteBindsStart()
-        EmoteChatMessage(Translate('currentlyboundemotes') .. "\n"
-            .. FirstToUpper(keyb1) .. " = '^2" .. emob1 .. "^7'\n"
-            .. FirstToUpper(keyb2) .. " = '^2" .. emob2 .. "^7'\n"
-            .. FirstToUpper(keyb3) .. " = '^2" .. emob3 .. "^7'\n"
-            .. FirstToUpper(keyb4) .. " = '^2" .. emob4 .. "^7'\n"
-            .. FirstToUpper(keyb5) .. " = '^2" .. emob5 .. "^7'\n"
-            .. FirstToUpper(keyb6) .. " = '^2" .. emob6 .. "^7'\n")
+        end, false)
+        RegisterKeyMapping(cmd, Translate("keybind_slot", i), 'keyboard', Config.KeybindKeys[i])
     end
 
-    function EmoteBindStart(source, args, raw)
+    function EmoteBindStart(args)
         if #args > 0 then
-            local key = string.lower(args[1])
-            local emote = string.lower(args[2])
-            if (Config.KeybindKeys[key]) ~= nil then
-                if RP.Emotes[emote] ~= nil
-                    or RP.Dances[emote] ~= nil
-                    or RP.PropEmotes[emote] ~= nil
-                    or RP.AnimalEmotes[emote] ~= nil
-                then
-                    TriggerServerEvent("rp:ServerKeybindUpdate", key, emote)
+            local numkey = tonumber(args[1])
+            local emote = tostring(args[2])
+            local label = tostring(args[3])
+            local emoteType = tostring(args[4])
+            if not (numkey and emote and label and emoteType) then
+                DebugPrint('Invalid arguments to EmoteBindStart')
+                return
+            end
+            if type(numkey) == "number" then
+                if true then
+                    SetResourceKvp(string.format('%s_bind_%s', Config.keybindKVP, numkey), json.encode({label = label, emoteName = emote, emoteType = emoteType}))
+                    SimpleNotify(Translate("registered_keybind", label, GetKeyForCommand("emoteSelect"..numkey)))
                 else
                     EmoteChatMessage("'" .. emote .. "' " .. Translate('notvalidemote') .. "")
                 end
             else
-                EmoteChatMessage("'" .. key .. "' " .. Translate('notvalidkey'))
+                EmoteChatMessage("'" .. numkey .. "' " .. Translate('notvalidkey'))
             end
         else
-            print("invalid")
+            DebugPrint('Invalid number of arguments to EmoteBindStart')
         end
     end
 
-    function DeleteEmote(source, args)
+    function DeleteEmoteBind(args)
         if #args > 0 then
-            local key = string.lower(args[1])
-            if (Config.KeybindKeys[key]) ~= nil then
-                TriggerServerEvent("rp:ServerKeybindDelete", key)
-                Wait(1000)
-                TriggerServerEvent("rp:ServerKeybindExist")
+            local numkey = tonumber(args[1])
+            if type(numkey) == "number"  then
+                DeleteResourceKvp(string.format('%s_bind_%s', Config.keybindKVP, numkey))
+                SimpleNotify(Translate("cleared_keybind", numkey))
             else
-                EmoteChatMessage("'" .. key .. "' " .. Translate('notvalidkey'))
+                EmoteChatMessage("'" .. numkey .. "' " .. Translate('notvalidkey'))
             end
         else
-            print("invalid")
+            DebugPrint("invalid")
         end
+    end
+end
+
+-- shoutout to MadsL for sharing the button map on the forums.
+local specialkeyCodes = {
+    ['b_100'] = 'LMB', -- Left Mouse Button
+    ['b_101'] = 'RMB', -- Right Mouse Button
+    ['b_102'] = 'MMB', -- Middle Mouse Button
+    ['b_103'] = 'Mouse.ExtraBtn1',
+    ['b_104'] = 'Mouse.ExtraBtn2',
+    ['b_105'] = 'Mouse.ExtraBtn3',
+    ['b_106'] = 'Mouse.ExtraBtn4',
+    ['b_107'] = 'Mouse.ExtraBtn5',
+    ['b_108'] = 'Mouse.ExtraBtn6',
+    ['b_109'] = 'Mouse.ExtraBtn7',
+    ['b_110'] = 'Mouse.ExtraBtn8',
+    ['b_115'] = 'MouseWheel.Up',
+    ['b_116'] = 'MouseWheel.Down',
+    ['b_130'] = 'NumSubstract',
+    ['b_131'] = 'NumAdd',
+    ['b_134'] = 'Num Multiplication',
+    ['b_135'] = 'Num Enter',
+    ['b_137'] = 'Numpad1',
+    ['b_138'] = 'Numpad2',
+    ['b_139'] = 'Numpad3',
+    ['b_140'] = 'Numpad4',
+    ['b_141'] = 'Numpad5',
+    ['b_142'] = 'Numpad6',
+    ['b_143'] = 'Numpad7',
+    ['b_144'] = 'Numpad8',
+    ['b_145'] = 'Numpad9',
+    ['b_170'] = 'F1',
+    ['b_171'] = 'F2',
+    ['b_172'] = 'F3',
+    ['b_173'] = 'F4',
+    ['b_174'] = 'F5',
+    ['b_175'] = 'F6',
+    ['b_176'] = 'F7',
+    ['b_177'] = 'F8',
+    ['b_178'] = 'F9',
+    ['b_179'] = 'F10',
+    ['b_180'] = 'F11',
+    ['b_181'] = 'F12',
+    ['b_182'] = 'F13',
+    ['b_183'] = 'F14',
+    ['b_184'] = 'F15',
+    ['b_185'] = 'F16',
+    ['b_186'] = 'F17',
+    ['b_187'] = 'F18',
+    ['b_188'] = 'F19',
+    ['b_189'] = 'F20',
+    ['b_190'] = 'F21',
+    ['b_191'] = 'F22',
+    ['b_192'] = 'F23',
+    ['b_193'] = 'F24',
+    ['b_194'] = 'Arrow Up',
+    ['b_195'] = 'Arrow Down',
+    ['b_196'] = 'Arrow Left',
+    ['b_197'] = 'Arrow Right',
+    ['b_198'] = 'Delete',
+    ['b_199'] = 'Escape',
+    ['b_200'] = 'Insert',
+    ['b_201'] = 'End',
+    ['b_210'] = 'Delete',
+    ['b_211'] = 'Insert',
+    ['b_212'] = 'End',
+    ['b_1000'] = 'Shift',
+    ['b_1002'] = 'Tab',
+    ['b_1003'] = 'Enter',
+    ['b_1004'] = 'Backspace',
+    ['b_1009'] = 'PageUp',
+    ['b_1008'] = 'Home',
+    ['b_1010'] = 'PageDown',
+    ['b_1012'] = 'CapsLock',
+    ['b_1013'] = 'Control',
+    ['b_1014'] = 'Right Control',
+    ['b_1015'] = 'Alt',
+    ['b_1055'] = 'Home',
+    ['b_1056'] = 'PageUp',
+    ['b_2000'] = 'Space'
+}
+
+function GetKeyForCommand(command)
+    return GetKeyLabel(GetHashKey(command) | 0x80000000):upper()
+end
+
+function GetKeyLabel(commandHash)
+    local key = GetControlInstructionalButton(0, commandHash | 0x80000000, true)
+    if string.find(key, "t_") then
+        local label, _count = string.gsub(key, "t_", "")
+        return label
+    else
+        return specialkeyCodes[key] or "unknown"
     end
 end

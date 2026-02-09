@@ -1,250 +1,195 @@
------------------------------------------------------------------------------------------------------
--- Shared Emotes Syncing  ---------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
+---@type table<EmoteType, table<string, boolean>>
+local emoteCache = {
+    [EmoteType.EMOTES] = {},
+    [EmoteType.SHARED] = {},
+    [EmoteType.EXPRESSIONS] = {},
+    [EmoteType.WALKS] = {},
+}
 
-RegisterNetEvent("ServerEmoteRequest", function(target, emotename, etype)
+-- Load and cache animation lists on startup
+local function loadAndCacheEmotes()
+    print("^3[rpemotes] Loading and caching emote data...^0")
+
+    -- Load AnimationList.lua
+    local animationFile = LoadResourceFile(GetCurrentResourceName(), "client/AnimationList.lua")
+    if not animationFile then
+        print("^1[rpemotes] Failed to load AnimationList.lua^0")
+        return false
+    end
+
+    local f, err = load(animationFile .. " return RP")
+    if err then
+        print("^1[rpemotes] Error loading AnimationList.lua: " .. tostring(err) .. "^0")
+        return false
+    end
+
+    local success, RP = pcall(f)
+    if not success then
+        print("^1[rpemotes] Error parsing AnimationList.lua: " .. tostring(RP) .. "^0")
+        return false
+    end
+
+    -- Load AnimationListCustom.lua
+    local CustomDP
+    local customFile = LoadResourceFile(GetCurrentResourceName(), "client/AnimationListCustom.lua")
+    if customFile then
+        local customFunc, customErr = load(customFile .. " return CustomDP")
+        if not customErr then
+            local customSuccess, result = pcall(customFunc)
+            if customSuccess and result then
+                CustomDP = result
+                print("^2[rpemotes] Loaded custom emotes^0")
+            end
+        end
+    end
+
+    -- Cache emote names by ACE category
+    local counts = {
+        [EmoteType.EMOTES] = 0,
+        [EmoteType.SHARED] = 0,
+        [EmoteType.EXPRESSIONS] = 0,
+        [EmoteType.WALKS] = 0,
+    }
+
+    local function cacheEmotesFromTable(emoteTable)
+        for emoteType, emoteList in pairs(emoteTable) do
+            local aceCategory = AceCategoryFromEmoteType[emoteType]
+            if aceCategory and type(emoteList) == "table" then
+                for emoteName in pairs(emoteList) do
+                    emoteCache[aceCategory][emoteName] = true
+                    counts[aceCategory] += 1
+                end
+            end
+        end
+    end
+
+    -- Cache emotes from both AnimationList and AnimationListCustom
+    cacheEmotesFromTable(RP)
+    if CustomDP then
+        cacheEmotesFromTable(CustomDP)
+    end
+
+    print(string.format("^2[rpemotes] Cached %d emotes, %d shared, %d expressions, %d walks^0",
+        counts[EmoteType.EMOTES], counts[EmoteType.SHARED], counts[EmoteType.EXPRESSIONS], counts[EmoteType.WALKS]))
+
+    return true
+end
+
+loadAndCacheEmotes()
+
+-- Build permission lookup cache for O(1) access
+-- Structure: aceCache[aceCategory][emoteName] = {acePermission1, acePermission2, ...}
+---@type table<EmoteType, table<string, string[]>>
+local aceCache = {}
+
+-- Initialize cache from AceCategoryFromEmoteType
+for _, aceCategory in pairs(AceCategoryFromEmoteType) do
+    if not aceCache[aceCategory] then
+        aceCache[aceCategory] = {}
+    end
+end
+
+local function buildPermissionCache()
+    for acePermission, restrictions in pairs(Config.Ace) do
+        for emoteType, emoteList in pairs(restrictions) do
+            local aceCategory = AceCategoryFromEmoteType[emoteType]
+            if aceCategory then
+                local categoryCache = aceCache[aceCategory]
+                for _, emoteName in ipairs(emoteList) do
+                    local aceList = categoryCache[emoteName]
+                    if not aceList then
+                        aceList = {}
+                        categoryCache[emoteName] = aceList
+                    end
+                    aceList[#aceList + 1] = acePermission
+                end
+            end
+        end
+    end
+end
+
+buildPermissionCache()
+
+local function hasEmotePermission(source, emoteName, emoteType)
+    local aceCategory = AceCategoryFromEmoteType[emoteType]
+    if not aceCategory then return true end
+
+    local categoryCache = aceCache[aceCategory]
+    if not categoryCache then return true end
+
+    local requiredAces = categoryCache[emoteName]
+    if not requiredAces then return true end
+
+    for _, acePermission in ipairs(requiredAces) do
+        if IsPlayerAceAllowed(source, acePermission) then return true end
+    end
+
+    return false
+end
+
+
+RegisterNetEvent("rpemotes:server:requestEmote", function(target, emotename)
+    local source = source
     if not Player(source).state.canEmote then return end
 
-    local ped = GetPlayerPed(source)
+    if target == -1 then return end
 
-    if target == -1 then
-        return
-    end
-    local tped = GetPlayerPed(target)
-    local pedcoord = GetEntityCoords(ped)
-    local targetcoord = GetEntityCoords(tped)
+    local distance = #(GetEntityCoords(GetPlayerPed(source)) - GetEntityCoords(GetPlayerPed(target)))
 
-    local distance = #(pedcoord - targetcoord)
+    if distance > 3 then return end
 
-    if distance > 3 then
-        return
-    end
+    -- Check ACE permission for shared emote (only requestor needs permission)
+    if not hasEmotePermission(source, emotename, EmoteType.SHARED) then return end
 
-    TriggerClientEvent("ClientEmoteRequestReceive", target, emotename, etype, source)
+    TriggerClientEvent("rpemotes:client:requestEmote", target, emotename, source)
 end)
 
-RegisterNetEvent("ServerValidEmote", function(target, requestedemote, otheremote)
-    local ped = GetPlayerPed(source)
+RegisterNetEvent("rpemotes:server:confirmEmote", function(target, requestedemote, otheremote)
+    local source = source
 
-    if target == -1 then
-        return
-    end
-    local tped = GetPlayerPed(target)
-    local pedcoord = GetEntityCoords(ped)
-    local targetcoord = GetEntityCoords(tped)
+    if target == -1 then return end
 
-    local distance = #(pedcoord - targetcoord)
+    local distance = #(GetEntityCoords(GetPlayerPed(source)) - GetEntityCoords(GetPlayerPed(target)))
 
-    if distance > 3 then
-        return
-    end
+    if distance > 3 then return end
 
-    TriggerClientEvent("SyncPlayEmote", source, otheremote, target)
-    TriggerClientEvent("SyncPlayEmoteSource", target, requestedemote, source)
+    TriggerClientEvent("rpemotes:client:syncEmote", source, otheremote, target)
+    TriggerClientEvent("rpemotes:client:syncEmoteSource", target, requestedemote, source)
 end)
 
-RegisterNetEvent("ServerEmoteCancel", function(target)
-    TriggerClientEvent("SyncCancelEmote", target, source)
+RegisterNetEvent("rpemotes:server:cancelEmote", function(target)
+    TriggerClientEvent("rpemotes:client:cancelEmote", target, source)
 end)
 
---#region ptfx
 RegisterNetEvent("rpemotes:ptfx:sync", function(asset, name, offset, rot, bone, scale, color)
-    if type(asset) ~= "string" or type(name) ~= "string" or type(offset) ~= "vector3" or type(rot) ~= "vector3" then
-        print("[rpemotes] ptfx:sync: invalid arguments for source:", source)
-        return
-    end
+    assert(type(asset) == "string", "[rpemotes] ptfx:sync: invalid asset for source: " .. tostring(source))
+    assert(type(name) == "string", "[rpemotes] ptfx:sync: invalid name for source: " .. tostring(source))
+    assert(type(offset) == "vector3", "[rpemotes] ptfx:sync: invalid offset for source: " .. tostring(source))
+    assert(type(rot) == "vector3", "[rpemotes] ptfx:sync: invalid rot for source: " .. tostring(source))
 
-    local srcPlayerState = Player(source).state
+    local state = Player(source).state
 
-    srcPlayerState:set("ptfxAsset", asset, true)
-    srcPlayerState:set("ptfxName", name, true)
-    srcPlayerState:set("ptfxOffset", offset, true)
-    srcPlayerState:set("ptfxRot", rot, true)
-    srcPlayerState:set("ptfxBone", bone, true)
-    srcPlayerState:set("ptfxScale", scale, true)
-    srcPlayerState:set("ptfxColor", color, true)
-    srcPlayerState:set("ptfxPropNet", false, true)
-    srcPlayerState:set("ptfx", false, true)
+    state:set("ptfxAsset", asset, true)
+    state:set("ptfxName", name, true)
+    state:set("ptfxOffset", offset, true)
+    state:set("ptfxRot", rot, true)
+    state:set("ptfxBone", bone, true)
+    state:set("ptfxScale", scale, true)
+    state:set("ptfxColor", color, true)
+    state:set("ptfx", nil, true)
 end)
 
-RegisterNetEvent("rpemotes:ptfx:syncProp", function(propNet)
-    local srcPlayerState = Player(source).state
-    if propNet then
-        -- Prevent infinite loop to get entity
-        local waitForEntityToExistCount = 0
-        while waitForEntityToExistCount <= 100 and not DoesEntityExist(NetworkGetEntityFromNetworkId(propNet)) do
-            Wait(10)
-            waitForEntityToExistCount = waitForEntityToExistCount + 1
-        end
-
-        -- If below 100 then we could find the loaded entity
-        if waitForEntityToExistCount < 100 then
-            srcPlayerState:set("ptfxPropNet", propNet, true)
-            return
-        end
-    end
-    -- If we reach this point then we couldn"t find the entity
-    srcPlayerState:set("ptfxPropNet", false, true)
+RegisterNetEvent("rpemotes:server:syncHeading", function(heading)
+    local state = Player(source).state
+    state:set("emoteHeading", heading, true)
 end)
---#endregion ptfx
 
-
------------------------------------------------------------------------------------------------------
--- Keybinding  --------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
-
-local function addKeybindEventHandlers()
-    RegisterNetEvent("rp:ServerKeybindExist", function()
-        local src = source
-        local srcid = GetPlayerIdentifier(src)
-        MySQL.query("SELECT * FROM dpkeybinds WHERE `id`=@id;", { id = srcid }, function(dpkeybinds)
-            if dpkeybinds[1] then
-                TriggerClientEvent("rp:ClientKeybindExist", src, true)
-            else
-                TriggerClientEvent("rp:ClientKeybindExist", src, false)
-            end
-        end)
-    end)
-
-    --  This is my first time doing SQL stuff, and after i finished everything i realized i didnt have to store the keybinds in the database at all.
-    --  But remaking it now is a little pointless since it does it job just fine!
-
-    RegisterNetEvent("rp:ServerKeybindCreate", function()
-        local src = source
-        local srcid = GetPlayerIdentifier(src)
-        MySQL.insert(
-            "INSERT INTO dpkeybinds (`id`, `keybind1`, `emote1`, `keybind2`, `emote2`, `keybind3`, `emote3`, `keybind4`, `emote4`, `keybind5`, `emote5`, `keybind6`, `emote6`) VALUES (@id, @keybind1, @emote1, @keybind2, @emote2, @keybind3, @emote3, @keybind4, @emote4, @keybind5, @emote5, @keybind6, @emote6);"
-            ,
-            {
-                id = srcid,
-                keybind1 = "num4",
-                emote1 = "",
-                keybind2 = "num5",
-                emote2 = "",
-                keybind3 = "num6",
-                emote3 = "",
-                keybind4 = "num7",
-                emote4 = "",
-                keybind5 = "num8",
-                emote5 = "",
-                keybind6 = "num9",
-                emote6 = ""
-            },
-            function(created)
-                print("[rp] ^2" .. GetPlayerName(src) .. "^0 got created!")
-                TriggerClientEvent("rp:ClientKeybindGet"
-                , src, "num4", "", "num5", "", "num6", "", "num7", "", "num8", "", "num8", "")
-            end)
-    end)
-
-    RegisterNetEvent("rp:ServerKeybindGrab", function()
-        local src = source
-        local srcid = GetPlayerIdentifier(src)
-        MySQL.query(
-            "SELECT keybind1, emote1, keybind2, emote2, keybind3, emote3, keybind4, emote4, keybind5, emote5, keybind6, emote6 FROM `dpkeybinds` WHERE `id` = @id"
-            ,
-            { ["@id"] = srcid }, function(kb)
-                if kb[1].keybind1 ~= nil then
-                    TriggerClientEvent("rp:ClientKeybindGet", src, kb[1].keybind1, kb[1].emote1, kb[1].keybind2,
-                        kb[1].emote2
-                        , kb[1].keybind3, kb[1].emote3, kb[1].keybind4, kb[1].emote4, kb[1].keybind5, kb[1].emote5,
-                        kb[1].keybind6, kb[1].emote6)
-                else
-                    TriggerClientEvent("rp:ClientKeybindGet", src, "num4", "", "num5", "", "num6", "", "num7", "", "num8",
-                        ""
-                        , "num8", "")
-                end
-            end)
-    end)
-
-    RegisterNetEvent("rp:ServerKeybindUpdate", function(key, emote)
-        local src = source
-        local myid = GetPlayerIdentifier(source)
-        local keybindMap = {
-            num4 = "emote1",
-            num5 = "emote2",
-            num6 = "emote3",
-            num7 = "emote4",
-            num8 = "emote5",
-            num9 = "emote6"
-        }
-
-        local emoteColumn = keybindMap[key]
-        if emoteColumn then
-            MySQL.update("UPDATE dpkeybinds SET " .. emoteColumn .. "=@emote WHERE id=@id", { id = myid, emote = emote },
-            function()
-                TriggerClientEvent("rp:ClientKeybindGetOne", src, key, emote)
-            end)
-        end
-    end)
-
-    RegisterServerEvent("rp:ServerKeybindDelete")
-    AddEventHandler("rp:ServerKeybindDelete", function(key)
-        local src = source
-        local srcid = GetPlayerIdentifierByType(src, "license")
-
-        local lists_keybinds = {
-            ["num4"] = "emote1",
-            ["num5"] = "emote2",
-            ["num6"] = "emote3",
-            ["num7"] = "emote4",
-            ["num8"] = "emote5",
-            ["num9"] = "emote6",
-        }
-
-        for k, v in pairs(lists_keybinds) do
-            if key == k then
-                MySQL.Async.execute("UPDATE dpkeybinds SET " .. v .. " = '' WHERE id=@id", { id = srcid }, function()
-                    TriggerClientEvent("esx:showNotification", src, "Deleting your bind: " .. key .. " ")
-                end)
-            end
-        end
-    end)
-end
-
-if Config.SqlKeybinding then -- and MySQL then
-    if GetResourceMetadata(GetCurrentResourceName(), 'server_script', 0) ~= '@oxmysql/lib/MySQL.lua' then
-        return print(
-        "^3Error! You're using Config.SqlKeybinding without oxmysql, you need to uncomment it in fxmanifest.lua^0")
-    end
-
-    MySQL.update(
-        [[
-		CREATE TABLE IF NOT EXISTS `dpkeybinds` (
-		  `id` varchar(50) NULL DEFAULT NULL,
-		  `keybind1` varchar(50) NULL DEFAULT 'num4',
-		  `emote1` varchar(255) NULL DEFAULT '',
-		  `keybind2` varchar(50) NULL DEFAULT 'num5',
-		  `emote2` varchar(255) NULL DEFAULT '',
-		  `keybind3` varchar(50) NULL DEFAULT 'num6',
-		  `emote3` varchar(255) NULL DEFAULT '',
-		  `keybind4` varchar(50) NULL DEFAULT 'num7',
-		  `emote4` varchar(255) NULL DEFAULT '',
-		  `keybind5` varchar(50) NULL DEFAULT 'num8',
-		  `emote5` varchar(255) NULL DEFAULT '',
-		  `keybind6` varchar(50) NULL DEFAULT 'num9',
-		  `emote6` varchar(255) NULL DEFAULT ''
-		) ENGINE=InnoDB COLLATE=latin1_swedish_ci;
-		]], {}, function(success)
-        if success then
-            addKeybindEventHandlers()
-        else
-            print("^3Error connecting to DB^0")
-        end
-    end)
-else
-    print(
-    "^3Sql Keybinding^0 is turned ^1off^0, if you want to enable /emotebind, set ^3SqlKeybinding = ^2true^0 in config.lua and uncomment oxmysql lines in fxmanifest.lua.")
-end
-
-
--- Emote props extractor
 local function ExtractEmoteProps(format)
-    local format = tonumber(format)
-    local xt, c, total = "", "", 0
+    format = tonumber(format)
+    local xt, c, total = '', '', 0
     if format == 1 then
-        print("Selected format: ^2\"prop_name\",")
-        xt = "\""; c = ","
+        print("Selected format: ^2'prop_name',")
+        xt = "'"; c = ","
     elseif format == 2 then
         print("Selected format: ^2\"prop_name\",")
         xt = "\""; c = ","
@@ -254,7 +199,7 @@ local function ExtractEmoteProps(format)
         print("Selected to calculate ^2total amount of emotes^0.")
     else
         print(
-        "\n### RPEmotes - Props Extractor ###\n\n^3Select output format^0\nAvailable formats:\n^11^0 - ^2\"prop_name\",\n^12^0 - ^2\"prop_name\",\n^13^0 -  ^2prop_name\n^14^0 -  ^2calculate total emotes\n\n^0Command usage example: ^5emoteextract 1^0\n")
+        "\n### RPEmotes - Props Extractor ###\n\n^3Select output format^0\nAvailable formats:\n^11^0 - ^2'prop_name',\n^12^0 - ^2\"prop_name\",\n^13^0 -  ^2prop_name\n^14^0 -  ^2calculate total emotes\n\n^0Command usage example: ^5emoteextract 1^0\n")
         return
     end
 
@@ -268,56 +213,53 @@ local function ExtractEmoteProps(format)
     if not success then return nil end
 
     if format == 4 then
-        local emoteTypes = { "Shared", "Dances", "AnimalEmotes", "Emotes", "PropEmotes", "Expressions", "Walks" }
-        local countEmotesWith = 0
-        local countEmotes = 0
+        local emoteTypes = { EmoteType.SHARED, EmoteType.DANCES, EmoteType.ANIMAL_EMOTES, EmoteType.EMOTES, EmoteType.PROP_EMOTES, EmoteType.EXPRESSIONS, EmoteType.WALKS }
+        local expressionAndWalkCount = 0
+        local otherEmotesCount = 0
 
-        for i = 1, #emoteTypes do
-            local emoteType = emoteTypes[i]
-            for _, _ in pairs(res[emoteType]) do
-                if emoteType == "Expressions" or emoteType == "Walks" then
-                    countEmotesWith += 1
-                else
-                    countEmotes += 1
-                end
+        for _, emoteType in ipairs(emoteTypes) do
+            local count = 0
+            for _ in pairs(res[emoteType]) do
+                count = count + 1
+            end
+            if emoteType == EmoteType.EXPRESSIONS or emoteType == EmoteType.WALKS then
+                expressionAndWalkCount = expressionAndWalkCount + count
+            else
+                otherEmotesCount = otherEmotesCount + count
             end
         end
 
-        local totalEmotes = countEmotesWith + countEmotes
+        local totalEmotes = expressionAndWalkCount + otherEmotesCount
 
-        print("Total Expressions and Walks: ^3" .. countEmotesWith .. "^0")
-        print("Total Emotes without Expressions and Walks: ^3" .. countEmotes .. "^0")
+        print("Total Expressions and Walks: ^3" .. expressionAndWalkCount .. "^0")
+        print("Total Emotes without Expressions and Walks: ^3" .. otherEmotesCount .. "^0")
         print("Total Emotes: ^3" .. totalEmotes .. "^0")
     else
-        -- table to keep track of exported values
-        local exportedValues = {}
-        -- open file for writing
-        local file = assert(io.open(GetResourcePath(GetCurrentResourceName()) .. "/prop_list.lua", "w"))
+        local file = io.open(GetResourcePath(GetCurrentResourceName()) .. "/prop_list.lua", "w+")
+        if not file then
+            print("Failed to open file for writing.")
+            return
+        end
 
-        -- tables that has props:
-        -- RP.PropEmotes
-        -- RP.Shared (most likely all props mentioned in here is used in PropEmotes, so I don"t check it)
+        local uniqueProps = {}
+
         for _, value in pairs(res.PropEmotes) do
-            -- check if the current value is a table and has an AnimationOptions field
             if type(value) == "table" and value.AnimationOptions then
-                -- extract the Prop and SecondProp values and check if they"re nil and not already exported
-                local propValue = value.AnimationOptions.Prop
-                local secondPropValue = value.AnimationOptions.SecondProp
-                if propValue and not exportedValues[propValue] then
-                    file:write(xt .. propValue .. xt .. c .. "\n")
-                    exportedValues[propValue] = true
-                    total += 1
-                end
-                if secondPropValue and not exportedValues[secondPropValue] then
-                    file:write(xt .. secondPropValue .. c .. "\n")
-                    exportedValues[secondPropValue] = true
-                    total += 1
-                end
+            local prop = value.AnimationOptions.Prop
+            local secondProp = value.AnimationOptions.SecondProp
+            if prop then uniqueProps[prop] = true end
+            if secondProp then uniqueProps[secondProp] = true end
             end
         end
 
-        print("Exported props: " .. total)
+        -- Write all unique props to file
+        for propName in pairs(uniqueProps) do
+            file:write(xt .. propName .. xt .. c .. "\n")
+            total = total + 1
+        end
+
         file:close()
+        print("Exported " .. total .. " props to ^2prop_list.lua^0")
     end
 end
 
@@ -325,3 +267,48 @@ RegisterCommand("emoteextract", function(source, args)
     if source > 0 then return end
     ExtractEmoteProps(args[1])
 end, true)
+
+-- Build adaptive permission manifest (sends smaller list: allow or deny)
+local function buildPermissionManifest(source)
+    local allowedCount = 0
+    local deniedCount = 0
+    local allowed = {
+        [EmoteType.EMOTES] = {},
+        [EmoteType.SHARED] = {},
+        [EmoteType.EXPRESSIONS] = {},
+        [EmoteType.WALKS] = {},
+    }
+    local denied = {
+        [EmoteType.EMOTES] = {},
+        [EmoteType.SHARED] = {},
+        [EmoteType.EXPRESSIONS] = {},
+        [EmoteType.WALKS] = {},
+    }
+
+    -- Check all cached emotes against permissions
+    for emoteType, emoteNames in pairs(emoteCache) do
+        for emoteName in pairs(emoteNames) do
+            if hasEmotePermission(source, emoteName, emoteType) then
+                allowed[emoteType][emoteName] = true
+                allowedCount += 1
+            else
+                denied[emoteType][emoteName] = true
+                deniedCount += 1
+            end
+        end
+    end
+
+    -- Send whichever list is smaller
+    if deniedCount < allowedCount then
+        return {mode = "deny", categories = denied}
+    else
+        return {mode = "allow", categories = allowed}
+    end
+end
+
+--- permissions callback
+RegisterNetEvent('rpemotes:server:requestPermissions', function()
+    local source = source
+    local permissions = buildPermissionManifest(source)
+    TriggerClientEvent('rpemotes:client:receivePermissions', source, permissions)
+end)

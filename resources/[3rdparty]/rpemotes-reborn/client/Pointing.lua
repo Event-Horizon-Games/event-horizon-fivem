@@ -7,11 +7,14 @@ end
 local function CanPlayerPoint()
     local playerPed = PlayerPedId()
     local playerId = PlayerId()
-    if not DoesEntityExist(playerPed) or IsPedOnAnyBike(playerPed) or IsPlayerAiming(playerId) or IsPedFalling(playerPed) or IsPedInjured(playerPed) or IsPedInMeleeCombat(playerPed) or IsPedRagdoll(playerPed) or not IsPedHuman(playerPed) then
-        return false
-    end
-
-    return true
+    return DoesEntityExist(playerPed)
+        and IsPedHuman(playerPed)
+        and not IsPedOnAnyBike(playerPed)
+        and not IsPlayerAiming(playerId)
+        and not IsPedFalling(playerPed)
+        and not IsPedInjured(playerPed)
+        and not IsPedInMeleeCombat(playerPed)
+        and not IsPedRagdoll(playerPed)
 end
 
 local function PointingStopped()
@@ -23,15 +26,15 @@ local function PointingStopped()
         ClearPedSecondaryTask(playerPed)
     end
     RemoveAnimDict("anim@mp_point")
-    if Config.PersistentEmoteAfterPointing and IsInAnimation then
-        local emote = RP.Emotes[CurrentAnimationName] or RP.PropEmotes[CurrentAnimationName] or RP.Dances[CurrentAnimationName] or RP.AnimalEmotes[CurrentAnimationName]
+    if Config.ReplayEmoteAfterPointing and IsInAnimation then
+        local emote = EmoteData[CurrentAnimationName]
         if not emote then
             return
         end
 
         Wait(400)
         DestroyAllProps()
-        OnEmotePlay(emote, CurrentAnimationName, CurrentTextureVariation)
+        OnEmotePlay(CurrentAnimationName, CurrentTextureVariation)
     end
 end
 
@@ -103,7 +106,7 @@ end
 -- Commands & KeyMapping --
 if Config.PointingEnabled then
     RegisterCommand('pointing', function()
-        if IsPedInAnyVehicle(PlayerPedId(), false) and not Config.PointingKeybindInCarEnabled then
+        if IsPedInAnyVehicle(PlayerPedId(), false) and not Config.PointingInCar then
             return
         end
         StartPointing()
@@ -117,11 +120,8 @@ if Config.PointingEnabled then
 end
 
 
--- Exports --
-
 ---@return boolean
 local function IsPlayerPointing()
     return Pointing
 end
-
-exports('IsPlayerPointing', IsPlayerPointing)
+CreateExport('IsPlayerPointing', IsPlayerPointing)

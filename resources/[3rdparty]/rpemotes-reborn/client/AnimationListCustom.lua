@@ -5,6 +5,8 @@
 -- Remove the } from the = {} then enter your own animation code ---
 -- Don't forget to close the tables.
 
+---@type AnimationListConfig?
+---@diagnostic disable-next-line: missing-fields
 local CustomDP = {}
 
 CustomDP.Expressions = {}
@@ -21,19 +23,10 @@ CustomDP.PropEmotes = {}
 -----------------------------------------------------------------------------------------
 
 function LoadAddonEmotes()
-    local prefixes = {
-        Shared = '🤼 ',
-        AnimalEmotes = '🐶 ',
-        PropEmotes = '📦 '
-    }
-
+    assert(CustomDP ~= nil, 'Addon emotes can only be loaded once')
     for arrayName, array in pairs(CustomDP) do
         if RP[arrayName] then
-            local prefix = prefixes[arrayName]
             for emoteName, emoteData in pairs(array) do
-                if prefix then
-                    emoteData[3] = prefix .. emoteData[3]
-                end
                 RP[arrayName][emoteName] = emoteData
             end
         end

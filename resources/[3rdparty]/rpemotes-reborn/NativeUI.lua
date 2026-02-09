@@ -477,14 +477,14 @@ function GetByteCount(str)
     local bytes = 0
 
     for c in str:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
-        local a, b, c, d = c:byte(1, -1)
+        local a, b, cc, d = c:byte(1, -1)
         if a ~= nil then
             bytes = bytes + 1
         end
         if b ~= nil then
             bytes = bytes + 1
         end
-        if c ~= nil then
+        if cc ~= nil then
             bytes = bytes + 1
         end
         if d ~= nil then
@@ -2376,7 +2376,7 @@ end
 --]]
 
 function UIMenu.New(Title, Subtitle, X, Y, TxtDictionary, TxtName)
-    local X, Y = tonumber(X) or 0, tonumber(Y) or 0
+    X, Y = tonumber(X) or 0, tonumber(Y) or 0
     if Title ~= nil then Title = tostring(Title) or "" else Title = "" end
     if Subtitle ~= nil then Subtitle = tostring(Subtitle) or "" else Subtitle = "" end
     if TxtDictionary ~= nil then TxtDictionary = tostring(TxtDictionary) or "commonmenu" else TxtDictionary = "commonmenu" end
@@ -2416,6 +2416,9 @@ function UIMenu.New(Title, Subtitle, X, Y, TxtDictionary, TxtName)
             },
             Increment = {
                 Enabled = true,
+            },
+            Preview = {
+                Toggable = Config.PreviewPedToggle
             }
         },
         ParentMenu = nil,
@@ -2436,7 +2439,11 @@ function UIMenu.New(Title, Subtitle, X, Y, TxtDictionary, TxtName)
         OnProgressSelect = function(menu, progress, index) end,
         OnItemSelect = function(menu, item, index) end,
         OnMenuChanged = function(menu, newmenu, forward) end,
-        OnMenuClosed = function(menu) end,
+        OnMenuClosed = function(menu)
+            if ShowPed == true then
+                ClosePedMenu()
+            end
+        end,
         Settings = {
             InstructionalButtons = true,
             MultilineFormats = true,
@@ -2444,7 +2451,7 @@ function UIMenu.New(Title, Subtitle, X, Y, TxtDictionary, TxtName)
             ResetCursorOnOpen = false,
             MouseControlsEnabled = false,
             MouseEdgeEnabled = false,
-            ControlDisablingEnabled = Config.DisableControls,
+            ControlDisablingEnabled = Config.DisableControlsInMenu,
             Audio = {
                 Library = "HUD_FRONTEND_DEFAULT_SOUNDSET",
                 UpDown = "NAV_UP_DOWN",
@@ -2633,8 +2640,12 @@ function UIMenu:CurrentSelection(value)
     if tonumber(value) then
         if #self.Items == 0 then
             self.ActiveItem = 0
+            return
         end
-        self.Items[self:CurrentSelection()]:Selected(false)
+        local currentItem = self.Items[self:CurrentSelection()]
+        if currentItem then
+            currentItem:Selected(false)
+        end
         self.ActiveItem = 1000000 - (1000000 % #self.Items) + tonumber(value)
 
         if self:CurrentSelection() > self.Pagination.Max then
@@ -2896,6 +2907,22 @@ function UIMenu:ProcessControl()
         end
         PlaySoundFrontend(-1, self.Settings.Audio.UpDown, self.Settings.Audio.Library, true)
         self:Visible(true)
+    end
+
+    if (self.Controls.Preview.Toggable and (IsDisabledControlJustReleased(0, 83) or IsDisabledControlJustReleased(1, 83) or IsDisabledControlJustReleased(2, 83))) and not tobool(Controller()) then
+        PlaySoundFrontend(-1, self.Settings.Audio.UpDown, self.Settings.Audio.Library, true)
+
+        Config.PreviewPed = not Config.PreviewPed
+        self:Visible(true)
+
+        if Config.PreviewPed then
+            ShowPedMenu(zoom)
+        else
+            ClosePedMenu()
+            ShowPed = false
+            ClearPedTaskPreview()
+            DeleteEntity(ClonedPed)
+        end
     end
 
     -- If player is using controller, the control index is 199
@@ -3553,7 +3580,7 @@ function UIMenu:ProcessMouse()
 end
 
 function UIMenu:AddInstructionButton(button)
-    if type(button) == "table" and #button == 2 then
+    if type(button) == "table" and #button >= 2 then
         table.insert(self.InstructionalButtons, button)
     end
 end
@@ -3596,6 +3623,16 @@ function UIMenu:UpdateScaleform()
         return
     end
 
+    local favoriteEmotes = GetFavoriteEmotes()
+    local showEmoteButtons = CurrentMenuSelection and CurrentMenuSelection.name and CurrentMenuSelection.emoteType
+        and CurrentMenuSelection.emoteType ~= EmoteType.EXPRESSIONS
+        and CurrentMenuSelection.emoteType ~= EmoteType.WALKS
+        and CurrentMenuSelection.emoteType ~= EmoteType.SHARED
+        and CurrentMenuSelection.emoteType ~= EmoteType.EMOJI
+
+    local showKeybindButtons = Config.Keybinding and ((keybindMenu and keybindMenu.menu:Visible()) or (CurrentMenuSelection and CurrentMenuSelection.name and CurrentMenuSelection.emoteType))
+    local showFavoriteButton = CurrentMenuSelection and CurrentMenuSelection.name and CurrentMenuSelection.emoteType
+
     PushScaleformMovieFunction(self.InstructionalScaleform, "CLEAR_ALL")
     PopScaleformMovieFunction()
 
@@ -3606,43 +3643,109 @@ function UIMenu:UpdateScaleform()
     PushScaleformMovieFunction(self.InstructionalScaleform, "CREATE_CONTAINER")
     PopScaleformMovieFunction()
 
+    local count = 0
+
     PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
-    PushScaleformMovieFunctionParameterInt(0)
+    PushScaleformMovieFunctionParameterInt(count)
     PushScaleformMovieFunctionParameterString(GetControlInstructionalButton(2, 176, 0))
     PushScaleformMovieFunctionParameterString(Translate('btn_select'))
     PopScaleformMovieFunction()
+    count = count + 1
 
     if self.Controls.Back.Enabled then
         PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
-        PushScaleformMovieFunctionParameterInt(1)
+        PushScaleformMovieFunctionParameterInt(count)
         PushScaleformMovieFunctionParameterString(GetControlInstructionalButton(2, 177, 0))
         PushScaleformMovieFunctionParameterString(Translate('btn_back'))
         PopScaleformMovieFunction()
+        count = count + 1
     end
 
     -- If using keyboard, show alt increment button
     if self.Controls.Increment.Enabled and not tobool(Controller()) then
         PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
-        PushScaleformMovieFunctionParameterInt(3)
+        PushScaleformMovieFunctionParameterInt(count)
         PushScaleformMovieFunctionParameterString(GetControlInstructionalButton(2, 19, 0))
         PushScaleformMovieFunctionParameterString(Translate('btn_increment')..(paginationValue and ': '..paginationValue or ": "..paginationValue))
         PopScaleformMovieFunction()
+        count = count + 1
+    end
+
+    if self.Controls.Preview.Toggable and not tobool(Controller()) then
+        PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+        PushScaleformMovieFunctionParameterInt(count)
+        PushScaleformMovieFunctionParameterString(GetControlInstructionalButton(2, 83, false))
+        PushScaleformMovieFunctionParameterString(Translate('btn_preview')..(Config.PreviewPed and ': on' or ': off'))
+        PopScaleformMovieFunction()
+        count = count + 1
     end
 
     -- If using controller, show 199 increment button
     if self.Controls.Increment.Enabled and tobool(Controller()) then
         PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
-        PushScaleformMovieFunctionParameterInt(3)
+        PushScaleformMovieFunctionParameterInt(count)
         PushScaleformMovieFunctionParameterString(GetControlInstructionalButton(2, 199, 0))
         PushScaleformMovieFunctionParameterString(Translate('btn_increment')..(paginationValue and ': '..paginationValue or ": "..paginationValue))
         PopScaleformMovieFunction()
+        count = count + 1
     end
 
-    local count = 3
+    if showFavoriteButton then
+        PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+        PushScaleformMovieFunctionParameterInt(count)
+        PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 121, 0))
+        if favoriteEmotes[CurrentMenuSelection.emoteType.."_"..CurrentMenuSelection.name] then
+            PushScaleformMovieFunctionParameterString(Translate("btn_remove_favorite"))
+        else
+            PushScaleformMovieFunctionParameterString(Translate("btn_set_favorite"))
+        end
+        PopScaleformMovieFunction()
+        count = count + 1
+    end
+
+    if showKeybindButtons then
+        if not CurrentMenuSelection.emoteType then
+            PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+            PushScaleformMovieFunctionParameterInt(count)
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 176, 0))
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 178, 0))
+            PushScaleformMovieFunctionParameterString(Translate("btn_delkeybind"))
+            PopScaleformMovieFunction()
+            count = count + 1
+        else
+            PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+            PushScaleformMovieFunctionParameterInt(count)
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 176, 0))
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 311, 0))
+            PushScaleformMovieFunctionParameterString(Translate("btn_setkeybind"))
+            PopScaleformMovieFunction()
+            count = count + 1
+        end
+    end
+
+    if showEmoteButtons then
+        if Config.PlacementEnabled then
+            PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+            PushScaleformMovieFunctionParameterInt(count)
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 176, 0))
+            PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 21, 0))
+            PushScaleformMovieFunctionParameterString(Translate('btn_place'))
+            PopScaleformMovieFunction()
+            count = count + 1
+        end
+
+        PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
+        PushScaleformMovieFunctionParameterInt(count)
+        PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 176, 0))
+        PushScaleformMovieMethodParameterButtonName(GetControlInstructionalButton(2, 36, 0))
+        PushScaleformMovieFunctionParameterString(Translate('btn_groupselect'))
+        PopScaleformMovieFunction()
+        count = count + 1
+    end
 
     for i = 1, #self.InstructionalButtons do
         if self.InstructionalButtons[i] then
-            if #self.InstructionalButtons[i] == 3 then
+            if #self.InstructionalButtons[i] >= 2 then
                 PushScaleformMovieFunction(self.InstructionalScaleform, "SET_DATA_SLOT")
                 PushScaleformMovieFunctionParameterInt(count)
                 PushScaleformMovieFunctionParameterString(self.InstructionalButtons[i][1])
